@@ -3,5 +3,10 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/bachbot" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/chord-gene/Chord-Annotations" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/chord-gene/LSTM-RNN-Melody-Composer" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/chord-gene/lstm_real_book" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/emotion/StyleNet" vcs="Git" />
   </component>
 </project>
