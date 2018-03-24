@@ -108,14 +108,17 @@ def create_dataset(folder, config=scripts.Config()):
 			inputs.append(scripts.to_onehot(melody, input_shape[1]))
 		for chord in chords:
 			outputs.append(scripts.to_onehot(chord, output_shape[1]))
+
 	elif config.mode == 'melody':
 		input_shape = (config.num_bars * config.steps_per_bar, 130)
 		output_shape = input_shape
 
 		for i, melody in enumerate(melodies[:-1]):
 			melody = [n + 2 for n in melody]
+			next_melody = melodies[i + 1]
+			next_melody = [n + 2 for n in next_melody]
 			inputs.append(scripts.to_onehot(melody, input_shape[1]))
-			outputs.append(scripts.to_onehot(melodies[i + 1], input_shape[1]))
+			outputs.append(scripts.to_onehot(next_melody, input_shape[1]))
 	else:
 		raise NotImplementedError
 	return array(inputs), array(outputs), input_shape, output_shape
