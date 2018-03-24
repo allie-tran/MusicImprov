@@ -2,10 +2,10 @@ import json
 
 from keras.callbacks import ModelCheckpoint
 from keras.layers import Activation, Reshape
-from keras.layers import Dense
+from keras.layers import Dense, Input
 from keras.layers import Dropout
 from keras.layers import LSTM
-from keras.models import Sequential
+from keras.models import Sequential, Model
 from keras.utils import print_summary
 from numpy import array, argmax
 
@@ -15,7 +15,7 @@ from scripts.note_sequence_utils import chord_collection
 
 class Net(Sequential):
 	"""
-	Create a general structur of the neural network
+	Create a general structure of the neural network
 	"""
 
 	def __init__(self, input_shape, output_vocab, config):
@@ -37,7 +37,7 @@ class Net(Sequential):
 		print_summary(self)
 
 	def train(self, net_input, net_output, config):
-		filepath = "weights-improvement-{epoch:02d}-{loss:.4f}-bigger.hdf5"
+		filepath = "weights/weights-{epoch:02d}.hdf5"
 		checkpoint = ModelCheckpoint(
 			filepath,
 			monitor='loss',
@@ -53,7 +53,7 @@ class Net(Sequential):
 		# Load the weights to each node
 		# self.load_weights('best-weights-without-rests.hdf5')
 		input_sequence = array([primer_notesequence])
-		self.load_weights('weights-improvement-11-3.3777-bigger.hdf5')
+		self.load_weights('weights/weights-improvement-65-0.1787-bigger.hdf5')
 		input = scripts.to_onehot(input_sequence, 130)
 		output = self.predict(input, verbose=0)[0]
 		chords = scripts.ChordSequence(list(argmax(output, axis=1)), encode=True, config=config)
@@ -93,17 +93,72 @@ def create_dataset(folder, config=scripts.Config()):
 
 	with open('../phrases_data.json') as f:
 		data = json.load(f)
+
 	melodies = data['melodies']
 	chords = data['chords']
 
-	input_shape = (config.num_bars * config.steps_per_bar, 130)
-	output_shape = (config.num_bars * config.chords_per_bar, len(chord_collection))
-
 	inputs = []
 	outputs = []
-	for melody in melodies:
-		inputs.append(scripts.to_onehot(melody, input_shape[1]))
-	for chord in chords:
-		outputs.append(scripts.to_onehot(chord, output_shape[1]))
 
+	if config.mode == 'chord':
+		input_shape = (config.num_bars * config.steps_per_bar, 130)
+		output_shape = (config.num_bars * config.chords_per_bar, len(chord_collection))
+
+		for melody in melodies:
+			inputs.append(scripts.to_onehot(melody, input_shape[1]))
+		for chord in chords:
+			outputs.append(scripts.to_onehot(chord, output_shape[1]))
+	elif config.mode == 'melody':
+		input_shape = (config.num_bars * config.steps_per_bar, 130)
+		output_shape = input_shape
+
+		for i, melody in enumerate(melodies[:-1]):
+			inputs.append(scripts.to_onehot(melody, input_shape[1]))
+			outputs.append(scripts.to_onehot(melodies[i + 1], input_shape[1]))
+	else:
+		raise NotImplementedError
 	return array(inputs), array(outputs), input_shape, output_shape
+
+
+class MelodyAnswerNet(Model):
+	"""
+		Create a general structure of the neural network
+		"""
+
+	def __init__(self, input_shape, config):
+		input = Input(shape=input_shape)
+		lstm1 = LSTM(512, return_sequences=True)(input)
+		dropout = Dropout(0.3)(lstm1)
+		lstm2 = LSTM(512, return_sequences=True)(dropout)
+		output = Dense(input_shape[1])(lstm2)
+		activate = Activation('softmax')(output)
+		super(MelodyAnswerNet, self).__init__(input, activate)
+
+		self.compile(optimizer='adam', loss='categorical_crossentropy')
+		print_summary(self)
+
+	def train(self, net_input, net_output, config):
+		filepath = "weights/melody-weights-{epoch:02d}.hdf5"
+		checkpoint = ModelCheckpoint(
+			filepath,
+			monitor='loss',
+			verbose=0,
+			save_best_only=True,
+			mode='min'
+		)
+		callbacks_list = [checkpoint]
+
+		self.fit(net_input, net_output, epochs=config.epochs, batch_size=config.batch_size, callbacks=callbacks_list)
+
+	def generate(self, primer_notesequence, name, config):
+		# Load the weights to each node
+		# self.load_weights('best-weights-without-rests.hdf5')
+		input_sequence = array([primer_notesequence])
+		self.load_weights('weights/weights-melody.hdf5')
+		input = scripts.to_onehot(input_sequence, 130)
+		output = self.predict(input, verbose=0)[0]
+
+		output_melody = scripts.MelodySequence(list(argmax(output, axis=1)))
+		output_melody.to_midi(name, save=True)
+
+		return output_melody
