@@ -127,7 +127,12 @@ def encode_melody(melody):
 	melody = [n + 2 for n in melody]
 	input_sequence = []
 	context = zeros(12)
+	prev = 0
 	for k, n in enumerate(melody):
+		if n >= 2:
+			interval = n - prev
+			prev = n
+
 		feature = zeros(27)
 		# print('---------------------------')
 		position = n
@@ -137,10 +142,6 @@ def encode_melody(melody):
 
 		feature[1:13] = pitchclass
 		# print(pitchclass)
-		try:
-			interval = n - melody[k - 1]
-		except IndexError:
-			interval = n
 		feature[14] = interval
 		# print(interval)
 		# print(context)
