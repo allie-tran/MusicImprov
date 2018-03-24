@@ -7,7 +7,7 @@ from keras.layers import Dropout
 from keras.layers import LSTM
 from keras.models import Sequential, Model
 from keras.utils import print_summary
-from numpy import array, argmax
+from numpy import array, argmax, zeros
 
 import scripts
 from scripts.note_sequence_utils import chord_collection
@@ -110,18 +110,47 @@ def create_dataset(folder, config=scripts.Config()):
 			outputs.append(scripts.to_onehot(chord, output_shape[1]))
 
 	elif config.mode == 'melody':
-		input_shape = (config.num_bars * config.steps_per_bar, 130)
-		output_shape = input_shape
+		output_shape = (config.num_bars * config.steps_per_bar, 130)
+		input_shape = (config.num_bars * config.steps_per_bar, 27)
 
 		for i, melody in enumerate(melodies[:-1]):
-			melody = [n + 2 for n in melody]
 			next_melody = melodies[i + 1]
 			next_melody = [n + 2 for n in next_melody]
-			inputs.append(scripts.to_onehot(melody, input_shape[1]))
-			outputs.append(scripts.to_onehot(next_melody, input_shape[1]))
+			outputs.append(scripts.to_onehot(next_melody, output_shape[1]))
+			inputs.append(encode_melody(melody))
 	else:
 		raise NotImplementedError
 	return array(inputs), array(outputs), input_shape, output_shape
+
+
+def encode_melody(melody):
+	melody = [n + 2 for n in melody]
+	input_sequence = []
+	context = zeros(12)
+	for k, n in enumerate(melody):
+		feature = zeros(27)
+		# print('---------------------------')
+		position = n
+		feature[0] = position
+		pitchclass = zeros(12)
+		pitchclass[int((n + 22) % 12)] = 1
+
+		feature[1:13] = pitchclass
+		# print(pitchclass)
+		try:
+			interval = n - melody[k - 1]
+		except IndexError:
+			interval = n
+		feature[14] = interval
+		# print(interval)
+		# print(context)
+		feature[15:] = context
+		# feature = [position] + pitchclass + [interval] + context]
+		# print(feature)
+		input_sequence.append(feature)
+		context[int((n + 22) % 12)] += 1
+
+	return input_sequence
 
 
 class MelodyAnswerNet(Model):
@@ -129,12 +158,12 @@ class MelodyAnswerNet(Model):
 		Create a general structure of the neural network
 		"""
 
-	def __init__(self, input_shape, config):
+	def __init__(self, input_shape, output_shape, config):
 		input = Input(shape=input_shape)
 		lstm1 = LSTM(512, return_sequences=True)(input)
 		dropout = Dropout(0.3)(lstm1)
 		lstm2 = LSTM(512, return_sequences=True)(dropout)
-		output = Dense(input_shape[1])(lstm2)
+		output = Dense(output_shape[1])(lstm2)
 		activate = Activation('softmax')(output)
 		super(MelodyAnswerNet, self).__init__(input, activate)
 
@@ -159,8 +188,7 @@ class MelodyAnswerNet(Model):
 		# self.load_weights('best-weights-without-rests.hdf5')
 		input_sequence = array([primer_notesequence])
 		self.load_weights('weights/melody-weights.hdf5')
-		input = scripts.to_onehot(input_sequence, 130)
-		output = self.predict(input, verbose=0)[0]
+		output = self.predict(input_sequence, verbose=0)[0]
 		output = list(argmax(output, axis=1))
 		output = [n - 2 for n in output]
 		output_melody = scripts.MelodySequence(output)

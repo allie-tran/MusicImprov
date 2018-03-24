@@ -116,6 +116,7 @@ def decode_chord(num):
 		notes.append(pitch.Pitch(p))
 	return notes
 
+
 class ChordSequence(list):
 	"""
 	A list of chord for one phrase.
