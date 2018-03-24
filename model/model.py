@@ -91,7 +91,7 @@ def create_dataset(folder, config=scripts.Config()):
 	# 	with open('../phrases_data.json', 'w') as f:
 	# 		json.dump({'melodies': melodies, 'chords': chords}, f)
 
-	with open('../phrases_data.json') as f:
+	with open('phrases_data.json') as f:
 		data = json.load(f)
 
 	melodies = data['melodies']
