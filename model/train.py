@@ -42,7 +42,7 @@ def melody_generate(config):
 			# print(chord_sequence)
 			next_melody = model.generate(melody, 'generated/generate_' + phrase_dict['name'], config)
 			chord_sequence = phrase_dict['chord']
-			chord_sequence.to_midi(next_melody, config)
+			chord_sequence.to_midi(next_melody, 'generated/generate_' + phrase_dict['name'] + 'chord')
 
 
 if __name__ == '__main__':
