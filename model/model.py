@@ -113,6 +113,7 @@ def create_dataset(folder, config=scripts.Config()):
 		output_shape = input_shape
 
 		for i, melody in enumerate(melodies[:-1]):
+			melody = [n + 2 for n in melody]
 			inputs.append(scripts.to_onehot(melody, input_shape[1]))
 			outputs.append(scripts.to_onehot(melodies[i + 1], input_shape[1]))
 	else:
@@ -154,11 +155,13 @@ class MelodyAnswerNet(Model):
 		# Load the weights to each node
 		# self.load_weights('best-weights-without-rests.hdf5')
 		input_sequence = array([primer_notesequence])
-		self.load_weights('weights/weights-melody.hdf5')
+		self.load_weights('weights/melody-weights.hdf5')
 		input = scripts.to_onehot(input_sequence, 130)
 		output = self.predict(input, verbose=0)[0]
-
-		output_melody = scripts.MelodySequence(list(argmax(output, axis=1)))
+		output = list(argmax(output, axis=1))
+		output = [n - 2 for n in output]
+		output_melody = scripts.MelodySequence(output)
+		print(output_melody)
 		output_melody.to_midi(name, save=True)
 
 		return output_melody
