@@ -1,3 +1,7 @@
+import os
+import sys
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import scripts
 from model import Net, create_dataset, MelodyAnswerNet
 
