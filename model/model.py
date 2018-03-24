@@ -138,7 +138,7 @@ class MelodyAnswerNet(Model):
 		print_summary(self)
 
 	def train(self, net_input, net_output, config):
-		filepath = "weights/melody-weights-{epoch:02d}.hdf5"
+		filepath = "weights/melody-weights.hdf5"
 		checkpoint = ModelCheckpoint(
 			filepath,
 			monitor='loss',
