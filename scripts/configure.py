@@ -11,7 +11,7 @@ class Config(object):
 		self.steps_per_bar = 16
 		self.chords_per_bar = 1
 
-		self.epochs = 100
+		self.epochs = 200
 		self.batch_size = 32
 		self.optimizer = 'adam'
 

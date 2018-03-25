@@ -28,7 +28,7 @@ def chord_generate(config):
 def melody_generate(config):
 	inputs, outputs, input_shape, output_shape = create_dataset('../xml', config)
 	model = MelodyAnswerNet(input_shape, output_shape, config)
-	# model.train(inputs, outputs, config)
+	model.train(inputs, outputs, config)
 
 	testscore = scripts.MusicXML()
 	testscore.from_file('innocent.mxl')
@@ -39,7 +39,6 @@ def melody_generate(config):
 		phrase_dict = transformer.transform(phrase, config)
 		if phrase_dict is not None:
 			melody = phrase_dict['melody']
-			# print(chord_sequence)
 			next_melody = model.generate(encode_melody(melody), 'generated/generate_' + phrase_dict['name'], config)
 			chord_sequence = phrase_dict['chord']
 			chord_sequence.to_midi(next_melody, 'generated/generate_' + phrase_dict['name'] + 'chord')

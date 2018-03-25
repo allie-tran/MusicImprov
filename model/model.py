@@ -136,6 +136,7 @@ def encode_melody(melody):
 			silent = 0
 		else:
 			silent += 1
+			interval = 0
 		feature = zeros(27)
 		# print('---------------------------')
 		position = n
@@ -144,16 +145,13 @@ def encode_melody(melody):
 		pitchclass[int((n + 22) % 12)] = 1
 
 		feature[1:13] = pitchclass
-		# print(pitchclass)
 		feature[14] = interval
-		# print(interval)
-		# print(context)
 		feature[15:-1] = context
 		feature[-1] = silent
-		# feature = [position] + pitchclass + [interval] + context]
-		# print(feature)
 		input_sequence.append(feature)
-		context[int((n + 22) % 12)] += 1
+
+		if n >= 2:
+			context[int((n + 22) % 12)] += 1
 
 	return input_sequence
 
@@ -168,7 +166,8 @@ class MelodyAnswerNet(Model):
 		lstm1 = LSTM(512, return_sequences=True)(input)
 		dropout = Dropout(0.3)(lstm1)
 		lstm2 = LSTM(512, return_sequences=True)(dropout)
-		output = Dense(output_shape[1])(lstm2)
+		dropout2 = Dropout(0.3)(lstm2)
+		output = Dense(output_shape[1])(dropout2)
 		activate = Activation('softmax')(output)
 		super(MelodyAnswerNet, self).__init__(input, activate)
 
