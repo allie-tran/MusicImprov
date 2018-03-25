@@ -34,7 +34,7 @@ def melody_generate():
 		model.train(inputs, outputs)
 
 	testscore = MusicXML()
-	testscore.from_file('innocent.mxl')
+	testscore.from_file(args.test)
 	phrases = list(testscore.phrases(reanalyze=False))
 	transformer = XMLtoNoteSequence()
 
