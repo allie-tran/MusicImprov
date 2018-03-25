@@ -3,6 +3,7 @@ import logging
 from numpy import ones
 
 from note_sequence_utils import *
+from scripts import args
 from transformer import *
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
@@ -100,7 +101,7 @@ class MusicXML(object):
 
 	# logging.debug(self._key)
 
-	def phrases(self, config, reanalyze=False):
+	def phrases(self, reanalyze=False):
 		"""
 		Extract phrases from the original score
 		:param reanalyze: use local, piecewise time signature and key
@@ -110,8 +111,8 @@ class MusicXML(object):
 		while True:
 			phrase_melody = stream.PartStaff()
 			phrase_accompaniment = stream.PartStaff()
-			phrase_melody.append(self._melody[i:i + config.num_bars])
-			phrase_accompaniment.append(self._accompaniment[i:i + config.num_bars])
+			phrase_melody.append(self._melody[i:i + args.num_bars])
+			phrase_accompaniment.append(self._accompaniment[i:i + args.num_bars])
 			phrase = stream.Stream([phrase_melody, phrase_accompaniment])
 			if reanalyze:
 				phrase.key = phrase.analyze('key')
@@ -119,10 +120,10 @@ class MusicXML(object):
 				phrase.key = self._key
 			phrase.timeSignature = self.time_signatures[0]
 
-			yield (Phrase(phrase, config, self._name + ' ' + str(i / config.num_bars)))
+			yield (Phrase(phrase, self._name + ' ' + str(i / args.num_bars)))
 
-			i += config.num_bars
-			if i + config.num_bars >= len(self._melody):
+			i += args.num_bars
+			if i + args.num_bars >= len(self._melody):
 				break
 
 
@@ -132,7 +133,7 @@ class Phrase(MusicXML):
 	The phrase should have only 1 key and 1 time signature.
 	"""
 
-	def __init__(self, streams, config, name='', transpose=True):
+	def __init__(self, streams, name='', transpose=True):
 		"""
 		Construct a phrase
 		:param transpose: if True, transpose the phrase into the key of C major or A minor.
@@ -142,7 +143,7 @@ class Phrase(MusicXML):
 		if transpose:
 			i = interval.Interval(self._key.tonic, pitch.Pitch('C'))
 			self._score.transpose(i, inPlace=True)
-		self._num_bars = config.num_bars
+		self._num_bars = args.num_bars
 		self._name = name
 
 	@property
@@ -194,7 +195,7 @@ class XMLtoNoteSequence(Transformer):
 		"""
 		super(XMLtoNoteSequence, self).__init__(MusicXML, (MelodySequence, ChordSequence))
 
-	def transform(self, input, config):
+	def transform(self, input):
 		"""
 		:param input: a Phrase object
 		:return: a dictionary with the form
@@ -203,25 +204,25 @@ class XMLtoNoteSequence(Transformer):
 		print(input.name)
 		assert isinstance(input, Phrase), 'Please provide a valid Phrase object'
 		# For melody: taking only the highest note (monophonic)
-		note_sequence = ones(config.steps_per_bar * input.num_bars) * -1
+		note_sequence = ones(args.steps_per_bar * input.num_bars) * -1
 		try:
 			for n in input.melody.flat.getElementsByClass(note.Note):
-				note_sequence[int(n.offset * config.steps_per_bar / 4)] = \
-					max(n.midi, note_sequence[int(n.offset * config.steps_per_bar / 4)])
+				note_sequence[int(n.offset * args.steps_per_bar / 4)] = \
+					max(n.midi, note_sequence[int(n.offset * args.steps_per_bar / 4)])
 			for c in input.melody.flat.getElementsByClass(chord.Chord):
 				n = c.orderedPitchClasses[-1]
-				note_sequence[int(c.offset * config.steps_per_bar / 4)] = \
-					max(n, note_sequence[int(c.offset * config.steps_per_bar / 4)])
+				note_sequence[int(c.offset * args.steps_per_bar / 4)] = \
+					max(n, note_sequence[int(c.offset * args.steps_per_bar / 4)])
 
 			for n in input.melody.flat.getElementsByClass(note.Rest):
-				note_sequence[int(n.offset * config.steps_per_bar / 4)] = -2
+				note_sequence[int(n.offset * args.steps_per_bar / 4)] = -2
 
 			# For accompaniment
-			chord_sequence = input.accompaniment_to_chords(config.chords_per_bar)
+			chord_sequence = input.accompaniment_to_chords(args.chords_per_bar)
 
 		except IndexError:
 			return None
 
-		return {'melody': MelodySequence(note_sequence, config),
-		        'chord': ChordSequence(chord_sequence, config),
+		return {'melody': MelodySequence(note_sequence),
+		        'chord': ChordSequence(chord_sequence),
 		        'name': input.name}

@@ -9,7 +9,8 @@ from keras.models import Sequential, Model
 from keras.utils import print_summary
 from numpy import array, argmax, zeros
 
-import scripts
+from scripts import to_onehot, ChordSequence, MelodySequence
+from scripts.configure import args
 from scripts.note_sequence_utils import chord_collection
 
 
@@ -18,7 +19,7 @@ class Net(Sequential):
 	Create a general structure of the neural network
 	"""
 
-	def __init__(self, input_shape, output_vocab, config):
+	def __init__(self, input_shape, output_vocab):
 		super(Net, self).__init__()
 
 		self.add(LSTM(
@@ -28,7 +29,7 @@ class Net(Sequential):
 		))
 		self.add(Dropout(0.3))
 		self.add(LSTM(512, return_sequences=True))
-		self.add(Reshape((config.chords_per_bar * config.num_bars, -1)))
+		self.add(Reshape((args.chords_per_bar * args.num_bars, -1)))
 		self.add(Dropout(0.3))
 		self.add(Dense(output_vocab))
 		self.add(Activation('softmax'))
@@ -36,7 +37,7 @@ class Net(Sequential):
 		self.compile(optimizer='adam', loss='categorical_crossentropy')
 		print_summary(self)
 
-	def train(self, net_input, net_output, config):
+	def train(self, net_input, net_output):
 		filepath = "weights/weights-{epoch:02d}.hdf5"
 		checkpoint = ModelCheckpoint(
 			filepath,
@@ -47,26 +48,26 @@ class Net(Sequential):
 		)
 		callbacks_list = [checkpoint]
 
-		self.fit(net_input, net_output, epochs=config.epochs, batch_size=config.batch_size, callbacks=callbacks_list)
+		self.fit(net_input, net_output, epochs=args.epochs, batch_size=args.batch_size, callbacks=callbacks_list)
 
-	def generate(self, primer_notesequence, name, config):
+	def generate(self, primer_notesequence, name):
 		# Load the weights to each node
 		# self.load_weights('best-weights-without-rests.hdf5')
 		input_sequence = array([primer_notesequence])
 		self.load_weights('weights/weights-improvement-65-0.1787-bigger.hdf5')
-		input = scripts.to_onehot(input_sequence, 130)
+		input = to_onehot(input_sequence, 130)
 		output = self.predict(input, verbose=0)[0]
-		chords = scripts.ChordSequence(list(argmax(output, axis=1)), encode=True, config=config)
+		chords = ChordSequence(list(argmax(output, axis=1)), encode=True)
 
 		chords.to_midi(primer_notesequence, name)
 		return chords
 
 
-def create_dataset(folder, config=scripts.Config()):
+def create_dataset(folder):
 	"""
 	Generate training and testing dataset from a folder of MusicXML file
 	:param folder: the path to the folder
-	:return: a list of input-output, input config, output config
+	:return: a list of input-output, input args, output args
 	"""
 	#
 	# melodies = []
@@ -78,9 +79,9 @@ def create_dataset(folder, config=scripts.Config()):
 	# 	s = scripts.MusicXML()
 	# 	s.from_file(folder +'/' + score)
 	# 	transformer = scripts.XMLtoNoteSequence()
-	# 	phrases = list(s.phrases(config, reanalyze=False))
+	# 	phrases = list(s.phrases(args, reanalyze=False))
 	# 	for phrase in phrases:
-	# 		phrase_dict = transformer.transform(phrase, config)
+	# 		phrase_dict = transformer.transform(phrase, args)
 	# 		if phrase_dict is not None:
 	# 			melody_sequence = phrase_dict['melody']
 	# 			chord_sequence = phrase_dict['chord']
@@ -100,23 +101,23 @@ def create_dataset(folder, config=scripts.Config()):
 	inputs = []
 	outputs = []
 
-	if config.mode == 'chord':
-		input_shape = (config.num_bars * config.steps_per_bar, 130)
-		output_shape = (config.num_bars * config.chords_per_bar, len(chord_collection))
+	if args.mode == 'chord':
+		input_shape = (args.num_bars * args.steps_per_bar, 130)
+		output_shape = (args.num_bars * args.chords_per_bar, len(chord_collection))
 
 		for melody in melodies:
-			inputs.append(scripts.to_onehot(melody, input_shape[1]))
+			inputs.append(to_onehot(melody, input_shape[1]))
 		for chord in chords:
-			outputs.append(scripts.to_onehot(chord, output_shape[1]))
+			outputs.append(to_onehot(chord, output_shape[1]))
 
-	elif config.mode == 'melody':
-		output_shape = (config.num_bars * config.steps_per_bar, 130)
-		input_shape = (config.num_bars * config.steps_per_bar, 29)
+	elif args.mode == 'melody':
+		output_shape = (args.num_bars * args.steps_per_bar, 130)
+		input_shape = (args.num_bars * args.steps_per_bar, 29)
 
 		for i, melody in enumerate(melodies[:-1]):
 			next_melody = melodies[i + 1]
 			next_melody = [n + 2 for n in next_melody]
-			outputs.append(scripts.to_onehot(next_melody, output_shape[1]))
+			outputs.append(to_onehot(next_melody, output_shape[1]))
 			inputs.append(encode_melody(melody))
 	else:
 		raise NotImplementedError
@@ -161,7 +162,7 @@ class MelodyAnswerNet(Model):
 		Create a general structure of the neural network
 		"""
 
-	def __init__(self, input_shape, output_shape, config):
+	def __init__(self, input_shape, output_shape):
 		input = Input(shape=input_shape)
 		lstm1 = LSTM(512, return_sequences=True)(input)
 		dropout = Dropout(0.3)(lstm1)
@@ -174,7 +175,7 @@ class MelodyAnswerNet(Model):
 		self.compile(optimizer='adam', loss='categorical_crossentropy')
 		print_summary(self)
 
-	def train(self, net_input, net_output, config):
+	def train(self, net_input, net_output):
 		filepath = "weights/melody-weights.hdf5"
 		checkpoint = ModelCheckpoint(
 			filepath,
@@ -185,9 +186,9 @@ class MelodyAnswerNet(Model):
 		)
 		callbacks_list = [checkpoint]
 
-		self.fit(net_input, net_output, epochs=config.epochs, batch_size=config.batch_size, callbacks=callbacks_list)
+		self.fit(net_input, net_output, epochs=args.epochs, batch_size=args.batch_size, callbacks=callbacks_list)
 
-	def generate(self, primer_notesequence, name, config):
+	def generate(self, primer_notesequence, name):
 		# Load the weights to each node
 		# self.load_weights('best-weights-without-rests.hdf5')
 		input_sequence = array([primer_notesequence])
@@ -195,7 +196,7 @@ class MelodyAnswerNet(Model):
 		output = self.predict(input_sequence, verbose=0)[0]
 		output = list(argmax(output, axis=1))
 		output = [n - 2 for n in output]
-		output_melody = scripts.MelodySequence(output)
+		output_melody = MelodySequence(output)
 		print(output_melody)
 		output_melody.to_midi(name, save=True)
 
