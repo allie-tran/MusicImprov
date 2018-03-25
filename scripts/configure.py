@@ -39,6 +39,11 @@ parser.add_argument("--mode",
                     nargs='?',
                     default='melody',
                     help="Melody or Chord generation?")
+parser.add_argument("--test",
+                    type=str,
+                    nargs='?',
+                    default='nuvole.mxl',
+                    help='The file used for testing.')
 
 args = parser.parse_args()
 
