@@ -186,7 +186,8 @@ class MelodyAnswerNet(Model):
 		)
 		callbacks_list = [checkpoint]
 
-		self.fit(net_input, net_output, epochs=args.epochs, batch_size=args.batch_size, callbacks=callbacks_list)
+		self.fit(net_input, net_output, epochs=args.epochs, batch_size=args.batch_size, callbacks=callbacks_list,
+		         validation_split=0.2)
 
 	def generate(self, primer_notesequence, name):
 		# Load the weights to each node
