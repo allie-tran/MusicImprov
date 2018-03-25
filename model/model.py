@@ -111,7 +111,7 @@ def create_dataset(folder, config=scripts.Config()):
 
 	elif config.mode == 'melody':
 		output_shape = (config.num_bars * config.steps_per_bar, 130)
-		input_shape = (config.num_bars * config.steps_per_bar, 28)
+		input_shape = (config.num_bars * config.steps_per_bar, 29)
 
 		for i, melody in enumerate(melodies[:-1]):
 			next_melody = melodies[i + 1]
@@ -137,7 +137,7 @@ def encode_melody(melody):
 		else:
 			silent += 1
 			interval = 0
-		feature = zeros(27)
+		feature = zeros(29)
 		# print('---------------------------')
 		position = n
 		feature[0] = position
@@ -146,8 +146,8 @@ def encode_melody(melody):
 
 		feature[1:13] = pitchclass
 		feature[14] = interval
-		feature[15:-1] = context
-		feature[-1] = silent
+		feature[15:27] = context
+		feature[28] = silent
 		input_sequence.append(feature)
 
 		if n >= 2:
