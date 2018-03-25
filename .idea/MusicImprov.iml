@@ -6,9 +6,12 @@
       <sourceFolder url="file://$MODULE_DIR$/rhythm-gene" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/melody-gene/generated" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/Databases" />
+      <excludeFolder url="file://$MODULE_DIR$/Good examples" />
       <excludeFolder url="file://$MODULE_DIR$/chords" />
+      <excludeFolder url="file://$MODULE_DIR$/generated" />
       <excludeFolder url="file://$MODULE_DIR$/melody-gene" />
       <excludeFolder url="file://$MODULE_DIR$/venv" />
+      <excludeFolder url="file://$MODULE_DIR$/weights" />
     </content>
     <orderEntry type="jdk" jdkName="Python 2.7" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
