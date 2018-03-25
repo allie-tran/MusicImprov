@@ -7,7 +7,7 @@ parser.add_argument("-t", "--train",
 parser.add_argument("--epochs",
                     type=int,
                     nargs='?',
-                    default=1,
+                    default=100,
                     help="The number of epochs.")
 parser.add_argument("--num_bars",
                     type=int,
