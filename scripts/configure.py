@@ -1,25 +1,48 @@
-class Config(object):
-	"""
-	define all parameters in the model related to the music data
-	"""
+import argparse
 
-	def __init__(self):
-		"""
-		Default settings
-		"""
-		self.num_bars = 4
-		self.steps_per_bar = 16
-		self.chords_per_bar = 1
+parser = argparse.ArgumentParser()
+parser.add_argument("-t", "--train",
+                    help="To train or just generate?",
+                    action="store_true")
+parser.add_argument("--epochs",
+                    type=int,
+                    nargs='?',
+                    default=1,
+                    help="The number of epochs.")
+parser.add_argument("--num_bars",
+                    type=int,
+                    nargs='?',
+                    default=4,
+                    help="The number of bars in one phrase.")
+parser.add_argument("--steps_per_bar",
+                    type=int,
+                    nargs='?',
+                    default=16,
+                    help="The number of steps in one bar.")
+parser.add_argument("--chords_per_bar",
+                    type=int,
+                    nargs='?',
+                    default=1,
+                    help="The number of chords in one bar.")
+parser.add_argument("--batch_size",
+                    type=int,
+                    nargs='?',
+                    default=32,
+                    help="Batch size for the network")
+parser.add_argument("--optimizer",
+                    type=str,
+                    nargs='?',
+                    default='adam',
+                    help="The number of bars in one phrase.")
+parser.add_argument("--mode",
+                    type=str,
+                    nargs='?',
+                    default='melody',
+                    help="Melody or Chord generation?")
 
-		self.epochs = 200
-		self.batch_size = 32
-		self.optimizer = 'adam'
+args = parser.parse_args()
 
-		self.mode = 'melody'  # 'chord'
-
-	def __repr__(self):
-		return """
-		Generating {}...
+print("""Generating {}...
 		
 		Number of bars per phrase : {}
 		Steps per bar: {}
@@ -28,5 +51,5 @@ class Config(object):
 		Epochs: {}
 		Batch size: {}
 		Optimizer: {}
-		""".format(self.mode, self.num_bars, self.steps_per_bar, self.chords_per_bar, self.epochs, self.batch_size,
-		           self.optimizer)
+		""".format(args.mode, args.num_bars, args.steps_per_bar, args.chords_per_bar, args.epochs, args.batch_size,
+                   args.optimizer))

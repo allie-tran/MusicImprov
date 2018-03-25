@@ -6,7 +6,7 @@ from music21 import *
 from numpy import argmax
 from numpy import array
 
-from configure import Config
+from scripts import args
 
 
 class MelodySequence(list):
@@ -17,13 +17,13 @@ class MelodySequence(list):
 	NO POLYPHONY MELODY
 	"""
 
-	def __init__(self, note_sequence=list(), config=Config()):
+	def __init__(self, note_sequence=list()):
 		"""
 		Constructs a MelodySequence out of an array
 		"""
 		super(MelodySequence, self).__init__(note_sequence)
-		self._steps_per_bar = config.steps_per_bar
-		self._num_bars = config.num_bars
+		self._steps_per_bar = args.steps_per_bar
+		self._num_bars = args.num_bars
 
 	@property
 	def steps_per_bar(self):
@@ -122,7 +122,7 @@ class ChordSequence(list):
 	A list of chord for one phrase.
 	"""
 
-	def __init__(self, chord_sequence, config, encode=False):
+	def __init__(self, chord_sequence, encode=False):
 		"""
 		Constructs a chord sequence
 		:param chord_sequence: a list of chord.Chord objects
@@ -134,8 +134,8 @@ class ChordSequence(list):
 			for c in chord_sequence:
 				encoded_chords.append(encode_chord(c))
 		super(ChordSequence, self).__init__(encoded_chords)
-		self._chords_per_bar = config.chords_per_bar
-		self._num_bars = config.num_bars
+		self._chords_per_bar = args.chords_per_bar
+		self._num_bars = args.num_bars
 
 	def to_midi(self, melody_sequence, name):
 		"""
