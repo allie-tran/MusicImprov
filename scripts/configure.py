@@ -4,9 +4,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--train",
                     help="To train or just generate?",
                     action="store_true")
-parser.add_argument("-d", "--newdataset",
-                    help="To grab new data?",
-                    action="store_true")
+parser.add_argument("-d", "--newdata",
+                    help="To grab new data? Save file name",
+                    default='phrases_data')
 parser.add_argument("--epochs",
                     type=int,
                     nargs='?',
