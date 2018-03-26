@@ -180,7 +180,7 @@ class Phrase(MusicXML):
 				weightAlgorithm=cr.qlbsmpConsonance,
 				trimBelow=0.3)
 			try:
-				reduced_chords.extend(reduced_measure.getElementsByClass(chord.Chord)[:args.chords_per_bar-1])
+				reduced_chords.extend(reduced_measure.getElementsByClass(chord.Chord))
 			except IndexError:
 				reduced_chords.extend([note.Rest() for _ in range(args.chords_per_bar)])
 
