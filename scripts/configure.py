@@ -4,6 +4,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--train",
                     help="To train or just generate?",
                     action="store_true")
+parser.add_argument("-d", "--newdataset",
+                    help="To grab new data?",
+                    action="store_true")
 parser.add_argument("--epochs",
                     type=int,
                     nargs='?',
@@ -42,7 +45,7 @@ parser.add_argument("--mode",
 parser.add_argument("--test",
                     type=str,
                     nargs='?',
-                    default='nuvole.mxl',
+                    default='summer.mxl',
                     help='The file used for testing.')
 
 args = parser.parse_args()

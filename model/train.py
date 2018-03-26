@@ -2,22 +2,12 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from model import Net, create_dataset, MelodyAnswerNet, encode_melody
+from model import *
 from scripts.configure import args
 from scripts import MusicXML, XMLtoNoteSequence
 
 
-def chord_generate():
-	inputs, outputs, input_shape, output_shape = create_dataset('../xml')
-	model = Net(input_shape, output_shape[1])
-	if args.train:
-		model.train(inputs, outputs)
-
-	testscore = MusicXML()
-	testscore.from_file('innocent.mxl')
-	phrases = list(testscore.phrases(reanalyze=False))
-	transformer = XMLtoNoteSequence()
-
+def chord_generate(model, phrases, transformer):
 	for phrase in phrases:
 		phrase_dict = transformer.transform(phrase)
 		if phrase_dict is not None:
@@ -27,16 +17,7 @@ def chord_generate():
 			print(model.generate(phrase_dict['melody'], 'generated/generated_' + phrase_dict['name']))
 
 
-def melody_generate():
-	inputs, outputs, input_shape, output_shape = create_dataset('../xml')
-	model = MelodyAnswerNet(input_shape, output_shape)
-	if args.train:
-		model.train(inputs, outputs)
-
-	testscore = MusicXML()
-	testscore.from_file(args.test)
-	phrases = list(testscore.phrases(reanalyze=False))
-	transformer = XMLtoNoteSequence()
+def melody_generate(model, phrases, transformer):
 
 	for phrase in phrases[:-1]:
 		phrase_dict = transformer.transform(phrase)
@@ -47,9 +28,26 @@ def melody_generate():
 			chord_sequence.to_midi(next_melody, 'generated/generate_' + phrase_dict['name'] + 'chord')
 
 
-if __name__ == '__main__':
+def generate():
+	inputs, outputs, input_shape, output_shape = create_dataset('xml')
 
 	if args.mode == 'chord':
-		chord_generate()
+		model = ChordNet(input_shape, output_shape, 'Chord Model')
 	else:
-		melody_generate()
+		model = MelodyAnswerNet(input_shape, output_shape, 'Melody Model')
+	if args.train:
+		model.train(inputs, outputs)
+
+	testscore = MusicXML()
+	testscore.from_file(args.test)
+	phrases = list(testscore.phrases(reanalyze=False))
+	transformer = XMLtoNoteSequence()
+
+	if args.mode == 'chord':
+		chord_generate(model, phrases, transformer)
+	else:
+		melody_generate(model, phrases, transformer)
+
+
+if __name__ == '__main__':
+	generate()
