@@ -58,6 +58,7 @@ class MusicXML(object):
 		try:
 			self._score = converter.parse(filename)
 			self._name = filename[:-4]
+			self._time_signature = self._score.recurse().getElementsByClass(meter.TimeSignature)[0]
 			self.analyse()
 		except converter.ConverterException:
 			logging.error("MusicXML parsing error: " + filename + " not found!")
@@ -72,6 +73,7 @@ class MusicXML(object):
 
 		self._score = streams
 		self._name = name
+		self._time_signature = streams.timeSignature
 		self.analyse()
 
 	def analyse(self):
@@ -89,10 +91,6 @@ class MusicXML(object):
 
 		self._melody = full_melody
 		self._accompaniment = full_chord
-
-		# For time signature
-		if self.time_signature is None:
-			self._time_signature = self._score.timeSignature
 
 		# For keys
 		try:
@@ -146,6 +144,7 @@ class Phrase(MusicXML):
 		if transpose:
 			i = interval.Interval(self._key.tonic, pitch.Pitch('C'))
 			self._score.transpose(i, inPlace=True)
+			self._key = 'C'
 		self._num_bars = args.num_bars
 		self._name = name
 
@@ -173,7 +172,6 @@ class Phrase(MusicXML):
 		cr = analysis.reduceChords.ChordReducer()
 		# collapsed_chords = cr.collapseArpeggios(chords)
 		reduced_chords = []
-		print(len(chords))
 		for measure in chords.getElementsByClass(stream.Measure)[:args.num_bars]:
 			reduced_measure = cr.reduceMeasureToNChords(
 				measure,
