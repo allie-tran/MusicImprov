@@ -18,9 +18,9 @@ class MusicXML(object):
 		"""
 		self._name = 'untitled'
 		self._score = None
-		self._melody = stream.PartStaff()
-		self._accompaniment = stream.PartStaff()
-		self._time_signatures = None
+		self._melody = None
+		self._accompaniment = None
+		self._time_signature = None
 		self._key = None
 
 	@property
@@ -38,11 +38,11 @@ class MusicXML(object):
 		return self._accompaniment
 
 	@property
-	def time_signatures(self):
+	def time_signature(self):
 		"""
 		Returns the time signature of the score
 		"""
-		return self._time_signatures
+		return self._time_signature
 
 	@property
 	def key(self):
@@ -81,17 +81,18 @@ class MusicXML(object):
 		# Splitting
 		voices = self._score.getElementsByClass(stream.PartStaff)
 		try:
-			full_voices = [voice.expandRepeats().sorted for voice in voices]
+			full_melody = voices[0].flat.measures(1, None).expandRepeats().sorted
+			full_chord = voices[1].flat.measures(1, None).expandRepeats().sorted
 		except repeat.ExpanderException:
-			full_voices = voices
-		self._melody = full_voices[0].getElementsByClass(stream.Measure)
-		self._accompaniment = full_voices[1].getElementsByClass(stream.Measure)
+			full_melody = voices[0].flat.measures(1, None)
+			full_chord = voices[1].flat.measures(1, None)
 
-		# For time signatures
-		self._time_signatures = self._score.getTimeSignatures()
-		# logging.debug("Found " +str(len(self._time_signatures)) + " time signature(s).")
-		# for time in self._time_signatures:
-		# 	logging.debug("[{}]: {}".format(time.offset, time))
+		self._melody = full_melody
+		self._accompaniment = full_chord
+
+		# For time signature
+		if self._time_signature is None:
+			self._time_signature = self._score.recurse().getElementsByClass(meter.TimeSignature)[0]
 
 		# For keys
 		try:
@@ -107,18 +108,18 @@ class MusicXML(object):
 		:param reanalyze: use local, piecewise time signature and key
 		:return: a list of fragments
 		"""
-		i = 0
+		i = 1
+
 		while True:
-			phrase_melody = stream.PartStaff()
-			phrase_accompaniment = stream.PartStaff()
-			phrase_melody.append(self._melody[i:i + args.num_bars])
-			phrase_accompaniment.append(self._accompaniment[i:i + args.num_bars])
+			phrase_melody = stream.PartStaff(self._melody.measures(i, i + args.num_bars - 1, ))
+			phrase_accompaniment = stream.PartStaff(self._accompaniment.measures(i, i + args.num_bars - 1))
+
 			phrase = stream.Stream([phrase_melody, phrase_accompaniment])
+
 			if reanalyze:
 				phrase.key = phrase.analyze('key')
 			else:
 				phrase.key = self._key
-			phrase.timeSignature = self.time_signatures[0]
 
 			yield (Phrase(phrase, self._name + ' ' + str(i / args.num_bars)))
 
@@ -170,14 +171,18 @@ class Phrase(MusicXML):
 		cr = analysis.reduceChords.ChordReducer()
 		# collapsed_chords = cr.collapseArpeggios(chords)
 		reduced_chords = []
-		for measure in chords.getElementsByClass(stream.Measure):
-			reduced_measure = cr.reduceMeasureToNChords(measure, chords_per_bar, weightAlgorithm=cr.qlbsmpConsonance,
-			                                            trimBelow=0.3)
+		print(len(chords))
+		for measure in chords.measures(1, args.num_bars):
+			reduced_measure = cr.reduceMeasureToNChords(
+				measure,
+				chords_per_bar,
+				weightAlgorithm=cr.qlbsmpConsonance,
+				trimBelow=0.3)
 			try:
 				reduced_chords.append(reduced_measure.getElementsByClass(chord.Chord)[0])
 			except IndexError:
 				reduced_chords.append(note.Rest())
-
+		print(reduced_chords)
 		assert len(reduced_chords) == self.num_bars * chords_per_bar, 'Chord sequence does not match the number of bars'
 
 		return reduced_chords
@@ -203,25 +208,26 @@ class XMLtoNoteSequence(Transformer):
 		"""
 		print(input.name)
 		assert isinstance(input, Phrase), 'Please provide a valid Phrase object'
+		# print(input.melody.flat.highestOffset)
+		# print(input.melody.flat.lowestOffset)
 		# For melody: taking only the highest note (monophonic)
 		note_sequence = ones(args.steps_per_bar * input.num_bars) * -1
-		try:
-			for n in input.melody.flat.getElementsByClass(note.Note):
-				note_sequence[int(n.offset * args.steps_per_bar / 4)] = \
-					max(n.midi, note_sequence[int(n.offset * args.steps_per_bar / 4)])
-			for c in input.melody.flat.getElementsByClass(chord.Chord):
-				n = c.orderedPitchClasses[-1]
-				note_sequence[int(c.offset * args.steps_per_bar / 4)] = \
-					max(n, note_sequence[int(c.offset * args.steps_per_bar / 4)])
+		for n in input.melody.flat.getElementsByClass(note.Note):
+			note_sequence[int(n.offset * args.steps_per_bar / 4)] = \
+				max(n.midi, note_sequence[int(n.offset * args.steps_per_bar / 4)])
+		for c in input.melody.flat.getElementsByClass(chord.Chord):
+			n = c.orderedPitchClasses[-1]
+			note_sequence[int(c.offset * args.steps_per_bar / 4)] = \
+				max(n, note_sequence[int(c.offset * args.steps_per_bar / 4)])
 
-			for n in input.melody.flat.getElementsByClass(note.Rest):
-				note_sequence[int(n.offset * args.steps_per_bar / 4)] = -2
+		for n in input.melody.flat.getElementsByClass(note.Rest):
+			note_sequence[int(n.offset * args.steps_per_bar / 4)] = -2
 
-			# For accompaniment
-			chord_sequence = input.accompaniment_to_chords(args.chords_per_bar)
+		# For accompaniment
+		chord_sequence = input.accompaniment_to_chords(args.chords_per_bar)
 
-		except IndexError:
-			return None
+		# except IndexError:
+		# 	return None
 
 		return {'melody': MelodySequence(note_sequence),
 		        'chord': ChordSequence(chord_sequence),
