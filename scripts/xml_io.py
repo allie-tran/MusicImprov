@@ -184,8 +184,11 @@ class Phrase(MusicXML):
 			except IndexError:
 				reduced_chords.extend([note.Rest() for _ in range(args.chords_per_bar)])
 
-		assert len(reduced_chords) == self.num_bars * args.chords_per_bar, \
-			'Chord sequence does not match the number of bars: ' + str(len(reduced_chords))
+		while len(reduced_chords) < self.num_bars * args.chords_per_bar:
+			reduced_chords.append(note.Rest())
+
+		# assert len(reduced_chords) == self.num_bars * args.chords_per_bar, \
+		# 	'Chord sequence does not match the number of bars: ' + str(len(reduced_chords))
 
 		return reduced_chords
 
