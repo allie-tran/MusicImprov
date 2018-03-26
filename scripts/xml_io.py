@@ -163,7 +163,7 @@ class Phrase(MusicXML):
 		"""
 		return self._name
 
-	def accompaniment_to_chords(self, chords_per_bar=1):
+	def accompaniment_to_chords(self):
 		"""
 		Turn left hand part into chords.
 		:param chords_per_bar: Maximum chords per bar. Usually 1, for the most simple form
@@ -173,18 +173,18 @@ class Phrase(MusicXML):
 		cr = analysis.reduceChords.ChordReducer()
 		# collapsed_chords = cr.collapseArpeggios(chords)
 		reduced_chords = []
-		for measure in chords.getElementsByClass(stream.Measure)[:args.num_bars]:
+		for measure in chords.measures(1, args.num_bars):
 			reduced_measure = cr.reduceMeasureToNChords(
 				measure,
-				chords_per_bar,
+				args.chords_per_bar,
 				weightAlgorithm=cr.qlbsmpConsonance,
 				trimBelow=0.3)
 			try:
-				reduced_chords.append(reduced_measure.getElementsByClass(chord.Chord)[0])
+				reduced_chords.extend(reduced_measure.getElementsByClass(chord.Chord)[:args.chords_per_bar-1])
 			except IndexError:
-				reduced_chords.append(note.Rest())
+				reduced_chords.extend([note.Rest() for _ in range(args.chords_per_bar)])
 
-		assert len(reduced_chords) == self.num_bars * chords_per_bar, \
+		assert len(reduced_chords) == self.num_bars * args.chords_per_bar, \
 			'Chord sequence does not match the number of bars: ' + str(len(reduced_chords))
 
 		return reduced_chords
@@ -226,7 +226,7 @@ class XMLtoNoteSequence(Transformer):
 			note_sequence[int(n.offset * args.steps_per_bar / 4)] = -2
 
 		# For accompaniment
-		chord_sequence = input.accompaniment_to_chords(args.chords_per_bar)
+		chord_sequence = input.accompaniment_to_chords()
 
 		# except IndexError:
 		# 	return None
