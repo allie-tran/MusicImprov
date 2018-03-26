@@ -12,7 +12,7 @@ def create_dataset(folder):
 	:param folder: the path to the folder
 	:return: a list of input-output, input args, output args
 	"""
-	if args.newdataset:
+	if args.newdata:
 		melodies = []
 		chords = []
 
@@ -35,10 +35,10 @@ def create_dataset(folder):
 					melodies.append(melody_sequence)
 					chords.append(chord_sequence)
 
-			with open('phrases_data.json', 'w') as f:
+			with open(args.newdata + '.json', 'w') as f:
 				json.dump({'melodies': melodies, 'chords': chords}, f)
 
-	with open('phrases_data.json') as f:
+	with open(args.newdata+'.json') as f:
 		data = json.load(f)
 
 	melodies = data['melodies']
