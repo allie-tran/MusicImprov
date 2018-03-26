@@ -107,6 +107,7 @@ class MusicXML(object):
 		:return: a list of fragments
 		"""
 		i = 1
+		total = len(self._melody.measures(1, None))
 
 		while True:
 			phrase_melody = stream.PartStaff(self._melody.measures(i, i + args.num_bars - 1, ))
@@ -124,7 +125,7 @@ class MusicXML(object):
 			yield (Phrase(phrase, self._name + ' ' + str(i / args.num_bars)))
 
 			i += args.num_bars
-			if i + args.num_bars >= len(self._melody):
+			if i + args.num_bars >= total:
 				break
 
 
@@ -183,7 +184,8 @@ class Phrase(MusicXML):
 			except IndexError:
 				reduced_chords.append(note.Rest())
 
-		assert len(reduced_chords) == self.num_bars * chords_per_bar, 'Chord sequence does not match the number of bars'
+		assert len(reduced_chords) == self.num_bars * chords_per_bar, \
+			'Chord sequence does not match the number of bars: ' + str(len(reduced_chords))
 
 		return reduced_chords
 
