@@ -6,6 +6,9 @@ from scripts import ChordSequence, to_onehot
 
 class ChordNet(GeneralNet):
 
+	def __init__(self, input_shape, output_shape, model_name):
+		super(ChordNet, self).__init__(input_shape, output_shape, model_name)
+
 	def generate(self, primer_notesequence, name):
 		# Load the weights to each node
 		# self.load_weights('best-weights-without-rests.hdf5')
