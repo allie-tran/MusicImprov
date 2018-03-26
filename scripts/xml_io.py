@@ -91,8 +91,8 @@ class MusicXML(object):
 		self._accompaniment = full_chord
 
 		# For time signature
-		if self._time_signature is None:
-			self._time_signature = self._score.recurse().getElementsByClass(meter.TimeSignature)[0]
+		if self.time_signature is None:
+			self._time_signature = self._score.timeSignature
 
 		# For keys
 		try:
@@ -120,6 +120,8 @@ class MusicXML(object):
 				phrase.key = phrase.analyze('key')
 			else:
 				phrase.key = self._key
+
+			phrase.timeSignature = self.time_signature
 
 			yield (Phrase(phrase, self._name + ' ' + str(i / args.num_bars)))
 
@@ -182,7 +184,7 @@ class Phrase(MusicXML):
 				reduced_chords.append(reduced_measure.getElementsByClass(chord.Chord)[0])
 			except IndexError:
 				reduced_chords.append(note.Rest())
-		print(reduced_chords)
+
 		assert len(reduced_chords) == self.num_bars * chords_per_bar, 'Chord sequence does not match the number of bars'
 
 		return reduced_chords
