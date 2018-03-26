@@ -172,7 +172,7 @@ class Phrase(MusicXML):
 		# collapsed_chords = cr.collapseArpeggios(chords)
 		reduced_chords = []
 		print(len(chords))
-		for measure in chords.measures(1, args.num_bars):
+		for measure in chords.getElementsByClass(stream.Measure):
 			reduced_measure = cr.reduceMeasureToNChords(
 				measure,
 				chords_per_bar,
