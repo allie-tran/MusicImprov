@@ -169,20 +169,21 @@ class Phrase(MusicXML):
 		:param chords_per_bar: Maximum chords per bar. Usually 1, for the most simple form
 		:return: a stream.StaffPart object containing the reduced measures
 		"""
-		chords = self._accompaniment.chordify()
+		chords = self._accompaniment.chordify().sorted
 		cr = analysis.reduceChords.ChordReducer()
 		# collapsed_chords = cr.collapseArpeggios(chords)
 		reduced_chords = []
-		for measure in chords.measures(1, args.num_bars):
-			reduced_measure = cr.reduceMeasureToNChords(
-				measure,
-				args.chords_per_bar,
-				weightAlgorithm=cr.qlbsmpConsonance,
-				trimBelow=0.3)
-			try:
-				reduced_chords.extend(reduced_measure.getElementsByClass(chord.Chord))
-			except IndexError:
-				reduced_chords.extend([note.Rest() for _ in range(args.chords_per_bar)])
+		for measure in chords.measures(1, None):
+			if isinstance(measure, stream.Measure):
+				reduced_measure = cr.reduceMeasureToNChords(
+					measure,
+					args.chords_per_bar,
+					weightAlgorithm=cr.qlbsmpConsonance,
+					trimBelow=0.3)
+				try:
+					reduced_chords.extend(reduced_measure.getElementsByClass(chord.Chord))
+				except IndexError:
+					reduced_chords.extend([note.Rest() for _ in range(args.chords_per_bar)])
 
 		while len(reduced_chords) < self.num_bars * args.chords_per_bar:
 			reduced_chords.append(note.Rest())
