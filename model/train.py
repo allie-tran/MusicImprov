@@ -32,9 +32,9 @@ def generate():
 	inputs, outputs, input_shape, output_shape = create_dataset('xml')
 
 	if args.mode == 'chord':
-		model = ChordNet(input_shape, output_shape, 'Chord Model')
+		model = ChordNet(input_shape, output_shape, 'ChordModel')
 	else:
-		model = MelodyAnswerNet(input_shape, output_shape, 'Melody Model')
+		model = MelodyAnswerNet(input_shape, output_shape, 'MelodyModel')
 	if args.train:
 		model.train(inputs, outputs)
 
