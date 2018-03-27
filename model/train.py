@@ -32,9 +32,11 @@ def melody_generate(model, phrases, transformer, use_generated_as_primer=True):
 				chord_sequence = phrase_dict['chord']
 				chord_sequence.to_midi(next_melody, 'generated/generate_' + phrase_dict['name'] + 'chord')
 
+def combine_generate(melody_model, chord_model, phrases, transformer, use_generated_as_primer):
+	pass
 
 def generate():
-	inputs, outputs, input_shape, output_shape = create_dataset('xml/Wikifonia')
+	inputs, outputs, input_shape, output_shape = create_dataset('xml')
 
 	if args.mode == 'chord':
 		model = ChordNet(input_shape, output_shape, 'ChordModel')
