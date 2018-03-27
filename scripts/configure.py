@@ -5,8 +5,7 @@ parser.add_argument("-t", "--train",
                     help="To train or just generate?",
                     action="store_true")
 parser.add_argument("-d", "--newdata",
-                    help="To grab new data? Save file name",
-                    default='phrases_data')
+                    help="To grab new data? Save file name")
 parser.add_argument('-o', "--olddata",
                     help="To grab new data? Save file name",
                     default='phrases_data'
