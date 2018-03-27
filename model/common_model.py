@@ -28,7 +28,7 @@ class GeneralNet(Model):
 		activate = Activation('softmax')(output)
 		super(GeneralNet, self).__init__(input, activate)
 
-		self.compile(optimizer='adam', loss='categorical_crossentropy')
+		self.compile(optimizer=args.optimizer, loss='categorical_crossentropy')
 		print_summary(self)
 
 	def train(self, net_input, net_output):
