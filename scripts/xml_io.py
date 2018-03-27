@@ -229,15 +229,15 @@ class XMLtoNoteSequence(Transformer):
 		# For melody: taking only the highest note (monophonic)
 		note_sequence = ones(args.steps_per_bar * input.num_bars) * -1
 		for n in input.melody.flat.getElementsByClass(note.Note):
-			note_sequence[int(n.offset * args.steps_per_bar / 4)] = \
-				max(n.midi-48, note_sequence[floor(n.offset * args.steps_per_bar / 4)])
+			note_sequence[int(floor(n.offset * args.steps_per_bar / 4))] = \
+				max(n.midi-48, note_sequence[int(floor(n.offset * args.steps_per_bar / 4))])
 		for c in input.melody.flat.getElementsByClass(chord.Chord):
 			n = c.orderedPitchClasses[-1]
-			note_sequence[int(c.offset * args.steps_per_bar / 4)] = \
-				max(n, note_sequence[floor(c.offset * args.steps_per_bar / 4)])
+			note_sequence[int(floor(c.offset * args.steps_per_bar / 4))] = \
+				max(n, note_sequence[int(floor(c.offset * args.steps_per_bar / 4))])
 
 		for n in input.melody.flat.getElementsByClass(note.Rest):
-			note_sequence[floor(n.offset * args.steps_per_bar / 4)] = -2
+			note_sequence[int(floor(n.offset * args.steps_per_bar / 4))] = -2
 
 		# For accompaniment
 		chord_sequence = input.accompaniment_to_chords()
