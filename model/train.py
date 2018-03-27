@@ -34,7 +34,7 @@ def melody_generate(model, phrases, transformer, use_generated_as_primer=True):
 
 
 def generate():
-	inputs, outputs, input_shape, output_shape = create_dataset('xml/train')
+	inputs, outputs, input_shape, output_shape = create_dataset('xml/Wikifonia')
 
 	if args.mode == 'chord':
 		model = ChordNet(input_shape, output_shape, 'ChordModel')
