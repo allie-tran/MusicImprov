@@ -38,7 +38,7 @@ def create_dataset(folder):
 			with open(args.newdata + '.json', 'w') as f:
 				json.dump({'melodies': melodies, 'chords': chords}, f)
 
-	with open(args.newdata+'.json') as f:
+	with open(args.olddata+'.json') as f:
 		data = json.load(f)
 
 	melodies = data['melodies']
