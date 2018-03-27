@@ -55,9 +55,9 @@ class MelodySequence(list):
 				if previous_note >= 0:
 					melody.append(
 						mido.Message(type='note_off', note=int(previous_note+48), velocity=30, time=0, channel=1))
-					melody.append(mido.Message(type='note_on', note=int(n), velocity=60, time=0, channel=1))
+					melody.append(mido.Message(type='note_on', note=int(n + 48), velocity=60, time=0, channel=1))
 				else:
-					melody.append(mido.Message(type='note_on', note=int(n), velocity=60, time=0, channel=1))
+					melody.append(mido.Message(type='note_on', note=int(n+48), velocity=60, time=0, channel=1))
 				previous_note = n
 			melody.append(mido.Message('control_change', time=1))
 		if save:
