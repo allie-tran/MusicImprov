@@ -116,7 +116,7 @@ class MusicXML(object):
 			phrase = stream.Stream([phrase_melody, phrase_accompaniment])
 			phrase.shiftElements(-phrase.lowestOffset)
 			# print('----------------------------------------')
-			phrase.show()
+			# phrase.show()
 			if reanalyze:
 				phrase.key = phrase.analyze('key')
 			else:
