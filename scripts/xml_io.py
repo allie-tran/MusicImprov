@@ -110,8 +110,9 @@ class MusicXML(object):
 		total = len(self._melody.measures(1, None))
 
 		while True:
-			phrase_melody = stream.PartStaff(self._melody.measures(i, i + args.num_bars - 1, collect =[]))
-			phrase_accompaniment = stream.PartStaff(self._accompaniment.measures(i, i + args.num_bars - 1,  collect =[]))
+			phrase_melody = stream.PartStaff(self._melody.measures(i, i + args.num_bars - 1, collect=('TimeSignature')))
+			phrase_accompaniment = stream.PartStaff(self._accompaniment.measures(i, i + args.num_bars - 1,
+			                                                                     collect=('TimeSignature')))
 
 			phrase = stream.Stream([phrase_melody, phrase_accompaniment])
 
