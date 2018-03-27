@@ -199,6 +199,7 @@ class Phrase(MusicXML):
 		return reduced_chords
 
 
+
 class XMLtoNoteSequence(Transformer):
 	"""
 	A subclass of Transformer class, which convert a phrase in MusicXML format to 2 note sequences: melody-chord
@@ -224,7 +225,7 @@ class XMLtoNoteSequence(Transformer):
 		note_sequence = ones(args.steps_per_bar * input.num_bars) * -1
 		for n in input.melody.flat.getElementsByClass(note.Note):
 			note_sequence[int(n.offset * args.steps_per_bar / 4)] = \
-				max(n.midi, note_sequence[int(n.offset * args.steps_per_bar / 4)])
+				max(n.midi-48, note_sequence[int(n.offset * args.steps_per_bar / 4)])
 		for c in input.melody.flat.getElementsByClass(chord.Chord):
 			n = c.orderedPitchClasses[-1]
 			note_sequence[int(c.offset * args.steps_per_bar / 4)] = \

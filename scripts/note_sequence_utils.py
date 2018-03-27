@@ -24,6 +24,8 @@ class MelodySequence(list):
 		super(MelodySequence, self).__init__(note_sequence)
 		self._steps_per_bar = args.steps_per_bar
 		self._num_bars = args.num_bars
+		self._lowest = 48
+		self._highest = 83
 
 	@property
 	def steps_per_bar(self):
@@ -47,12 +49,12 @@ class MelodySequence(list):
 			if n == -2:
 				if previous_note >= 0:
 					melody.append(
-						mido.Message(type='note_off', note=int(previous_note), velocity=30, time=0, channel=1))
+						mido.Message(type='note_off', note=int(previous_note+48), velocity=30, time=0, channel=1))
 					previous_note = -1
 			elif n >= 0:
 				if previous_note >= 0:
 					melody.append(
-						mido.Message(type='note_off', note=int(previous_note), velocity=30, time=0, channel=1))
+						mido.Message(type='note_off', note=int(previous_note+48), velocity=30, time=0, channel=1))
 					melody.append(mido.Message(type='note_on', note=int(n), velocity=60, time=0, channel=1))
 				else:
 					melody.append(mido.Message(type='note_on', note=int(n), velocity=60, time=0, channel=1))
