@@ -169,10 +169,12 @@ class Phrase(MusicXML):
 		:param chords_per_bar: Maximum chords per bar. Usually 1, for the most simple form
 		:return: a stream.StaffPart object containing the reduced measures
 		"""
+		self._accompaniment.show('text')
 		chords = self._accompaniment.chordify().sorted
 		cr = analysis.reduceChords.ChordReducer()
 		# collapsed_chords = cr.collapseArpeggios(chords)
 		reduced_chords = []
+		chords.show('text')
 		for measure in chords.measures(1, None):
 			if isinstance(measure, stream.Measure):
 				reduced_measure = cr.reduceMeasureToNChords(
@@ -214,8 +216,9 @@ class XMLtoNoteSequence(Transformer):
 		"""
 		print(input.name)
 		assert isinstance(input, Phrase), 'Please provide a valid Phrase object'
-		# print(input.melody.flat.highestOffset)
-		# print(input.melody.flat.lowestOffset)
+		print(input.melody.flat.highestOffset)
+		print(input.melody.flat.lowestOffset)
+		input.melody.flat.show('text')
 		# For melody: taking only the highest note (monophonic)
 		note_sequence = ones(args.steps_per_bar * input.num_bars) * -1
 		for n in input.melody.flat.getElementsByClass(note.Note):
