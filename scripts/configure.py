@@ -50,6 +50,11 @@ parser.add_argument("--test",
                     nargs='?',
                     default='summer.mxl',
                     help='The file used for testing.')
+parser.add_argument("--monitor",
+                    type=str,
+                    nargs='?',
+                    default='loss',
+                    help="loss / val_loss")
 
 args = parser.parse_args()
 
