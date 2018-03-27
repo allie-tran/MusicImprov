@@ -119,10 +119,11 @@ class MusicXML(object):
 				phrase.key = phrase.analyze('key')
 			else:
 				phrase.key = self._key
-
-			phrase.timeSignature = self.time_signature
-
-			yield (Phrase(phrase, self._name + ' ' + str(i / args.num_bars)))
+			try:
+				if phrase.timeSignature.ratioString == '4/4':
+					yield (Phrase(phrase, self._name + ' ' + str(i / args.num_bars)))
+			except TypeError:
+				pass
 
 			i += args.num_bars
 			if i + args.num_bars >= total:
