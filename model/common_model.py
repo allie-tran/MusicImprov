@@ -35,7 +35,7 @@ class GeneralNet(Model):
 		filepath = "weights/{}-weights.hdf5".format(self._model_name)
 		checkpoint = ModelCheckpoint(
 			filepath,
-			monitor='val_loss',
+			monitor=args.monitor,
 			verbose=0,
 			save_best_only=True,
 			mode='min'
