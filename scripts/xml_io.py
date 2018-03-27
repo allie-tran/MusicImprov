@@ -110,8 +110,13 @@ class MusicXML(object):
 		total = len(self._melody)
 
 		while True:
-			phrase_melody = stream.PartStaff(self._melody.measures(i, i + args.num_bars - 1))
-			phrase_accompaniment = stream.PartStaff(self._accompaniment.measures(i, i + args.num_bars - 1))
+			phrase_melody = stream.PartStaff(self._melody.measures(i, i + args.num_bars - 1, collect=[], gatherSpanners=False))
+			phrase_accompaniment = stream.PartStaff(self._accompaniment.measures(
+				i,
+				i + args.num_bars - 1,
+				collect=[],
+				gatherSpanners=False)
+			)
 
 			phrase = stream.Stream([phrase_melody, phrase_accompaniment])
 			phrase.shiftElements(-phrase.lowestOffset)
@@ -178,7 +183,7 @@ class Phrase(MusicXML):
 		cr = analysis.reduceChords.ChordReducer()
 		# collapsed_chords = cr.collapseArpeggios(chords)
 		reduced_chords = []
-		for measure in chords.measures(1, None, collect=[]):
+		for measure in chords.measures(1, None, collect=[], gatherSpanners=False):
 			if isinstance(measure, stream.Measure):
 				reduced_measure = cr.reduceMeasureToNChords(
 					measure,
