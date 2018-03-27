@@ -7,6 +7,10 @@ parser.add_argument("-t", "--train",
 parser.add_argument("-d", "--newdata",
                     help="To grab new data? Save file name",
                     default='phrases_data')
+parser.add_argument('-o', "--olddata",
+                    help="To grab new data? Save file name",
+                    default='phrases_data'
+                    )
 parser.add_argument("--epochs",
                     type=int,
                     nargs='?',
