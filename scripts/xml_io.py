@@ -121,9 +121,10 @@ class MusicXML(object):
 			else:
 				phrase.key = self._key
 			try:
-				if phrase.timeSignature.ratioString == '4/4':
+				ts = phrase.getElementsByClass(meter.TimeSignature)[0]
+				if ts.ratioString == '4/4':
 					yield (Phrase(phrase, self._name + ' ' + str(i / args.num_bars)))
-			except TypeError:
+			except AttributeError:
 				pass
 
 			i += args.num_bars
