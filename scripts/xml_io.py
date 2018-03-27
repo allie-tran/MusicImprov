@@ -83,11 +83,11 @@ class MusicXML(object):
 		# Splitting
 		voices = self._score.getElementsByClass(stream.PartStaff)
 		try:
-			full_melody = voices[0].flat.measures(1, None).expandRepeats().sorted
-			full_chord = voices[1].flat.measures(1, None).expandRepeats().sorted
+			full_melody = voices[0].flat.measures(1, None, collect = ()).expandRepeats().sorted
+			full_chord = voices[1].flat.measures(1, None, collect = ()).expandRepeats().sorted
 		except repeat.ExpanderException:
-			full_melody = voices[0].flat.measures(1, None)
-			full_chord = voices[1].flat.measures(1, None)
+			full_melody = voices[0].flat.measures(1, None, collect = ())
+			full_chord = voices[1].flat.measures(1, None, collect = ())
 
 		self._melody = full_melody
 		self._accompaniment = full_chord
@@ -98,7 +98,7 @@ class MusicXML(object):
 		except AttributeError:
 			self._key = self._score.analyze('key')
 
-	# logging.debug(self._key)
+		# logging.debug(self._key)
 
 	def phrases(self, reanalyze=False):
 		"""
@@ -107,16 +107,16 @@ class MusicXML(object):
 		:return: a list of fragments
 		"""
 		i = 1
-		total = len(self._melody.measures(1, None))
+		total = len(self._melody)
 
 		while True:
-			phrase_melody = stream.PartStaff(self._melody.measures(i, i + args.num_bars - 1, collect=('TimeSignature')))
-			phrase_accompaniment = stream.PartStaff(self._accompaniment.measures(i, i + args.num_bars - 1,
-			                                                                     collect=('TimeSignature')))
+			phrase_melody = stream.PartStaff(self._melody.measures(i, i + args.num_bars - 1))
+			phrase_accompaniment = stream.PartStaff(self._accompaniment.measures(i, i + args.num_bars - 1))
 
 			phrase = stream.Stream([phrase_melody, phrase_accompaniment])
+			phrase.shiftElements(-phrase.lowestOffset)
 			# print('----------------------------------------')
-			# phrase.show('text')
+			phrase.show()
 			if reanalyze:
 				phrase.key = phrase.analyze('key')
 			else:

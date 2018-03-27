@@ -13,7 +13,7 @@ class MelodyAnswerNet(GeneralNet):
 		# Load the weights to each node
 		# self.load_weights('best-weights-without-rests.hdf5')
 		input_sequence = array([primer_notesequence])
-		self.load_weights('weights/'+ self._model_name + '-weights.hdf5')
+		self.load_weights('weights/' + self._model_name + '-weights.hdf5')
 		output = self.predict(input_sequence, verbose=0)[0]
 		output = list(argmax(output, axis=1))
 		output = [n - 2 for n in output]
