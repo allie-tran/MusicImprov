@@ -12,7 +12,7 @@ try:
 	with open('chord_collection.json', 'r') as f:
 		chord_collection = json.load(f)
 except IOError:
-	chord_collection = {}
+	chord_collection = {None: 0}
 
 class MelodySequence(list):
 	"""
@@ -77,7 +77,7 @@ def encode_chord(c, test=False):
 	:return: a number which was assigned to the chord
 	"""
 	if not c.isChord:
-		return -1
+		return 0
 	chord.Chord.simplifyEnharmonics(c, inPlace=True)
 	chord.Chord.sortAscending(c, inPlace=True)
 	string_chord = ''
@@ -86,7 +86,7 @@ def encode_chord(c, test=False):
 	if string_chord not in chord_collection:
 		chord_collection[string_chord] = len(chord_collection.keys())
 		if test:
-			return -1
+			return 0
 	return chord_collection[string_chord]
 
 
