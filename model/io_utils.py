@@ -1,11 +1,16 @@
 import json
 import os
-
+import music21
 from numpy import array, zeros
-from music21 import exceptions21
 from scripts import args, to_onehot, MusicXML, XMLtoNoteSequence
 from model.train import chord_collection
 from xml.etree import cElementTree
+
+try:
+	with open('score_list.json', 'r') as f:
+		score_list = json.load(f)
+except IOError:
+	score_list = set()
 
 def create_dataset(folder):
 	"""
@@ -21,33 +26,35 @@ def create_dataset(folder):
 			with open(args.newdata + '.json', 'r') as f:
 				data =json.load(f)
 		except IOError:
-			data = {'melodies': [], 'chords':[]}
+			data = {'melodies': [], 'chords': []}
 
 		scores = os.listdir(folder)
 		for score in scores:
-			print('Processing ' + score + '...')
-			s = MusicXML()
-			try:
-				s.from_file(folder + '/' + score)
-			except cElementTree.ParseError:
-				print("Conversion failed.")
-				continue
-			except exceptions21.StreamException:
-				print("Conversion failed.")
-				continue
-			transformer = XMLtoNoteSequence()
-			if s.time_signature.ratioString != '4/4':
-				print("Skipping this because it's " + s.time_signature.ratioString)
-				continue
-			phrases = list(s.phrases(reanalyze=False))
-			for phrase in phrases:
-				phrase_dict = transformer.transform(phrase)
-				if phrase_dict is not None:
-					melody_sequence = phrase_dict['melody']
-					chord_sequence = phrase_dict['chord']
+			if score not in score_list:
+				score_list.add(score)
+				print('Processing ' + score + '...')
+				s = MusicXML()
+				try:
+					s.from_file(folder + '/' + score)
+				except (cElementTree.ParseError,
+				        music21.musicxml.xmlToM21.MusicXMLImportException,
+				        music21.exceptions21.StreamException):
+					print("Conversion failed.")
+					continue
 
-					data['melodies'].append(melody_sequence)
-					data['chords'].append(chord_sequence)
+				transformer = XMLtoNoteSequence()
+				if s.time_signature.ratioString != '4/4':
+					print("Skipping this because it's " + s.time_signature.ratioString)
+					continue
+				phrases = list(s.phrases(reanalyze=False))
+				for phrase in phrases:
+					phrase_dict = transformer.transform(phrase)
+					if phrase_dict is not None:
+						melody_sequence = phrase_dict['melody']
+						chord_sequence = phrase_dict['chord']
+
+						data['melodies'].append(melody_sequence)
+						data['chords'].append(chord_sequence)
 		with open(args.newdata + '.json', 'w') as f:
 			json.dump(data, f)
 
@@ -62,8 +69,7 @@ def create_dataset(folder):
 
 	if args.mode == 'chord':
 		input_shape = (args.num_bars * args.steps_per_bar, 130)
-		output_shape = (args.num_bars * args.chords_per_bar, len(chord_collection))
-
+		output_shape = (args.num_bars * args.chords_per_bar, len(chord_collection)-2)
 		for melody in melodies:
 			inputs.append(to_onehot(melody, input_shape[1]))
 		for chord in chords:

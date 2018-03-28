@@ -46,7 +46,7 @@ def generate():
 		model = ChordNet(input_shape, output_shape, 'ChordModel')
 	elif args.mode == 'combine':
 		input_shape1 = (args.num_bars * args.steps_per_bar, 130)
-		output_shape1 = (args.num_bars * args.chords_per_bar, len(chord_collection))
+		output_shape1 = (args.num_bars * args.chords_per_bar, len(chord_collection)-2)
 		output_shape2 = (args.num_bars * args.steps_per_bar, 130)
 		input_shape2 = (args.num_bars * args.steps_per_bar, 29)
 
