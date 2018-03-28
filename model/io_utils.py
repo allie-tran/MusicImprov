@@ -69,7 +69,7 @@ def create_dataset(folder):
 
 	if args.mode == 'chord':
 		input_shape = (args.num_bars * args.steps_per_bar, 130)
-		output_shape = (args.num_bars * args.chords_per_bar, len(chord_collection)-2)
+		output_shape = (args.num_bars * args.chords_per_bar, len(chord_collection))
 		for melody in melodies:
 			inputs.append(to_onehot(melody, input_shape[1]))
 		for chord in chords:
