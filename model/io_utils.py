@@ -17,6 +17,12 @@ def create_dataset(folder):
 		melodies = []
 		chords = []
 
+		try:
+			with open(args.newdata + '.json', 'r') as f:
+				data =json.load(f)
+		except IOError:
+			data['melodies'] = []
+			data['chords'] = []
 		scores = os.listdir(folder)
 		for score in scores:
 			print('Processing ' + score + '...')
@@ -40,11 +46,10 @@ def create_dataset(folder):
 					melody_sequence = phrase_dict['melody']
 					chord_sequence = phrase_dict['chord']
 
-					melodies.append(melody_sequence)
-					chords.append(chord_sequence)
-
-			with open(args.newdata + '.json', 'w') as f:
-				json.dump({'melodies': melodies, 'chords': chords}, f)
+					data['melodies'].append(melody_sequence)
+					data['chords'].append(chord_sequence)
+		with open(args.newdata + '.json', 'w') as f:
+			json.dump(data, f)
 
 	with open(args.olddata+'.json') as f:
 		data = json.load(f)
