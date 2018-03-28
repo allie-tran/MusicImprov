@@ -6,6 +6,9 @@ from note_sequence_utils import *
 from scripts import args
 from transformer import *
 
+import xml.etree.ElementTree as ET
+
+
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 environment.UserSettings()['warnings'] = 0
 
@@ -63,6 +66,7 @@ class MusicXML(object):
 		except converter.ConverterException:
 			logging.error("MusicXML parsing error: " + filename + " not found!")
 
+
 	def from_streams(self, streams, name='untitled'):
 		"""
 		Copy from another stream/ list of streams
@@ -83,15 +87,14 @@ class MusicXML(object):
 		# Splitting
 		voices = self._score.getElementsByClass(stream.PartStaff)
 		try:
-			full_melody = voices[0].flat.measures(1, None, collect = ()).expandRepeats().sorted
-			full_chord = voices[1].flat.measures(1, None, collect = ()).expandRepeats().sorted
+			full_melody = voices[0].flat.measures(1, None, collect=[], gatherSpanners=False).expandRepeats().sorted
+			full_chord = voices[1].flat.measures(1, None, collect=[], gatherSpanners=False).expandRepeats().sorted
 		except repeat.ExpanderException:
-			full_melody = voices[0].flat.measures(1, None, collect = ())
-			full_chord = voices[1].flat.measures(1, None, collect = ())
+			full_melody = voices[0].flat.measures(1, None, collect=[], gatherSpanners=False)
+			full_chord = voices[1].flat.measures(1, None, collect=[], gatherSpanners=False)
 
 		self._melody = full_melody
 		self._accompaniment = full_chord
-
 		# For keys
 		try:
 			self._key = self._score.key
@@ -108,19 +111,18 @@ class MusicXML(object):
 		"""
 		i = 1
 		total = len(self._melody)
+		print(total)
 
 		while True:
-			phrase_melody = stream.PartStaff(self._melody.measures(i, i + args.num_bars - 1, collect=[], gatherSpanners=False))
-			phrase_accompaniment = stream.PartStaff(self._accompaniment.measures(
-				i,
-				i + args.num_bars - 1,
-				collect=[],
-				gatherSpanners=False)
-			)
+			phrase_melody = stream.PartStaff(self._melody.measures(i, i + args.num_bars - 1).flat.notesAndRests)
+			phrase_accompaniment = stream.PartStaff(self._accompaniment.measures(i, i + args.num_bars - 1).flat.notesAndRests)
 
-			phrase = stream.Stream([phrase_melody, phrase_accompaniment])
+			phrase = stream.Stream()
+			phrase.append(phrase_melody)
+			phrase.insert(0, phrase_accompaniment)
 			phrase.shiftElements(-phrase.lowestOffset)
-			# print('----------------------------------------')
+			# phrase = phrase.getElementBeforeOffset(args.num_bars * args.steps_per_bar/4)
+			# phrase.show('text')
 			# phrase.show()
 			if reanalyze:
 				phrase.key = phrase.analyze('key')
@@ -135,7 +137,7 @@ class MusicXML(object):
 				yield (Phrase(phrase, self._name + ' ' + str(i / args.num_bars)))
 
 			i += args.num_bars
-			if i + args.num_bars >= total:
+			if i + args.num_bars - 1 > total:
 				break
 
 
@@ -229,15 +231,15 @@ class XMLtoNoteSequence(Transformer):
 		# For melody: taking only the highest note (monophonic)
 		note_sequence = ones(args.steps_per_bar * input.num_bars) * -1
 		for n in input.melody.flat.getElementsByClass(note.Note):
-			note_sequence[int(floor(n.offset * args.steps_per_bar / 4))] = \
+			note_sequence[int(n.offset * args.steps_per_bar / 4)] = \
 				max(n.midi-48, note_sequence[int(floor(n.offset * args.steps_per_bar / 4))])
 		for c in input.melody.flat.getElementsByClass(chord.Chord):
 			n = c.orderedPitchClasses[-1]
-			note_sequence[int(floor(c.offset * args.steps_per_bar / 4))] = \
-				max(n, note_sequence[int(floor(c.offset * args.steps_per_bar / 4))])
+			note_sequence[int(c.offset * args.steps_per_bar / 4)] = \
+				max(n, note_sequence[int(c.offset * args.steps_per_bar / 4)])
 
 		for n in input.melody.flat.getElementsByClass(note.Rest):
-			note_sequence[int(floor(n.offset * args.steps_per_bar / 4))] = -2
+			note_sequence[int(n.offset * args.steps_per_bar / 4)] = -2
 
 		# For accompaniment
 		chord_sequence = input.accompaniment_to_chords()
