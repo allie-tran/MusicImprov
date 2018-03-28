@@ -2,9 +2,10 @@ import json
 import os
 
 from numpy import array, zeros
-
+from music21 import exceptions21
 from scripts import args, to_onehot, MusicXML, XMLtoNoteSequence, chord_collection
 
+from xml.etree import cElementTree
 
 def create_dataset(folder):
 	"""
@@ -20,7 +21,14 @@ def create_dataset(folder):
 		for score in scores:
 			print('Processing ' + score + '...')
 			s = MusicXML()
-			s.from_file(folder + '/' + score)
+			try:
+				s.from_file(folder + '/' + score)
+			except cElementTree.ParseError:
+				print("Conversion failed.")
+				continue
+			except exceptions21.StreamException:
+				print("Conversion failed.")
+				continue
 			transformer = XMLtoNoteSequence()
 			if s.time_signature.ratioString != '4/4':
 				print("Skipping this because it's " + s.time_signature.ratioString)

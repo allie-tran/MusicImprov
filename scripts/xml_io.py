@@ -65,7 +65,9 @@ class MusicXML(object):
 			self.analyse()
 		except converter.ConverterException:
 			logging.error("MusicXML parsing error: " + filename + " not found!")
-
+		except IndexError:
+			logging.error("No Time Signature found")
+			raise exceptions21.StreamException
 
 	def from_streams(self, streams, name='untitled'):
 		"""
@@ -85,7 +87,10 @@ class MusicXML(object):
 		Extracts information from the score. Also splits the score into 2 parts: left and right hand
 		"""
 		# Splitting
-		voices = self._score.getElementsByClass(stream.PartStaff)
+		try:
+			voices = self._score.parts
+		except AttributeError:
+			voices = self._score.getElementsByClass(stream.PartStaff)
 		try:
 			full_melody = voices[0].flat.measures(1, None, collect=['TimeSignature'], gatherSpanners=False).expandRepeats().sorted
 			full_chord = voices[1].flat.measures(1, None, collect=['TimeSignature'], gatherSpanners=False).expandRepeats().sorted
