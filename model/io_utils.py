@@ -21,8 +21,8 @@ def create_dataset(folder):
 			with open(args.newdata + '.json', 'r') as f:
 				data =json.load(f)
 		except IOError:
-			data['melodies'] = []
-			data['chords'] = []
+			data = {'melodies': [], 'chords':[]}
+
 		scores = os.listdir(folder)
 		for score in scores:
 			print('Processing ' + score + '...')
