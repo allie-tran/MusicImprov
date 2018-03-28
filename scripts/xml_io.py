@@ -87,11 +87,11 @@ class MusicXML(object):
 		# Splitting
 		voices = self._score.getElementsByClass(stream.PartStaff)
 		try:
-			full_melody = voices[0].flat.measures(1, None, collect=[], gatherSpanners=False).expandRepeats().sorted
-			full_chord = voices[1].flat.measures(1, None, collect=[], gatherSpanners=False).expandRepeats().sorted
+			full_melody = voices[0].flat.measures(1, None, collect=['TimeSignature'], gatherSpanners=False).expandRepeats().sorted
+			full_chord = voices[1].flat.measures(1, None, collect=['TimeSignature'], gatherSpanners=False).expandRepeats().sorted
 		except repeat.ExpanderException:
-			full_melody = voices[0].flat.measures(1, None, collect=[], gatherSpanners=False)
-			full_chord = voices[1].flat.measures(1, None, collect=[], gatherSpanners=False)
+			full_melody = voices[0].flat.measures(1, None, collect=['TimeSignature'], gatherSpanners=False)
+			full_chord = voices[1].flat.measures(1, None, collect=['TimeSignature'], gatherSpanners=False)
 
 		self._melody = full_melody
 		self._accompaniment = full_chord
@@ -112,15 +112,15 @@ class MusicXML(object):
 		i = 1
 		total = len(self._melody)
 		print(total)
-
 		while True:
-			phrase_melody = stream.PartStaff(self._melody.measures(i, i + args.num_bars - 1).flat.notesAndRests)
-			phrase_accompaniment = stream.PartStaff(self._accompaniment.measures(i, i + args.num_bars - 1).flat.notesAndRests)
+			phrase_melody = stream.PartStaff(self._melody.measures(i, i + args.num_bars - 1, collect=['TimeSignature']))
+			phrase_accompaniment = stream.PartStaff(self._accompaniment.measures(i, i + args.num_bars - 1, collect=['TimeSignature']))
 
 			phrase = stream.Stream()
 			phrase.append(phrase_melody)
 			phrase.insert(0, phrase_accompaniment)
 			phrase.shiftElements(-phrase.lowestOffset)
+
 			# phrase = phrase.getElementBeforeOffset(args.num_bars * args.steps_per_bar/4)
 			# phrase.show('text')
 			# phrase.show()
@@ -128,12 +128,15 @@ class MusicXML(object):
 				phrase.key = phrase.analyze('key')
 			else:
 				phrase.key = self._key
-			try:
-				phrase.timeSignature = phrase.recurse().getElementsByClass(meter.TimeSignature)[0]
-			except IndexError:
-				phrase.timeSignature = self.time_signature
 
-			if phrase.timeSignature.ratioString == '4/4':
+			all_time_signature = phrase.recurse().getElementsByClass(meter.TimeSignature)
+			current_time_signature = True
+			for ts in all_time_signature:
+				if ts.ratioString != '4/4':
+					current_time_signature = False
+					break
+
+			if current_time_signature:
 				yield (Phrase(phrase, self._name + ' ' + str(i / args.num_bars)))
 
 			i += args.num_bars
@@ -232,7 +235,7 @@ class XMLtoNoteSequence(Transformer):
 		note_sequence = ones(args.steps_per_bar * input.num_bars) * -1
 		for n in input.melody.flat.getElementsByClass(note.Note):
 			note_sequence[int(n.offset * args.steps_per_bar / 4)] = \
-				max(n.midi-48, note_sequence[int(floor(n.offset * args.steps_per_bar / 4))])
+				max(n.midi-48, note_sequence[int(n.offset * args.steps_per_bar / 4)])
 		for c in input.melody.flat.getElementsByClass(chord.Chord):
 			n = c.orderedPitchClasses[-1]
 			note_sequence[int(c.offset * args.steps_per_bar / 4)] = \
