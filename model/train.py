@@ -33,7 +33,10 @@ def melody_generate(model, phrases, transformer, use_generated_as_primer=True):
 				chord_sequence.to_midi(next_melody, 'generated/generate_' + phrase_dict['name'] + 'chord')
 
 def combine_generate(melody_model, chord_model, phrases, transformer, use_generated_as_primer):
-	pass
+	primer = transformer.transform(phrases[9])['melody']
+	for i in range(5):
+		primer = melody_model.generate(encode_melody(primer), 'generated/generate_' + str(i))
+		chord_sequence = chord_model.generate(primer, 'generated/with_chords' + str(i))
 
 def generate():
 	inputs, outputs, input_shape, output_shape = create_dataset('xml')
