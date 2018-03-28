@@ -5,8 +5,16 @@ from keras.utils import to_categorical
 from music21 import *
 from numpy import argmax
 from numpy import array
-
 from scripts import args
+import json
+
+try:
+	with open('chord_collection.json', 'r') as f:
+		chord_collection = json.load(f)
+except ValueError:
+	chord_collection = {}
+	with open('chord_collection.json', 'w') as f:
+		json.dump(chord_collection, f)
 
 
 class MelodySequence(list):
