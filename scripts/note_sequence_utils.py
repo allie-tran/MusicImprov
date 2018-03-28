@@ -11,7 +11,7 @@ import json
 try:
 	with open('chord_collection.json', 'r') as f:
 		chord_collection = json.load(f)
-except ValueError:
+except IOError:
 	chord_collection = {}
 	with open('chord_collection.json', 'w') as f:
 		json.dump(chord_collection, f)
@@ -73,7 +73,7 @@ class MelodySequence(list):
 		return mid
 
 
-def encode_chord(c):
+def encode_chord(c, test=False):
 	"""
 	Assign chord to a number. If new chord, add to the collection
 	:param c: a chord.Chord object
@@ -88,9 +88,10 @@ def encode_chord(c):
 		string_chord += p.name + '.'
 	if string_chord not in chord_collection:
 		chord_collection[string_chord] = len(chord_collection.keys())
-		# with open('chord_collection.json', 'w') as f:
-		# 	json.dump(chord_collection, f)
-		return -1
+		if test:
+			return -1
+		with open('chord_collection.json', 'w') as f:
+			json.dump(chord_collection, f)
 	return chord_collection[string_chord]
 
 
