@@ -193,8 +193,10 @@ class Phrase(MusicXML):
 		cr = analysis.reduceChords.ChordReducer()
 		# collapsed_chords = cr.collapseArpeggios(chords)
 		reduced_chords = []
+		i = 0
 		for measure in chords.measures(1, None, collect=[], gatherSpanners=False):
 			if isinstance(measure, stream.Measure):
+				i += 1
 				reduced_measure = cr.reduceMeasureToNChords(
 					measure,
 					args.chords_per_bar,
@@ -203,16 +205,13 @@ class Phrase(MusicXML):
 				try:
 					reduced_chords.extend(reduced_measure.getElementsByClass(chord.Chord))
 				except IndexError:
-					reduced_chords.extend([note.Rest() for _ in range(args.chords_per_bar)])
-
-		while len(reduced_chords) < self.num_bars * args.chords_per_bar:
-			reduced_chords.append(note.Rest())
-
+					pass
+				while len(reduced_chords) < i * args.chords_per_bar:
+					reduced_chords.append(note.Rest())
+				if i == args.num_bars:
+					return reduced_chords
 		# assert len(reduced_chords) == self.num_bars * args.chords_per_bar, \
 		# 	'Chord sequence does not match the number of bars: ' + str(len(reduced_chords))
-
-		return reduced_chords
-
 
 
 class XMLtoNoteSequence(Transformer):
