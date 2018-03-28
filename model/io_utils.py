@@ -3,8 +3,8 @@ import os
 
 from numpy import array, zeros
 from music21 import exceptions21
-from scripts import args, to_onehot, MusicXML, XMLtoNoteSequence, chord_collection
-
+from scripts import args, to_onehot, MusicXML, XMLtoNoteSequence
+from model.train import chord_collection
 from xml.etree import cElementTree
 
 def create_dataset(folder):
@@ -67,7 +67,6 @@ def create_dataset(folder):
 	elif args.mode == 'melody':
 		output_shape = (args.num_bars * args.steps_per_bar, 130)
 		input_shape = (args.num_bars * args.steps_per_bar, 29)
-
 		for i, melody in enumerate(melodies[:-1]):
 			next_melody = melodies[i + 1]
 			next_melody = [n + 2 for n in next_melody]

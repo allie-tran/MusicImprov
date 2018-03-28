@@ -5,6 +5,15 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from model import *
 from scripts.configure import args
 from scripts import MusicXML, XMLtoNoteSequence
+import json
+
+try:
+	with open('chord_collection.json', 'r') as f:
+		chord_collection = json.load(f)
+except ValueError:
+	chord_collection = {}
+	with open('chord_collection.json', 'w') as f:
+		json.dump(chord_collection, f)
 
 
 def chord_generate(model, phrases, transformer):
@@ -32,21 +41,33 @@ def melody_generate(model, phrases, transformer, use_generated_as_primer=True):
 				chord_sequence = phrase_dict['chord']
 				chord_sequence.to_midi(next_melody, 'generated/generate_' + phrase_dict['name'] + 'chord')
 
-def combine_generate(melody_model, chord_model, phrases, transformer, use_generated_as_primer):
+
+def combine_generate(melody_model, chord_model, phrases, transformer):
 	primer = transformer.transform(phrases[9])['melody']
 	for i in range(5):
 		primer = melody_model.generate(encode_melody(primer), 'generated/generate_' + str(i))
 		chord_sequence = chord_model.generate(primer, 'generated/with_chords' + str(i))
 
 def generate():
-	inputs, outputs, input_shape, output_shape = create_dataset('xml')
+	if args.train:
+		inputs, outputs, input_shape, output_shape = create_dataset('xml')
 
 	if args.mode == 'chord':
 		model = ChordNet(input_shape, output_shape, 'ChordModel')
+	elif args.mode == 'combine':
+		input_shape1 = (args.num_bars * args.steps_per_bar, 130)
+		output_shape1 = (args.num_bars * args.chords_per_bar, len(chord_collection))
+		output_shape2 = (args.num_bars * args.steps_per_bar, 130)
+		input_shape2 = (args.num_bars * args.steps_per_bar, 29)
+
+		chord_model = ChordNet(input_shape1, output_shape1, 'ChordModel')
+		melody_model = MelodyAnswerNet(input_shape2, output_shape2, 'MelodyModel')
 	else:
 		model = MelodyAnswerNet(input_shape, output_shape, 'MelodyModel')
+
 	if args.train:
 		model.train(inputs, outputs)
+
 
 	testscore = MusicXML()
 	testscore.from_file(args.test)
@@ -55,8 +76,11 @@ def generate():
 
 	if args.mode == 'chord':
 		chord_generate(model, phrases, transformer)
-	else:
+	elif args.mode == 'melody':
 		melody_generate(model, phrases, transformer)
+	else:
+		combine_generate(melody_model, chord_model, phrases, transformer)
+
 
 
 if __name__ == '__main__':
