@@ -1,7 +1,7 @@
 import json
 import os
 import music21
-from numpy import array, zeros
+from numpy import array, zeros, shape
 from scripts import args, to_onehot, MusicXML, XMLtoNoteSequence
 from model.train import chord_collection
 from xml.etree import cElementTree
@@ -9,8 +9,8 @@ from xml.etree import cElementTree
 try:
 	with open('score_list.json', 'r') as f:
 		score_list = json.load(f)
-except IOError:
-	score_list = set()
+except ValueError:
+	score_list = []
 
 def create_dataset(folder):
 	"""
@@ -19,19 +19,16 @@ def create_dataset(folder):
 	:return: a list of input-output, input args, output args
 	"""
 	if args.newdata:
-		melodies = []
-		chords = []
-
 		try:
 			with open(args.newdata + '.json', 'r') as f:
-				data =json.load(f)
+				data = json.load(f)
 		except IOError:
 			data = {'melodies': [], 'chords': []}
 
 		scores = os.listdir(folder)
 		for score in scores:
 			if score not in score_list:
-				score_list.add(score)
+				score_list.append(score)
 				print('Processing ' + score + '...')
 				s = MusicXML()
 				try:
@@ -52,9 +49,12 @@ def create_dataset(folder):
 					if phrase_dict is not None:
 						melody_sequence = phrase_dict['melody']
 						chord_sequence = phrase_dict['chord']
-
 						data['melodies'].append(melody_sequence)
 						data['chords'].append(chord_sequence)
+
+			with open('score_list.json', 'w') as f:
+				json.dump(score_list, f)
+
 		with open(args.newdata + '.json', 'w') as f:
 			json.dump(data, f)
 
@@ -63,12 +63,13 @@ def create_dataset(folder):
 
 	melodies = data['melodies']
 	chords = data['chords']
-
+	print(shape(melodies))
+	print(shape(chords))
 	inputs = []
 	outputs = []
 
 	if args.mode == 'chord':
-		input_shape = (args.num_bars * args.steps_per_bar, 130)
+		input_shape = (args.num_bars * args.steps_per_bar, 29)
 		output_shape = (args.num_bars * args.chords_per_bar, len(chord_collection))
 		for melody in melodies:
 			inputs.append(to_onehot(melody, input_shape[1]))
@@ -76,7 +77,7 @@ def create_dataset(folder):
 			outputs.append(to_onehot(chord, output_shape[1]))
 
 	elif args.mode == 'melody':
-		output_shape = (args.num_bars * args.steps_per_bar, 130)
+		output_shape = (args.num_bars * args.steps_per_bar, 82)
 		input_shape = (args.num_bars * args.steps_per_bar, 29)
 		for i, melody in enumerate(melodies[:-1]):
 			next_melody = melodies[i + 1]
@@ -85,6 +86,8 @@ def create_dataset(folder):
 			inputs.append(encode_melody(melody))
 	else:
 		raise NotImplementedError
+	print(shape(inputs))
+	print(shape(outputs))
 	return array(inputs), array(outputs), input_shape, output_shape
 
 
