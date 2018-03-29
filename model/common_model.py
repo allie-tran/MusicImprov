@@ -4,7 +4,7 @@ from keras.callbacks import ModelCheckpoint
 from keras.layers import Activation, Reshape
 from keras.layers import Dense, Input
 from keras.layers import Dropout
-from keras.layers import LSTM
+from keras.layers import LSTM, Bidirectional
 from keras.models import Model
 from keras.utils import print_summary
 
@@ -19,9 +19,9 @@ class GeneralNet(Model):
 	def __init__(self, input_shape, output_shape, model_name):
 		self._model_name = model_name
 		input = Input(shape=input_shape)
-		lstm1 = LSTM(512, return_sequences=True)(input)
+		lstm1 = Bidirectional(LSTM(512, return_sequences=True)(input))
 		dropout = Dropout(0.3)(lstm1)
-		lstm2 = LSTM(512, return_sequences=True)(dropout)
+		lstm2 = Bidirectional(LSTM(512, return_sequences=True)(dropout))
 		dropout2 = Dropout(0.3)(lstm2)
 		reshape = Reshape((output_shape[0], -1))(dropout2)
 		output = Dense(output_shape[1])(reshape)
