@@ -4,7 +4,7 @@ from keras.callbacks import ModelCheckpoint
 from keras.layers import Activation, Reshape
 from keras.layers import Dense, Input
 from keras.layers import Dropout
-from keras.layers import LSTM, Bidirectional
+from keras.layers import LSTM, Bidirectional, Cropping2D
 from keras.models import Model
 from keras.utils import print_summary
 
@@ -27,6 +27,8 @@ class GeneralNet(Model):
 		output = Dense(output_shape[1])(reshape)
 		activate = Activation('softmax')(output)
 		super(GeneralNet, self).__init__(input, activate)
+		# input1 = Cropping2D((16, input_shape[1]))
+		# input1 = Cropping2D((16, input_shape[1]))
 
 		self.compile(optimizer=args.optimizer, loss='categorical_crossentropy')
 		print_summary(self)
