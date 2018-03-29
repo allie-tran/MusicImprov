@@ -9,7 +9,7 @@ from xml.etree import cElementTree
 try:
 	with open('score_list.json', 'r') as f:
 		score_list = json.load(f)
-except ValueError:
+except IOError:
 	score_list = []
 
 def create_dataset(folder):
@@ -63,22 +63,22 @@ def create_dataset(folder):
 
 	melodies = data['melodies']
 	chords = data['chords']
-	print(shape(melodies))
-	print(shape(chords))
+	print(melodies)
+	print(chords)
 	inputs = []
 	outputs = []
 
 	if args.mode == 'chord':
-		input_shape = (args.num_bars * args.steps_per_bar, 29)
+		input_shape = (args.num_bars * args.steps_per_bar, 31)
 		output_shape = (args.num_bars * args.chords_per_bar, len(chord_collection))
 		for melody in melodies:
-			inputs.append(to_onehot(melody, input_shape[1]))
+			inputs.append(encode_melody(melody))
 		for chord in chords:
 			outputs.append(to_onehot(chord, output_shape[1]))
 
 	elif args.mode == 'melody':
 		output_shape = (args.num_bars * args.steps_per_bar, 82)
-		input_shape = (args.num_bars * args.steps_per_bar, 29)
+		input_shape = (args.num_bars * args.steps_per_bar, 31)
 		for i, melody in enumerate(melodies[:-1]):
 			next_melody = melodies[i + 1]
 			next_melody = [n + 2 for n in next_melody]
@@ -88,7 +88,7 @@ def create_dataset(folder):
 		raise NotImplementedError
 	print(shape(inputs))
 	print(shape(outputs))
-	return array(inputs), array(outputs), input_shape, output_shape
+	return inputs, outputs, input_shape, output_shape
 
 
 def encode_melody(melody):
@@ -102,18 +102,28 @@ def encode_melody(melody):
 	context = zeros(12)
 	prev = 0
 	silent = 0
-	intervals = []
+
+	i = 0
+	first_note = melody[i]
+	while first_note < 0:
+		first_note = melody[i+1]
+		i += 1
+
 	for k, n in enumerate(melody):
 		if n >= 2:
 			interval = n - prev
 			prev = n
 			silent = 0
+			interval_from_first_note = n - first_note
 		else:
 			silent += 1
 			interval = 0
-		feature = zeros(29)
+			interval_from_first_note = 0
+
+		feature = zeros(31)
 		# print('---------------------------')
 		position = n
+		position_in_bar = k
 		feature[0] = position
 		pitchclass = zeros(12)
 		pitchclass[int((n + 22) % 12)] = 1
@@ -121,6 +131,8 @@ def encode_melody(melody):
 		feature[14] = interval
 		feature[15:27] = context
 		feature[28] = silent
+		feature[29] = interval_from_first_note
+		feature[30] = position_in_bar
 		input_sequence.append(feature)
 
 		if n >= 2:
