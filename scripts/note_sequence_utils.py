@@ -84,9 +84,9 @@ def encode_chord(c, test=False):
 	for p in c.pitches:
 		string_chord += p.name + '.'
 	if string_chord not in chord_collection:
-		chord_collection[string_chord] = len(chord_collection.keys())
-		if test:
-			return 0
+		# chord_collection[string_chord] = len(chord_collection.keys())
+		# if test:
+		return 0
 	return chord_collection[string_chord]
 
 
@@ -96,7 +96,7 @@ def decode_chord(num):
 	:param num: the encoded number
 	:return: list of the pitches the original chord consists of
 	"""
-	if num == -1:
+	if num <= 0:
 		return None
 	string_chord = ''
 	for c, n in chord_collection.items():
@@ -120,21 +120,21 @@ class ChordSequence(list):
 	A list of chord for one phrase.
 	"""
 
-	def __init__(self, chord_sequence, encode=False):
+	def __init__(self, chord_sequence):
 		"""
 		Constructs a chord sequence
 		:param chord_sequence: a list of chord.Chord objects
 		"""
-		if encode:
-			encoded_chords = chord_sequence
-		else:
-			encoded_chords = []
-			for c in chord_sequence:
-				encoded_chords.append(encode_chord(c))
-		assert len(encoded_chords) == args.steps_per_bar * args.num_bars
-		super(ChordSequence, self).__init__(encoded_chords)
+		super(ChordSequence, self).__init__(chord_sequence)
 		self._chords_per_bar = args.chords_per_bar
 		self._num_bars = args.num_bars
+
+	def encode(self):
+		self._encoded_chords = []
+		for c in self:
+			self._encoded_chords.append(encode_chord(c))
+
+		assert len(self._encoded_chords) == args.steps_per_bar * args.num_bars
 
 	def to_midi(self, melody_sequence, name):
 		"""

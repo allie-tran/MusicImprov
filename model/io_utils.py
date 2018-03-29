@@ -49,7 +49,6 @@ def create_dataset(folder):
 					if phrase_dict is not None:
 						melody_sequence = phrase_dict['melody']
 						chord_sequence = phrase_dict['chord']
-						# print(chord_sequence)
 						data['melodies'].append(melody_sequence)
 						data['chords'].append(chord_sequence)
 
@@ -71,10 +70,11 @@ def create_dataset(folder):
 
 	if args.mode == 'chord':
 		input_shape = (args.num_bars * args.steps_per_bar, 31)
-		output_shape = (args.num_bars * args.chords_per_bar, len(chord_collection))
+		output_shape = (args.num_bars * args.steps_per_bar, len(chord_collection))
 		for melody in melodies:
 			inputs.append(array(encode_melody(melody)))
 		for chord in chords:
+			print(chord)
 			outputs.append(array(to_onehot(chord, output_shape[1])))
 
 	elif args.mode == 'melody':
@@ -91,7 +91,7 @@ def create_dataset(folder):
 	print(shape(outputs))
 	print(input_shape)
 	print(output_shape)
-	return ndarray(inputs), ndarray(outputs), input_shape, output_shape
+	return array(inputs), array(outputs), input_shape, output_shape
 
 
 def encode_melody(melody):

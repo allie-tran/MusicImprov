@@ -191,7 +191,7 @@ class Phrase(MusicXML):
 		"""
 		chords = self._accompaniment.chordify().sorted
 		chord_sequence = [note.Rest()] * args.steps_per_bar * args.num_bars
-		chords.show('text')
+
 		for c in chords.flat:
 			if isinstance(c, chord.Chord):
 				chord_sequence[int(c.offset * args.steps_per_bar / 4)] = c
