@@ -1,7 +1,7 @@
 import json
 import os
 import music21
-from numpy import array, zeros, shape
+from numpy import array, zeros, shape, ndarray
 from scripts import args, to_onehot, MusicXML, XMLtoNoteSequence
 from model.train import chord_collection
 from xml.etree import cElementTree
@@ -72,9 +72,9 @@ def create_dataset(folder):
 		input_shape = (args.num_bars * args.steps_per_bar, 31)
 		output_shape = (args.num_bars * args.chords_per_bar, len(chord_collection))
 		for melody in melodies:
-			inputs.append(encode_melody(melody))
+			inputs.append(array(encode_melody(melody)))
 		for chord in chords:
-			outputs.append(to_onehot(chord, output_shape[1]))
+			outputs.append(array(to_onehot(chord, output_shape[1])))
 
 	elif args.mode == 'melody':
 		output_shape = (args.num_bars * args.steps_per_bar, 82)
@@ -88,7 +88,9 @@ def create_dataset(folder):
 		raise NotImplementedError
 	print(shape(inputs))
 	print(shape(outputs))
-	return array(inputs), array(outputs), input_shape, output_shape
+	print(input_shape)
+	print(output_shape)
+	return ndarray(inputs), ndarray(outputs), input_shape, output_shape
 
 
 def encode_melody(melody):
