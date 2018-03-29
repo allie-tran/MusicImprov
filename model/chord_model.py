@@ -2,7 +2,7 @@ from numpy import array, argmax
 
 from common_model import GeneralNet
 from scripts import ChordSequence, to_onehot
-
+import model
 
 class ChordNet(GeneralNet):
 
@@ -10,12 +10,12 @@ class ChordNet(GeneralNet):
 		super(ChordNet, self).__init__(input_shape, output_shape, model_name)
 
 	def generate(self, primer_notesequence, name):
+
 		# Load the weights to each node
 		# self.load_weights('best-weights-without-rests.hdf5')
-		input_sequence = array([primer_notesequence])
+		input_sequence = array([model.encode_melody(primer_notesequence)])
 		self.load_weights('weights/' + self._model_name + '-weights.hdf5')
-		input = to_onehot(input_sequence, 130)
-		output = self.predict(input, verbose=0)[0]
+		output = self.predict(input_sequence, verbose=0)[0]
 		chords = ChordSequence(list(argmax(output, axis=1)), encode=True)
 
 		chords.to_midi(primer_notesequence, name)

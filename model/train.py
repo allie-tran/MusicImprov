@@ -43,6 +43,8 @@ def generate():
 		inputs, outputs, input_shape, output_shape = create_dataset('xml')
 
 	if args.mode == 'chord':
+		input_shape = (args.num_bars * args.steps_per_bar, 31)
+		output_shape = (args.num_bars * args.chords_per_bar, len(chord_collection))
 		model = ChordNet(input_shape, output_shape, 'ChordModel')
 	elif args.mode == 'combine':
 		input_shape1 = (args.num_bars * args.steps_per_bar, 130)
