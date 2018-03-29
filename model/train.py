@@ -48,7 +48,7 @@ def generate():
 		input_shape1 = (args.num_bars * args.steps_per_bar, 130)
 		output_shape1 = (args.num_bars * args.chords_per_bar, len(chord_collection))
 		output_shape2 = (args.num_bars * args.steps_per_bar, 130)
-		input_shape2 = (args.num_bars * args.steps_per_bar, 29)
+		input_shape2 = (args.num_bars * args.steps_per_bar, 31)
 
 		chord_model = ChordNet(input_shape1, output_shape1, 'ChordModel')
 		melody_model = MelodyAnswerNet(input_shape2, output_shape2, 'MelodyModel')

@@ -87,10 +87,9 @@ class MusicXML(object):
 		Extracts information from the score. Also splits the score into 2 parts: left and right hand
 		"""
 		# Splitting
-		try:
+		voices = self._score.getElementsByClass(stream.PartStaff)
+		if len(voices) < 2:
 			voices = self._score.parts
-		except AttributeError:
-			voices = self._score.getElementsByClass(stream.PartStaff)
 		try:
 			full_melody = voices[0].flat.measures(1, None, collect=['TimeSignature'], gatherSpanners=False).expandRepeats().sorted
 			full_chord = voices[1].flat.measures(1, None, collect=['TimeSignature'], gatherSpanners=False).expandRepeats().sorted
@@ -192,7 +191,7 @@ class Phrase(MusicXML):
 		chords = self._accompaniment.chordify().sorted
 		cr = analysis.reduceChords.ChordReducer()
 		# collapsed_chords = cr.collapseArpeggios(chords)
-		reduced_chords = []
+		reduced_chords = stream.Stream()
 		i = 0
 		for measure in chords.measures(1, None, collect=[], gatherSpanners=False):
 			if isinstance(measure, stream.Measure):
@@ -202,14 +201,17 @@ class Phrase(MusicXML):
 					args.chords_per_bar,
 					weightAlgorithm=cr.qlbsmpConsonance,
 					trimBelow=0.3)
-				try:
-					reduced_chords.extend(reduced_measure.getElementsByClass(chord.Chord))
-				except IndexError:
-					pass
+				for c in reduced_measure.getElementsByClass(chord.Chord):
+					if isinstance(c, chord.Chord):
+						reduced_chords.insert(c)
+
 				while len(reduced_chords) < i * args.chords_per_bar:
-					reduced_chords.append(note.Rest())
+					reduced_chords.insert(note.Rest())
 				if i == args.num_bars:
-					return reduced_chords
+					break
+		while len(reduced_chords) < args.num_bars * args.chords_per_bar:
+			reduced_chords.insert(note.Rest())
+		return reduced_chords
 		# assert len(reduced_chords) == self.num_bars * args.chords_per_bar, \
 		# 	'Chord sequence does not match the number of bars: ' + str(len(reduced_chords))
 
@@ -250,7 +252,6 @@ class XMLtoNoteSequence(Transformer):
 
 		# For accompaniment
 		chord_sequence = input.accompaniment_to_chords()
-
 		# except IndexError:
 		# 	return None
 
