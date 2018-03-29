@@ -131,7 +131,7 @@ class ChordSequence(list):
 			encoded_chords = []
 			for c in chord_sequence:
 				encoded_chords.append(encode_chord(c))
-		assert len(encoded_chords) == 16
+		assert len(encoded_chords) == args.steps_per_bar * args.num_bars
 		super(ChordSequence, self).__init__(encoded_chords)
 		self._chords_per_bar = args.chords_per_bar
 		self._num_bars = args.num_bars
