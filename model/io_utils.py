@@ -49,6 +49,7 @@ def create_dataset(folder):
 					if phrase_dict is not None:
 						melody_sequence = phrase_dict['melody']
 						chord_sequence = phrase_dict['chord']
+						# print(chord_sequence)
 						data['melodies'].append(melody_sequence)
 						data['chords'].append(chord_sequence)
 
