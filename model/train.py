@@ -33,7 +33,7 @@ def melody_generate(model, phrases, transformer, use_generated_as_primer=True):
 
 
 def combine_generate(melody_model, chord_model, phrases, transformer):
-	primer = transformer.transform(phrases[9])['melody']
+	primer = transformer.transform(phrases[5])['melody']
 	for i in range(5):
 		primer = melody_model.generate(encode_melody(primer), 'generated/generate_' + str(i))
 		chord_sequence = chord_model.generate(primer, 'generated/with_chords' + str(i))
@@ -47,10 +47,10 @@ def generate():
 		output_shape = (args.num_bars * args.chords_per_bar, len(chord_collection))
 		model = ChordNet(input_shape, output_shape, 'ChordModel')
 	elif args.mode == 'combine':
-		input_shape1 = (args.num_bars * args.steps_per_bar, 130)
+		input_shape1 = (args.num_bars * args.steps_per_bar, 31)
 		output_shape1 = (args.num_bars * args.chords_per_bar, len(chord_collection))
-		output_shape2 = (args.num_bars * args.steps_per_bar, 130)
 		input_shape2 = (args.num_bars * args.steps_per_bar, 31)
+		output_shape2 = (args.num_bars * args.steps_per_bar, 82)
 
 		chord_model = ChordNet(input_shape1, output_shape1, 'ChordModel')
 		melody_model = MelodyAnswerNet(input_shape2, output_shape2, 'MelodyModel')
