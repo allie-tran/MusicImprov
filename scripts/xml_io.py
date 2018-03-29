@@ -201,6 +201,9 @@ class Phrase(MusicXML):
 					args.chords_per_bar,
 					weightAlgorithm=cr.qlbsmpConsonance,
 					trimBelow=0.3)
+				
+				assert len(reduced_chords) <= args.num_bars, "too many chords"
+
 				for c in reduced_measure.getElementsByClass(chord.Chord):
 					if isinstance(c, chord.Chord):
 						reduced_chords.insert(c)
