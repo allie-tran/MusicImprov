@@ -5,6 +5,7 @@ from numpy import ones, floor
 from note_sequence_utils import *
 from scripts import args
 from transformer import *
+from music21 import chord
 
 import xml.etree.ElementTree as ET
 
@@ -189,34 +190,48 @@ class Phrase(MusicXML):
 		:return: a stream.StaffPart object containing the reduced measures
 		"""
 		chords = self._accompaniment.chordify().sorted
-		cr = analysis.reduceChords.ChordReducer()
-		# collapsed_chords = cr.collapseArpeggios(chords)
-		reduced_chords = stream.Stream()
-		i = 0
-		for measure in chords.measures(1, None, collect=[], gatherSpanners=False):
-			if isinstance(measure, stream.Measure):
-				i += 1
-				reduced_measure = cr.reduceMeasureToNChords(
-					measure,
-					args.chords_per_bar,
-					weightAlgorithm=cr.qlbsmpConsonance,
-					trimBelow=0.3)
+		chord_sequence = [note.Rest()] * args.steps_per_bar * args.num_bars
+		chords.show('text')
+		for c in chords.flat:
+			if isinstance(c, chord.Chord):
+				chord_sequence[int(c.offset * args.steps_per_bar / 4)] = c
+		# print(chord_sequence)
 
-				assert len(reduced_chords) <= args.chords_per_bar, "too many chords"
+		return chord_sequence
 
-				for c in reduced_measure.getElementsByClass(chord.Chord):
-					if isinstance(c, chord.Chord):
-						reduced_chords.insert(c)
-
-				while len(reduced_chords) < i * args.chords_per_bar:
-					reduced_chords.insert(note.Rest())
-				if i == args.num_bars:
-					break
-		while len(reduced_chords) < args.num_bars * args.chords_per_bar:
-			reduced_chords.insert(note.Rest())
-		return reduced_chords
-		# assert len(reduced_chords) == self.num_bars * args.chords_per_bar, \
-		# 	'Chord sequence does not match the number of bars: ' + str(len(reduced_chords))
+		# cr = analysis.reduceChords.ChordReducer()
+		# # collapsed_chords = cr.collapseArpeggios(chords)
+		# reduced_chords = stream.Stream()
+		# i = 0
+		# chords.show('text')
+		# print('----------------------------------')
+		# for measure in chords.measures(1, None, collect=[], gatherSpanners=False):
+		# 	if isinstance(measure, stream.Measure):
+		# 		i += 1
+		# 		reduced_measure = cr.reduceMeasureToNChords(
+		# 			measure,
+		# 			args.chords_per_bar,
+		# 			weightAlgorithm=cr.qlbsmpConsonance,
+		# 			trimBelow=0.3)
+		# 		reduced_measure.show('text')
+		# 		j = 0
+		# 		for c in reduced_measure.getElementsByClass(chord.Chord):
+		# 			if isinstance(c, chord.Chord):
+		# 				j += 1
+		# 				reduced_chords.insert(c)
+		#
+		# 		assert j <= args.chords_per_bar, "too many chords: " + str(j)
+		#
+		# 		while j < args.chords_per_bar:
+		# 			j += 1
+		# 			reduced_chords.insert(note.Rest())
+		# 		if i == args.num_bars:
+		# 			break
+		# while len(reduced_chords) < args.num_bars * args.chords_per_bar:
+		# 	reduced_chords.insert(note.Rest())
+		# return reduced_chords
+		# # assert len(reduced_chords) == self.num_bars * args.chords_per_bar, \
+		# # 	'Chord sequence does not match the number of bars: ' + str(len(reduced_chords))
 
 
 class XMLtoNoteSequence(Transformer):
@@ -255,8 +270,8 @@ class XMLtoNoteSequence(Transformer):
 
 		# For accompaniment
 		chord_sequence = input.accompaniment_to_chords()
-		# except IndexError:
-		# 	return None
+		# print(chord_sequence)
+
 
 		return {'melody': MelodySequence(note_sequence),
 		        'chord': ChordSequence(chord_sequence),
