@@ -63,8 +63,8 @@ def create_dataset(folder):
 
 	melodies = data['melodies']
 	chords = data['chords']
-	print(melodies)
-	print(chords)
+	print(shape(melodies))
+	print(shape(chords))
 	inputs = []
 	outputs = []
 
@@ -88,7 +88,7 @@ def create_dataset(folder):
 		raise NotImplementedError
 	print(shape(inputs))
 	print(shape(outputs))
-	return inputs, outputs, input_shape, output_shape
+	return array(inputs), array(outputs), input_shape, output_shape
 
 
 def encode_melody(melody):
