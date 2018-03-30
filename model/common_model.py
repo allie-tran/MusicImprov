@@ -2,9 +2,9 @@ import abc
 
 from keras.callbacks import ModelCheckpoint
 from keras.layers import Activation, Reshape
-from keras.layers import Dense, Input
-from keras.layers import Dropout
-from keras.layers import LSTM, Bidirectional, Cropping2D
+from keras.layers import Dense, Input, Multiply
+from keras.layers import Dropout, TimeDistributed
+from keras.layers import LSTM, Bidirectional, Cropping1D
 from keras.models import Model
 from keras.utils import print_summary
 
@@ -19,17 +19,31 @@ class GeneralNet(Model):
 	def __init__(self, input_shape, output_shape, model_name):
 		self._model_name = model_name
 		input = Input(shape=input_shape)
-		lstm1 = Bidirectional(LSTM(512, return_sequences=True))(input)
-		dropout = Dropout(0.3)(lstm1)
-		lstm2 = Bidirectional(LSTM(512, return_sequences=True))(dropout)
-		dropout2 = Dropout(0.3)(lstm2)
-		reshape = Reshape((output_shape[0], -1))(dropout2)
-		output = Dense(output_shape[1])(reshape)
-		activate = Activation('softmax')(output)
-		super(GeneralNet, self).__init__(input, activate)
-		# input1 = Cropping2D((16, input_shape[1]))
-		# input1 = Cropping2D((16, input_shape[1]))
 
+		input1 = Cropping1D((0, 16 * 3))(input)
+		input2 = Cropping1D((16, 16 * 2))(input)
+		input3 = Cropping1D((16 * 2, 16))(input)
+		input4 = Cropping1D((16 * 3, 0))(input)
+
+		bltsm1 = LSTM(128, return_sequences=True)(input1)
+		bltsm2 = LSTM(128, return_sequences=True)(input2)
+		bltsm3 = LSTM(128, return_sequences=True)(input3)
+		bltsm4 = LSTM(128, return_sequences=True)(input4)
+
+		merge1 = Multiply()([bltsm1, bltsm2])
+		merge2 = Multiply()([bltsm3, bltsm4])
+
+		merge_bltsm1 = LSTM(64, return_sequences=True)(merge1)
+		merge_bltsm2 = LSTM(64, return_sequences=True)(merge2)
+
+		merge3 = Multiply()([merge_bltsm1, merge_bltsm2])
+
+		merge_bltsm3 = LSTM(64, return_sequences=True)(merge3)
+
+		dense = TimeDistributed(Dense(output_shape[1], activation='softmax'))(merge_bltsm3)
+		
+		super(GeneralNet, self).__init__(input, dense)
+		
 		self.compile(optimizer=args.optimizer, loss='categorical_crossentropy')
 		print_summary(self)
 
