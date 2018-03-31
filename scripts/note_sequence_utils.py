@@ -60,11 +60,9 @@ class MelodySequence(list):
 				if previous_note >= 0:
 					melody.append(
 						mido.Message(type='note_off', note=int(previous_note+48), velocity=30, time=0, channel=1))
-					melody.append(mido.Message(type='note_on', note=int(n + 48), velocity=60, time=0, channel=1))
-				else:
-					melody.append(mido.Message(type='note_on', note=int(n+48), velocity=60, time=0, channel=1))
+				melody.append(mido.Message(type='note_on', note=int(n + 48), velocity=60, time=0, channel=1))
 				previous_note = n
-			melody.append(mido.Message('control_change', time=1))
+			melody.append(mido.Message('control_change', time=1, channel=1))
 		if save:
 			mid.save(name + '_melody.mid')
 		return mid
@@ -118,7 +116,7 @@ def find_chord_duration(i, chord_sequence):
 	chord = chord_sequence[i]
 	duration = 1
 	i += 1
-	while i < len(chord_sequence) and (chord_sequence[i] is None or chord_sequence[i] == chord):
+	while i < len(chord_sequence) and (chord_sequence[i] == 0 or chord_sequence[i] == chord):
 		duration += 1
 		i += 1
 	return duration, i
@@ -153,18 +151,14 @@ class ChordSequence(list):
 		"""
 		mid = melody_sequence.to_midi(name)
 		track = mid.add_track('Chord')
-		prev = None
 		i = 0
 		while i < len(self):
-			print(i)
 			c = decode_chord(self[i])
 			if c is None:
-				track.append(mido.Message('control_change', time = melody_sequence.steps_per_bar / self._chords_per_bar))
+				track.append(mido.Message('control_change', time=melody_sequence.steps_per_bar / self._chords_per_bar))
 				i += 1
 				continue
 			duration, i = find_chord_duration(i, self)
-			print(duration)
-			print('---', i)
 			notes = [n.midi for n in c]
 			for n in notes:
 				track.append(mido.Message('note_on', note=int(n), velocity=60, time=0, channel=2))

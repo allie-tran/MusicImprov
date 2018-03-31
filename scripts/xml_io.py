@@ -5,7 +5,8 @@ from numpy import ones, floor
 from note_sequence_utils import *
 from scripts import args
 from transformer import *
-from music21 import chord
+from music21 import chord, key
+
 
 import xml.etree.ElementTree as ET
 
@@ -25,7 +26,7 @@ class MusicXML(object):
 		self._melody = None
 		self._accompaniment = None
 		self._time_signature = None
-		self._key = None
+		self._key = key.Key()
 
 	@property
 	def melody(self):
@@ -165,7 +166,7 @@ class Phrase(MusicXML):
 		if transpose:
 			i = interval.Interval(self._key.tonic, pitch.Pitch('C'))
 			self._score.transpose(i, inPlace=True)
-			self._key = 'C'
+			self._key = key.Key('C')
 		self._num_bars = args.num_bars
 		self._name = name
 
