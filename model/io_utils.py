@@ -80,8 +80,8 @@ def create_dataset(folder):
 	elif args.mode == 'melody':
 		output_shape = (args.num_bars * args.steps_per_bar, 82)
 		input_shape = (args.num_bars * args.steps_per_bar, 32)
-		for i, melody in enumerate(melodies[:-1]):
-			next_melody = melodies[i + 1]
+		for i, melody in enumerate(melodies):
+			next_melody = melodies[i]
 			next_melody = [n + 2 for n in next_melody]
 			outputs.append(to_onehot(next_melody, output_shape[1]))
 			inputs.append(encode_melody(melody))
@@ -121,6 +121,7 @@ def encode_melody(melody):
 			silent = 0
 			interval_from_first_note = n - first_note
 			pitchclass[int((n + 22) % 12)] = 1
+			interval_from_last_note = n
 		else: # silence
 			silent += 1
 			interval = 0

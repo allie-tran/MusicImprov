@@ -33,7 +33,7 @@ def melody_generate(model, phrases, transformer, use_generated_as_primer=True):
 
 
 def combine_generate(melody_model, chord_model, phrases, transformer):
-	primer = transformer.transform(phrases[3])['melody']
+	primer = transformer.transform(phrases[1])['melody']
 	for i in range(5):
 		primer = melody_model.generate(encode_melody(primer), 'generated/generate_' + str(i))
 		chord_sequence = chord_model.generate(primer, 'generated/with_chords' + str(i))
