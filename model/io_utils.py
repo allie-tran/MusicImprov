@@ -113,7 +113,7 @@ def encode_melody(melody):
 		i += 1
 
 	for k, n in enumerate(melody):
-		feature = zeros(31)
+		feature = zeros(32)
 		pitchclass = zeros(13)
 		if n >= 2:
 			interval = n - prev
