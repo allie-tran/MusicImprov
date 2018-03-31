@@ -30,31 +30,23 @@ class GeneralNet(Model):
 		input3 = Cropping1D((16 * 2, 16))(input)
 		input4 = Cropping1D((16 * 3, 0))(input)
 
-		bltsm1 = Bidirectional(LSTM(128))(input1)
-		bltsm2 = Bidirectional(LSTM(128))(input2)
-		bltsm3 = Bidirectional(LSTM(128))(input3)
-		bltsm4 = Bidirectional(LSTM(128))(input4)
+		bltsm1 = Bidirectional(LSTM(128, return_sequences=True))(input1)
+		bltsm2 = Bidirectional(LSTM(128, return_sequences=True))(input2)
+		bltsm3 = Bidirectional(LSTM(128, return_sequences=True))(input3)
+		bltsm4 = Bidirectional(LSTM(128, return_sequences=True))(input4)
 
 		merge1 = Dropout(0.3)(Concatenate(axis=1)([bltsm1, bltsm2]))
 		merge2 = Dropout(0.3)(Concatenate(axis=1)([bltsm3, bltsm4]))
 
-		merge_bltsm1 = Bidirectional(LSTM(64))(merge1)
-		merge_bltsm2 = Bidirectional(LSTM(64))(merge2)
+		merge_bltsm1 = Bidirectional(LSTM(64, return_sequences=True))(merge1)
+		merge_bltsm2 = Bidirectional(LSTM(64, return_sequences=True))(merge2)
 
 		merge3 = Dropout(0.3)(Concatenate(axis=1)([merge_bltsm1, merge_bltsm2]))
 
-		merge_bltsm3 = Bidirectional(LSTM(32))(merge3)
+		merge_bltsm3 = Bidirectional(LSTM(32, return_sequences=True))(merge3)
 
-		split5 = Dropout(0.3)(Dense(32)(merge3))
-		split6 = Dropout(0.3)(Dense(32)(merge3))
+		dense = TimeDistributed(Dense(output_shape[1], activation='softmax'))(merge_bltsm3)
 
-		split1 = Dropout(0.3)(Dense(64)(split5))
-		split2 = Dropout(0.3)(Dense(64)(split5))
-		split3 = Dropout(0.3)(Dense(64)(split6))
-		split4 = Dropout(0.3)(Dense(64)(split6))
-
-		final = Concatenate(axis=1)([split1, split2, split3, split4])
-		# dense = TimeDistributed(Dense(output_shape[1], activation='softmax'))(merge_bltsm3)
 
 		super(GeneralNet, self).__init__(input, dense)
 		
