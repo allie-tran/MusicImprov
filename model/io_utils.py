@@ -69,7 +69,7 @@ def create_dataset(folder):
 	outputs = []
 
 	if args.mode == 'chord':
-		input_shape = (args.num_bars * args.steps_per_bar, 31)
+		input_shape = (args.num_bars * args.steps_per_bar, 32)
 		output_shape = (args.num_bars * args.steps_per_bar, len(chord_collection))
 		for melody in melodies:
 			inputs.append(array(encode_melody(melody)))
@@ -79,7 +79,7 @@ def create_dataset(folder):
 
 	elif args.mode == 'melody':
 		output_shape = (args.num_bars * args.steps_per_bar, 82)
-		input_shape = (args.num_bars * args.steps_per_bar, 31)
+		input_shape = (args.num_bars * args.steps_per_bar, 32)
 		for i, melody in enumerate(melodies[:-1]):
 			next_melody = melodies[i + 1]
 			next_melody = [n + 2 for n in next_melody]
@@ -113,29 +113,29 @@ def encode_melody(melody):
 		i += 1
 
 	for k, n in enumerate(melody):
+		feature = zeros(31)
+		pitchclass = zeros(13)
 		if n >= 2:
 			interval = n - prev
 			prev = n
 			silent = 0
 			interval_from_first_note = n - first_note
-		else:
+			pitchclass[int((n + 22) % 12)] = 1
+		else: # silence
 			silent += 1
 			interval = 0
 			interval_from_first_note = 0
+			pitchclass[12] = 1
 
-		feature = zeros(31)
-		# print('---------------------------')
 		position = n
 		position_in_bar = k
 		feature[0] = position
-		pitchclass = zeros(12)
-		pitchclass[int((n + 22) % 12)] = 1
-		feature[1:13] = pitchclass
-		feature[14] = interval
-		feature[15:27] = context
-		feature[28] = silent
-		feature[29] = interval_from_first_note
-		feature[30] = position_in_bar
+		feature[1:14] = pitchclass
+		feature[15] = interval
+		feature[16:28] = context
+		feature[29] = silent
+		feature[30] = interval_from_first_note
+		feature[31] = position_in_bar
 		input_sequence.append(feature)
 
 		if n >= 2:
