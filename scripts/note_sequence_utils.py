@@ -114,6 +114,14 @@ def decode_chord(num):
 		notes.append(pitch.Pitch(p))
 	return notes
 
+def find_chord_duration(i, chord_sequence):
+	chord = chord_sequence[i]
+	duration = 1
+	i += 1
+	while i < len(chord_sequence) and (chord_sequence[i] is None or chord_sequence[i] == chord):
+		duration += 1
+		i += 1
+	return duration, i
 
 class ChordSequence(list):
 	"""
@@ -145,15 +153,22 @@ class ChordSequence(list):
 		"""
 		mid = melody_sequence.to_midi(name)
 		track = mid.add_track('Chord')
-		for c in self:
-			chords = decode_chord(c)
-			if chords is None:
-				track.append(mido.Message('control_change', time=melody_sequence.steps_per_bar / self._chords_per_bar))
+		prev = None
+		i = 0
+		while i < len(self):
+			print(i)
+			c = decode_chord(self[i])
+			if c is None:
+				track.append(mido.Message('control_change', time = melody_sequence.steps_per_bar / self._chords_per_bar))
+				i += 1
 				continue
-			notes = [n.midi for n in decode_chord(c)]
+			duration, i = find_chord_duration(i, self)
+			print(duration)
+			print('---', i)
+			notes = [n.midi for n in c]
 			for n in notes:
 				track.append(mido.Message('note_on', note=int(n), velocity=60, time=0, channel=2))
-			track.append(mido.Message('control_change', time=melody_sequence.steps_per_bar / self._chords_per_bar))
+			track.append(mido.Message('control_change', time=duration * melody_sequence.steps_per_bar / self._chords_per_bar))
 			for n in notes:
 				track.append(mido.Message('note_off', note=int(n), velocity=60, time=0, channel=2))
 		mid.save(name + '.mid')
