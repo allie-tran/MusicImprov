@@ -55,6 +55,8 @@ def generate():
 		chord_model = ChordNet(input_shape1, output_shape1, 'ChordModel')
 		melody_model = MelodyAnswerNet(input_shape2, output_shape2, 'MelodyModel')
 	else:
+		input_shape = (args.num_bars * args.steps_per_bar, 31)
+		output_shape = (args.num_bars * args.steps_per_bar, 82)
 		model = MelodyAnswerNet(input_shape, output_shape, 'MelodyModel')
 
 	if args.train:
