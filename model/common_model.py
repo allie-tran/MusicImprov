@@ -47,7 +47,6 @@ class GeneralNet(Model):
 
 		dense = TimeDistributed(Dense(output_shape[1], activation='softmax'))(merge_bltsm3)
 
-
 		super(GeneralNet, self).__init__(input, dense)
 		
 		self.compile(optimizer=args.optimizer, loss=weighted_loss)
