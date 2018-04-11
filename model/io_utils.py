@@ -63,14 +63,15 @@ def create_dataset(folder):
 
 	melodies = data['melodies']
 	chords = data['chords']
-	print(shape(melodies))
-	print(shape(chords))
 	inputs = []
 	outputs = []
 
 	if args.mode == 'chord':
 		input_shape = (args.num_bars * args.steps_per_bar, 32)
-		output_shape = (args.num_bars * args.steps_per_bar, len(chord_collection))
+		output_shape = (args.num_bars * args.steps_per_bar, len(chord_collection)+1)
+		print(input_shape)
+		print(output_shape)
+
 		for melody in melodies:
 			inputs.append(array(encode_melody(melody)))
 		for chord in chords:
