@@ -3,7 +3,7 @@ import abc
 from keras.callbacks import ModelCheckpoint
 from keras.layers import Activation, Reshape
 from keras.layers import Dense, Input, Multiply
-from keras.layers import Dropout, TimeDistributed
+from keras.layers import Dropout, TimeDistributed, RepeatVector
 from keras.layers import LSTM, Bidirectional, Cropping1D, Concatenate
 from keras.models import Model
 from keras.utils import print_summary
@@ -23,31 +23,29 @@ class GeneralNet(Model):
 
 	def __init__(self, input_shape, output_shape, model_name):
 		self._model_name = model_name
-		input = Input(shape=input_shape)
 
-		input1 = Cropping1D((0, 16 * 3))(input)
-		input2 = Cropping1D((16, 16 * 2))(input)
-		input3 = Cropping1D((16 * 2, 16))(input)
-		input4 = Cropping1D((16 * 3, 0))(input)
+		# Define an input sequence and process it.
+		inputs = Input(shape=input_shape)
+		encoder = LSTM(512, return_state=True)
+		encoder_outputs, state_h, state_c = encoder(inputs)
+		# We discard `encoder_outputs` and only keep the states.
+		encoder_states = [state_h, state_c]
 
-		bltsm1 = Bidirectional(LSTM(128, return_sequences=True))(input1)
-		bltsm2 = Bidirectional(LSTM(128, return_sequences=True))(input2)
-		bltsm3 = Bidirectional(LSTM(128, return_sequences=True))(input3)
-		bltsm4 = Bidirectional(LSTM(128, return_sequences=True))(input4)
+		# We set up our decoder to return full output sequences,
+		# and to return internal states as well. We don't use the
+		# return states in the training model, but we will use them in inference.
+		decoder_lstm = LSTM(512, return_sequences=True, return_state=True)
 
-		merge1 = Dropout(0.3)(Concatenate(axis=1)([bltsm1, bltsm2]))
-		merge2 = Dropout(0.3)(Concatenate(axis=1)([bltsm3, bltsm4]))
+		decoder_outputs, _, _ = decoder_lstm(inputs,
+		                                     initial_state=encoder_states)
 
-		merge_bltsm1 = Bidirectional(LSTM(64, return_sequences=True))(merge1)
-		merge_bltsm2 = Bidirectional(LSTM(64, return_sequences=True))(merge2)
+		decoder_dense = TimeDistributed(Dense(output_shape[1], activation='softmax'))
+		outputs = decoder_dense(decoder_outputs)
 
-		merge3 = Dropout(0.3)(Concatenate(axis=1)([merge_bltsm1, merge_bltsm2]))
+		# Define the model that will turn
+		# `encoder_input_data` & `decoder_input_data` into `decoder_target_data`)
 
-		merge_bltsm3 = Bidirectional(LSTM(32, return_sequences=True))(merge3)
-
-		dense = TimeDistributed(Dense(output_shape[1], activation='softmax'))(merge_bltsm3)
-
-		super(GeneralNet, self).__init__(input, dense)
+		super(GeneralNet, self).__init__(inputs, outputs)
 		
 		self.compile(optimizer=args.optimizer, loss=weighted_loss)
 		print_summary(self)
