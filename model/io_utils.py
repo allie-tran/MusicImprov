@@ -81,8 +81,8 @@ def create_dataset(folder):
 			outputs.append(array(to_onehot(chord, output_shape[1])))
 
 	elif args.mode == 'melody':
-		output_shape = (args.num_bars * args.steps_per_bar, 82)
 		input_shape = (args.num_bars * args.steps_per_bar, 32)
+		output_shape = (args.num_bars * args.steps_per_bar, 82)
 		for i, melody in enumerate(melodies):
 			next_melody = melodies[i]
 			next_melody = [n + 2 for n in next_melody]
