@@ -5,7 +5,7 @@ from keras.utils import to_categorical
 from music21 import *
 from numpy import argmax
 from numpy import array
-from scripts import args
+from configure import args
 import json
 
 try:

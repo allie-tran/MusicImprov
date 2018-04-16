@@ -3,10 +3,9 @@ import logging
 from numpy import ones, floor
 
 from note_sequence_utils import *
-from scripts import args
+from scripts import args, GeneralMusic
 from transformer import *
 from music21 import chord, key
-
 
 import xml.etree.ElementTree as ET
 
@@ -15,46 +14,14 @@ logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 environment.UserSettings()['warnings'] = 0
 
 
-class MusicXML(object):
+class MusicXML(GeneralMusic):
 
-	def __init__(self):
+	def __init__(self, name='untitled', melody=None, accompaniment=None, time=None, current_key=key.Key()):
 		"""
-		Create an empty music21 Stream object
+		Construct a phrase
+		:param transpose: if True, transpose the phrase into the key of C major or A minor.
 		"""
-		self._name = 'untitled'
-		self._score = None
-		self._melody = None
-		self._accompaniment = None
-		self._time_signature = None
-		self._key = key.Key()
-
-	@property
-	def melody(self):
-		"""
-		Returns the right hand part of the score
-		"""
-		return self._melody
-
-	@property
-	def accompaniment(self):
-		"""
-		Returns the left hand part of the score
-		"""
-		return self._accompaniment
-
-	@property
-	def time_signature(self):
-		"""
-		Returns the time signature of the score
-		"""
-		return self._time_signature
-
-	@property
-	def key(self):
-		"""
-		Return the key of the score. Usually not given originally.
-		"""
-		return self._key
+		super(MusicXML, self).__init__(name, melody, accompaniment, time, current_key)
 
 	def from_file(self, filename):
 		"""
@@ -71,33 +38,34 @@ class MusicXML(object):
 			logging.error("No Time Signature found")
 			raise exceptions21.StreamException
 
-	def from_streams(self, streams, name='untitled'):
-		"""
-		Copy from another stream/ list of streams
-		"""
-		assert isinstance(streams, stream.Stream), \
-			"MusicXML can only be create from a music21.stream.Stream object. Please provide a valid stream, " \
-			"or try from_file()."
-
-		self._score = streams
-		self._name = name
-		self._time_signature = streams.timeSignature
-		self.analyse()
-
 	def analyse(self):
 		"""
 		Extracts information from the score. Also splits the score into 2 parts: left and right hand
 		"""
 		# Splitting
 		voices = self._score.getElementsByClass(stream.PartStaff)
+		print(len(voices))
 		if len(voices) < 2:
 			voices = self._score.parts
-		try:
-			full_melody = voices[0].flat.measures(1, None, collect=['TimeSignature'], gatherSpanners=False).expandRepeats().sorted
-			full_chord = voices[1].flat.measures(1, None, collect=['TimeSignature'], gatherSpanners=False).expandRepeats().sorted
-		except repeat.ExpanderException:
-			full_melody = voices[0].flat.measures(1, None, collect=['TimeSignature'], gatherSpanners=False)
-			full_chord = voices[1].flat.measures(1, None, collect=['TimeSignature'], gatherSpanners=False)
+		print(len(voices))
+		if len(voices) == 1:
+			try:
+				measures = voices[0].flat.measures(1, None, collect=['TimeSignature'],
+				                                      gatherSpanners=False).expandRepeats().sorted
+			except repeat.ExpanderException:
+				measures = voices[0].flat.measures(1, None, collect=['TimeSignature'], gatherSpanners=False)
+			full_melody = stream.Stream()
+			full_chord = stream.Stream()
+			for i, measure in enumerate(measures):
+				full_melody.insert(i * args.steps_per_bar / 4, stream.Measure(measure.getElementsByClass(note.Note)))
+				full_chord.insert(i * args.steps_per_bar / 4, stream.Measure(measure.getElementsByClass(chord.Chord)))
+		else:
+			try:
+				full_melody = voices[0].flat.measures(1, None, collect=['TimeSignature'], gatherSpanners=False).expandRepeats().sorted
+				full_chord = voices[1].flat.measures(1, None, collect=['TimeSignature'], gatherSpanners=False).expandRepeats().sorted
+			except repeat.ExpanderException:
+				full_melody = voices[0].flat.measures(1, None, collect=['TimeSignature'], gatherSpanners=False)
+				full_chord = voices[1].flat.measures(1, None, collect=['TimeSignature'], gatherSpanners=False)
 
 		self._melody = full_melody
 		self._accompaniment = full_chord
@@ -117,25 +85,19 @@ class MusicXML(object):
 		"""
 		i = 1
 		total = len(self._melody)
-		print(total)
 		while True:
-			phrase_melody = stream.PartStaff(self._melody.measures(i, i + args.num_bars - 1, collect=['TimeSignature']))
+			phrase_melody = stream.Stream(self._melody.measures(i, i + args.num_bars - 1, collect=['TimeSignature']))
 			phrase_accompaniment = stream.PartStaff(self._accompaniment.measures(i, i + args.num_bars - 1, collect=['TimeSignature']))
 
-			phrase = stream.Stream()
-			phrase.append(phrase_melody)
-			phrase.insert(0, phrase_accompaniment)
-			phrase.shiftElements(-phrase.lowestOffset)
+			lowest = min(phrase_melody.lowestOffset, phrase_accompaniment.lowestOffset)
+			phrase_melody.shiftElements(-lowest)
+			phrase_accompaniment.shiftElements(-lowest)
 
 			# phrase = phrase.getElementBeforeOffset(args.num_bars * args.steps_per_bar/4)
-			# phrase.show('text')
+			# print('---------------------------------------------------------------------')
+			# phrase.flat.show('text')
 			# phrase.show()
-			if reanalyze:
-				phrase.key = phrase.analyze('key')
-			else:
-				phrase.key = self._key
-
-			all_time_signature = phrase.recurse().getElementsByClass(meter.TimeSignature)
+			all_time_signature = phrase_melody.recurse().getElementsByClass(meter.TimeSignature)
 			current_time_signature = True
 			for ts in all_time_signature:
 				if ts.ratioString != '4/4':
@@ -143,10 +105,14 @@ class MusicXML(object):
 					break
 
 			if current_time_signature:
-				yield (Phrase(phrase, self._name + ' ' + str(i / args.num_bars)))
+				yield Phrase(self._name + ' ' + str(i / args.num_bars),
+				             phrase_melody,
+				             phrase_accompaniment,
+				             self.time_signature,
+				             self._key, True)
 
 			i += args.num_bars
-			if i + args.num_bars - 1 > total:
+			if i + args.num_bars > total:
 				break
 
 
@@ -156,16 +122,17 @@ class Phrase(MusicXML):
 	The phrase should have only 1 key and 1 time signature.
 	"""
 
-	def __init__(self, streams, name='', transpose=True):
+	def __init__(self, name='untitled', melody=None, accompaniment=None, time=None, current_key=key.Key(), will_transpose=True):
 		"""
 		Construct a phrase
 		:param transpose: if True, transpose the phrase into the key of C major or A minor.
 		"""
-		super(Phrase, self).__init__()
-		self.from_streams(streams)
-		if transpose:
+		super(Phrase, self).__init__(name, melody, accompaniment, time, current_key)
+
+		if will_transpose:
 			i = interval.Interval(self._key.tonic, pitch.Pitch('C'))
-			self._score.transpose(i, inPlace=True)
+			self._melody.transpose(i, inPlace=True)
+			self._accompaniment.transpose(i, inPlace=True)
 			self._key = key.Key('C')
 		self._num_bars = args.num_bars
 		self._name = name
@@ -199,40 +166,6 @@ class Phrase(MusicXML):
 		# print(chord_sequence)
 
 		return chord_sequence
-
-		# cr = analysis.reduceChords.ChordReducer()
-		# # collapsed_chords = cr.collapseArpeggios(chords)
-		# reduced_chords = stream.Stream()
-		# i = 0
-		# chords.show('text')
-		# print('----------------------------------')
-		# for measure in chords.measures(1, None, collect=[], gatherSpanners=False):
-		# 	if isinstance(measure, stream.Measure):
-		# 		i += 1
-		# 		reduced_measure = cr.reduceMeasureToNChords(
-		# 			measure,
-		# 			args.chords_per_bar,
-		# 			weightAlgorithm=cr.qlbsmpConsonance,
-		# 			trimBelow=0.3)
-		# 		reduced_measure.show('text')
-		# 		j = 0
-		# 		for c in reduced_measure.getElementsByClass(chord.Chord):
-		# 			if isinstance(c, chord.Chord):
-		# 				j += 1
-		# 				reduced_chords.insert(c)
-		#
-		# 		assert j <= args.chords_per_bar, "too many chords: " + str(j)
-		#
-		# 		while j < args.chords_per_bar:
-		# 			j += 1
-		# 			reduced_chords.insert(note.Rest())
-		# 		if i == args.num_bars:
-		# 			break
-		# while len(reduced_chords) < args.num_bars * args.chords_per_bar:
-		# 	reduced_chords.insert(note.Rest())
-		# return reduced_chords
-		# # assert len(reduced_chords) == self.num_bars * args.chords_per_bar, \
-		# # 	'Chord sequence does not match the number of bars: ' + str(len(reduced_chords))
 
 
 class XMLtoNoteSequence(Transformer):
