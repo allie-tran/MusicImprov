@@ -65,7 +65,11 @@ class GeneralNet(Model):
 
 	def train(self, net_input, net_output):
 		filepath = "weights/{}-weights.hdf5".format(self._model_name)
-		model = load_model(filepath)
+		try:
+			self.load_weights(filepath)
+		except IOError:
+			pass
+
 		checkpoint = ModelCheckpoint(
 			filepath,
 			monitor=args.monitor,

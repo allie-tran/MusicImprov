@@ -68,7 +68,7 @@ class MelodySequence(list):
 		return mid
 
 
-def encode_chord(c, test=False):
+def encode_chord(c, test=args.test):
 	"""
 	Assign chord to a number. If new chord, add to the collection
 	:param c: a chord.Chord object
@@ -82,9 +82,9 @@ def encode_chord(c, test=False):
 	for p in c.pitches:
 		string_chord += p.name + '.'
 	if string_chord not in chord_collection:
-		chord_collection[string_chord] = len(chord_collection.keys())
 		if test:
 			return 0
+		chord_collection[string_chord] = len(chord_collection.keys())
 	return chord_collection[string_chord]
 
 
