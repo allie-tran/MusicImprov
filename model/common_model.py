@@ -5,7 +5,7 @@ from keras.layers import Activation, Reshape
 from keras.layers import Dense, Input, Multiply
 from keras.layers import Dropout, TimeDistributed, RepeatVector
 from keras.layers import LSTM, Bidirectional, Cropping1D, Concatenate
-from keras.models import Model
+from keras.models import Model, load_model
 from keras.utils import print_summary
 from keras import backend as K
 import numpy as np
@@ -65,6 +65,7 @@ class GeneralNet(Model):
 
 	def train(self, net_input, net_output):
 		filepath = "weights/{}-weights.hdf5".format(self._model_name)
+		model = load_model(filepath)
 		checkpoint = ModelCheckpoint(
 			filepath,
 			monitor=args.monitor,
