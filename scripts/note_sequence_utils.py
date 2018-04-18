@@ -82,9 +82,9 @@ def encode_chord(c, test=False):
 	for p in c.pitches:
 		string_chord += p.name + '.'
 	if string_chord not in chord_collection:
-		# chord_collection[string_chord] = len(chord_collection.keys())
-		# if test:
-		return 0
+		chord_collection[string_chord] = len(chord_collection.keys())
+		if test:
+			return 0
 	return chord_collection[string_chord]
 
 

@@ -14,7 +14,6 @@ class ChordNet(GeneralNet):
 		# Load the weights to each node
 		# self.load_weights('best-weights-without-rests.hdf5')
 		input_sequence = array([model.encode_melody(primer_notesequence)])
-		print(input_sequence)
 		self.load_weights('weights/' + self._model_name + '-weights.hdf5')
 		output = self.predict(input_sequence, verbose=0)[0]
 		chords = ChordSequence(list(argmax(output, axis=1)), encode=True)

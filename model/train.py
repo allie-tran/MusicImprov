@@ -18,7 +18,7 @@ def chord_generate(model, phrases, transformer):
 
 def melody_generate(model, phrases, transformer, use_generated_as_primer=True):
 	if use_generated_as_primer:
-		primer = transformer.transform(phrases[9])['melody']
+		primer = transformer.transform(phrases[4])['melody']
 		for i in range(5):
 			primer = model.generate(encode_melody(primer), 'generated/generate_' + str(i))
 

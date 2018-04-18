@@ -20,39 +20,44 @@ def create_dataset(folder):
 	"""
 	if args.newdata:
 		try:
-			with open(args.newdata + '.json', 'r') as f:
+			with open(args.olddata + '.json', 'r') as f:
 				data = json.load(f)
 		except IOError:
 			data = {'melodies': [], 'chords': []}
 
 		scores = os.listdir(folder)
 		for score in scores:
-			if score not in score_list:
-				score_list.append(score)
-				print('Processing ' + score + '...')
-				s = MusicXML()
-				try:
-					s.from_file(folder + '/' + score)
-				except (cElementTree.ParseError,
-				        music21.musicxml.xmlToM21.MusicXMLImportException,
-				        music21.exceptions21.StreamException):
-					print("Conversion failed.")
-					continue
+			try:
+				if (score.endswith('.mxl')) and (score not in score_list):
+					score_list.append(score)
+					print('Processing ' + score + '...')
+					s = MusicXML()
+					try:
+						s.from_file(folder + '/' + score)
+					except (cElementTree.ParseError,
+					        music21.musicxml.xmlToM21.MusicXMLImportException,
+					        music21.exceptions21.StreamException):
+						print("Conversion failed.")
+						continue
 
-				transformer = XMLtoNoteSequence()
-				if s.time_signature.ratioString != '4/4':
-					print("Skipping this because it's " + s.time_signature.ratioString)
-					continue
-				phrases = list(s.phrases(reanalyze=False))
-				for phrase in phrases:
-				# 	print "---------------------------------------------------------------------"
-				# 	phrase._score.show('text')
-					phrase_dict = transformer.transform(phrase)
-					if phrase_dict is not None:
-						melody_sequence = phrase_dict['melody']
-						chord_sequence = phrase_dict['chord']
-						data['melodies'].append(melody_sequence)
-						data['chords'].append(chord_sequence)
+					transformer = XMLtoNoteSequence()
+					if s.time_signature.ratioString != '4/4':
+						print("Skipping this because it's " + s.time_signature.ratioString)
+						continue
+					phrases = list(s.phrases(reanalyze=False))
+					for phrase in phrases:
+					# 	print "---------------------------------------------------------------------"
+					# 	phrase._score.show('text')
+						phrase_dict = transformer.transform(phrase)
+						if phrase_dict is not None:
+							melody_sequence = phrase_dict['melody']
+							chord_sequence = phrase_dict['chord']
+							data['melodies'].append(melody_sequence)
+							data['chords'].append(chord_sequence)
+
+					print str(len(score_list)) + "(" +  str(len(data['melodies']))+ ")/" + str(len(scores))
+			except:
+				continue
 
 			with open('score_list.json', 'w') as f:
 				json.dump(score_list, f)
@@ -71,13 +76,10 @@ def create_dataset(folder):
 	if args.mode == 'chord':
 		input_shape = (args.num_bars * args.steps_per_bar, 32)
 		output_shape = (args.num_bars * args.steps_per_bar, len(chord_collection))
-		print(input_shape)
-		print(output_shape)
 
 		for melody in melodies:
 			inputs.append(array(encode_melody(melody)))
 		for chord in chords:
-			print(chord)
 			outputs.append(array(to_onehot(chord, output_shape[1])))
 
 	elif args.mode == 'melody':
