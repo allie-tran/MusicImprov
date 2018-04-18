@@ -48,7 +48,7 @@ parser.add_argument("--mode",
 parser.add_argument("--test",
                     type=str,
                     nargs='?',
-                    default='summer.mxl',
+                    default=None,
                     help='The file used for testing.')
 parser.add_argument("--monitor",
                     type=str,

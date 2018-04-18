@@ -42,6 +42,9 @@ def generate():
 	if args.train:
 		inputs, outputs, input_shape, output_shape = create_dataset('xml')
 
+	with open('chord_collection.json', 'w') as f:
+		json.dump(chord_collection, f)
+
 	if args.mode == 'chord':
 		input_shape = (args.num_bars * args.steps_per_bar, 32)
 		output_shape = (args.num_bars * args.chords_per_bar, len(chord_collection))
@@ -61,10 +64,11 @@ def generate():
 
 	if args.train:
 		model.train(inputs, outputs)
-
+	with open('chord_collection.json', 'w') as f:
+		json.dump(chord_collection, f)
 
 	testscore = MusicXML()
-	testscore.from_file(args.test)
+	testscore.from_file('test.mxl')
 	phrases = list(testscore.phrases(reanalyze=False))
 	transformer = XMLtoNoteSequence()
 
