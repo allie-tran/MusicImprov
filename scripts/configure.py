@@ -28,7 +28,7 @@ parser.add_argument("--steps_per_bar",
 parser.add_argument("--chords_per_bar",
                     type=int,
                     nargs='?',
-                    default=1,
+                    default=16,
                     help="The number of chords in one bar.")
 parser.add_argument("--batch_size",
                     type=int,
