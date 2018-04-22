@@ -60,7 +60,7 @@ class GeneralNet(Model):
 
 		super(GeneralNet, self).__init__(input, final)
 		
-		self.compile(optimizer=args.optimizer, loss=weighted_loss)
+		self.compile(optimizer=args.optimizer, loss=weighted_loss, metrics=['acc'])
 		print_summary(self)
 
 	def train(self, net_input, net_output):

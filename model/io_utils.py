@@ -27,6 +27,7 @@ def create_dataset(folder):
 
 		scores = os.listdir(folder)
 		for i, score in enumerate(scores):
+			print i
 			if i > 2000:
 				break
 			try:
@@ -58,23 +59,23 @@ def create_dataset(folder):
 							data['chords'].append(chord_sequence)
 
 					print str(len(score_list)) + "(" +  str(len(data['melodies']))+ ")/" + str(len(scores))
+					with open('score_list.json', 'w') as f:
+						json.dump(score_list, f)
+
+					with open(args.newdata + '.json', 'w') as f:
+						json.dump(data, f)
+
+					with open('chord_collection.json', 'w') as f:
+						json.dump(chord_collection, f)
 			except:
 				continue
 
-			with open('score_list.json', 'w') as f:
-				json.dump(score_list, f)
-
-			with open(args.newdata + '.json', 'w') as f:
-				json.dump(data, f)
-
-			with open('chord_collection.json', 'w') as f:
-				json.dump(chord_collection, f)
 
 	with open(args.olddata+'.json') as f:
 		data = json.load(f)
 
-	melodies = data['melodies']
-	chords = data['chords']
+	melodies = data['melodies'][:5000]
+	chords = data['chords'][:5000]
 	inputs = []
 	outputs = []
 

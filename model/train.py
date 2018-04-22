@@ -68,7 +68,7 @@ def generate():
 		json.dump(chord_collection, f)
 
 	testscore = MusicXML()
-	testscore.from_file('test.mxl')
+	testscore.from_file('gravityfall.mxl')
 	phrases = list(testscore.phrases(reanalyze=False))
 	transformer = XMLtoNoteSequence()
 
