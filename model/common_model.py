@@ -25,38 +25,12 @@ class GeneralNet(Model):
 		self._model_name = model_name
 		input = Input(shape=input_shape)
 
-		input1 = Cropping1D((0, 16 * 3))(input)
-		input2 = Cropping1D((16, 16 * 2))(input)
-		input3 = Cropping1D((16 * 2, 16))(input)
-		input4 = Cropping1D((16 * 3, 0))(input)
+		encoder = Bidirectional(LSTM(256))(input)
+		merge = Dropout(0.5)(encoder)
+		repeat = RepeatVector(output_shape[0])(merge)
+		decoder = LSTM(256, return_sequences=True)(repeat)
 
-		bltsm1 = Bidirectional(LSTM(128, return_sequences=True))(input1)
-		bltsm2 = Bidirectional(LSTM(128, return_sequences=True))(input2)
-		bltsm3 = Bidirectional(LSTM(128, return_sequences=True))(input3)
-		bltsm4 = Bidirectional(LSTM(128, return_sequences=True))(input4)
-
-		merge1 = Dropout(0.3)(Concatenate(axis=1)([bltsm1, bltsm2]))
-		merge2 = Dropout(0.3)(Concatenate(axis=1)([bltsm3, bltsm4]))
-
-		merge_bltsm1 = Bidirectional(LSTM(64, return_sequences=True))(merge1)
-		merge_bltsm2 = Bidirectional(LSTM(64, return_sequences=True))(merge2)
-
-		merge3 = Dropout(0.3)(Concatenate(axis=1)([merge_bltsm1, merge_bltsm2]))
-
-		merge_bltsm3 = Bidirectional(LSTM(32, return_sequences=True))(merge3)
-
-		first_half = Bidirectional(LSTM(32, return_sequences=True))(Cropping1D((0, 32))(merge3))
-		second_half = Bidirectional(LSTM(32, return_sequences=True))(Cropping1D((32, 0))(merge3))
-
-		decoded_bar1 = Bidirectional(LSTM(64, return_sequences=True))(Cropping1D((0, 16))(first_half))
-		decoded_bar2 = Bidirectional(LSTM(64, return_sequences=True))(Cropping1D((16, 0))(first_half))
-		decoded_bar3 = Bidirectional(LSTM(64, return_sequences=True))(Cropping1D((0, 16))(second_half))
-		decoded_bar4 = Bidirectional(LSTM(64, return_sequences=True))(Cropping1D((16, 0))(second_half))
-
-
-		dense = Concatenate(axis=1)([decoded_bar1, decoded_bar2, decoded_bar3, decoded_bar4])
-
-		final = TimeDistributed(Dense(output_shape[1], activation='softmax'))(merge_bltsm3)
+		final = TimeDistributed(Dense(output_shape[1], activation='softmax'))(decoder)
 
 		super(GeneralNet, self).__init__(input, final)
 		
@@ -108,4 +82,3 @@ def weighted_loss(target, output):
 	loss = K.sum(loss * weights / K.sum(weights))
 	# print(K.int_shape(loss))
 	return loss
-
