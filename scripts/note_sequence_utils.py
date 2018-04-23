@@ -79,7 +79,7 @@ def encode_chord(c, test=args.test):
 
 	string_chord = harmony.chordSymbolFigureFromChord(c)
 	if string_chord == 'Chord Symbol Cannot Be Identified':
-		# chord.Chord.simplifyEnharmonics(c, inPlace=True)
+		chord.Chord.simplifyEnharmonics(c, inPlace=True)
 		chord.Chord.sortAscending(c, inPlace=True)
 		string_chord = ''
 		for p in c.pitches:
@@ -109,10 +109,13 @@ def decode_chord(num):
 
 	# Split the name of the chords into pitches
 	notes = []
-	for p in string_chord.split('.'):
-		if p == '':
-			continue
-		notes.append(pitch.Pitch(p))
+	if string_chord.endswith('.'):
+		for p in string_chord.split('.'):
+			if p == '':
+				continue
+			notes.append(pitch.Pitch(p))
+	else:
+		notes = harmony.ChordSymbol(string_chord).pitches
 	return notes
 
 def find_chord_duration(i, chord_sequence):
