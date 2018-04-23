@@ -1,4 +1,5 @@
 import json
+from collections import Counter
 
 import mido
 from keras.utils import to_categorical
@@ -6,13 +7,12 @@ from music21 import *
 from numpy import argmax
 from numpy import array
 from configure import args
-import json
 
 try:
 	with open('chord_collection.json', 'r') as f:
 		chord_collection = json.load(f)
 except IOError:
-	chord_collection = {None: 0}
+	chord_collection = Counter()
 
 class MelodySequence(list):
 	"""
@@ -89,9 +89,8 @@ def encode_chord(c, test=args.test):
 	if string_chord not in chord_collection:
 		if test:
 			return 0
-		chord_collection[string_chord] = len(chord_collection.keys())
-	return chord_collection[string_chord]
-
+		chord_collection[string_chord] += 1
+	return string_chord
 
 def decode_chord(num):
 	"""

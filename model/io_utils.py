@@ -28,7 +28,7 @@ def create_dataset(folder):
 		scores = os.listdir(folder)
 		for i, score in enumerate(scores):
 			print i
-			if i > 100:
+			if i > 2000:
 				break
 			try:
 				if (score.endswith('.mxl')) and (score not in score_list):
@@ -78,6 +78,17 @@ def create_dataset(folder):
 	chords = data['chords'][:5000]
 	inputs = []
 	outputs = []
+
+	# Chord mapping
+	chord_mapping = {}
+	cutoff = 5
+	i = 0
+	for chord in chord_collection.keys():
+		if chord_collection[chord] > cutoff:
+			i += 1
+			chord_mapping[chord] = i
+
+	chord_collection = chord_mapping
 
 	if args.mode == 'chord':
 		input_shape = (args.num_bars * args.steps_per_bar, 32)
