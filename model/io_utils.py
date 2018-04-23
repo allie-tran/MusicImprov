@@ -28,7 +28,7 @@ def create_dataset(folder):
 		scores = os.listdir(folder)
 		for i, score in enumerate(scores):
 			print i
-			if i > 500:
+			if i > 100:
 				break
 			try:
 				if (score.endswith('.mxl')) and (score not in score_list):
