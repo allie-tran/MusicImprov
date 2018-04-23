@@ -77,11 +77,12 @@ def encode_chord(c, test=args.test):
 	if not c.isChord:
 		return 0
 
+	c.simplifyEnharmonics(inPlace=True)
+	c.removeRedundantPitchClasses(inPlace=True)
+	c.sortAscending(inPlace=True)
+
 	string_chord = harmony.chordSymbolFigureFromChord(c)
 	if string_chord == 'Chord Symbol Cannot Be Identified':
-		c.simplifyEnharmonics(inPlace=True)
-		c.removeRedundantPitchClasses(inPlace=True)
-		c.sortAscending(inPlace=True)
 		string_chord = ''
 		for p in c.pitches:
 			string_chord += p.name + '.'
