@@ -22,7 +22,7 @@ def create_dataset(folder, chord_collection):
 		scores = os.listdir(folder)
 		for i, score in enumerate(scores):
 			print i
-			if i > 10:
+			if i > 500:
 				break
 			if (score.endswith('.mxl')) and (score not in score_list):
 				score_list.append(score)
@@ -63,9 +63,6 @@ def create_dataset(folder, chord_collection):
 
 	with open(args.olddata+'.json') as f:
 		data = json.load(f)
-
-	with open('chord_collection.json') as f:
-		chord_collection = json.load(f)
 
 	melodies = data['melodies'][:5000]
 	chords = data['chords'][:5000]

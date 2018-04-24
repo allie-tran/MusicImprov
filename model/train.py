@@ -14,10 +14,9 @@ def chord_generate(model, phrases, transformer, chord_collection):
 	for phrase in phrases:
 		phrase_dict = transformer.transform(phrase, chord_collection)
 		if phrase_dict is not None:
-			chord_sequence = phrase_dict['chord']
-			print(chord_sequence)
-			chord_sequence.to_midi(phrase_dict['melody'], 'generated/original_' + phrase_dict['name'])
-			print(model.generate(phrase_dict['melody'], 'generated/generated_' + phrase_dict['name']))
+			# chord_sequence = phrase_dict['chord']
+			# chord_sequence.to_midi(phrase_dict['melody'], 'generated/original_' + phrase_dict['name'])
+			print(model.generate(phrase_dict['melody'], 'generated/generated_' + phrase_dict['name'], chord_collection))
 
 
 def melody_generate(model, phrases, transformer, use_generated_as_primer=True):
@@ -43,12 +42,14 @@ def combine_generate(melody_model, chord_model, phrases, transformer):
 		chord_sequence = chord_model.generate(primer, 'generated/with_chords' + str(i))
 
 def generate():
-	chord_collection = Counter()
+	try:
+		with open('chord_collection.json', 'r') as f:
+			chord_collection = json.load(f)
+	except IOError:
+		chord_collection = Counter()
+
 	if args.train:
 		inputs, outputs, input_shape, output_shape, chord_collection = create_dataset('xml', chord_collection)
-
-	with open('chord_collection.json', 'w') as f:
-		json.dump(chord_collection, f)
 
 	if args.mode == 'chord':
 		input_shape = (args.num_bars * args.steps_per_bar, 32)
