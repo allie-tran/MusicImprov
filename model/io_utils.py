@@ -6,6 +6,8 @@ from scripts import *
 from xml.etree import cElementTree
 from collections import defaultdict
 
+from stat import S_IREAD, S_IRGRP, S_IROTH
+
 def create_dataset(folder, chord_collection):
 	"""
 	Generate training and testing dataset from a folder of MusicXML file
@@ -63,8 +65,10 @@ def create_dataset(folder, chord_collection):
 						json.dump(chord_collection, f)
 			except:
 				continue
+
 	with open(args.olddata+'.json') as f:
 		data = json.load(f)
+
 
 	melodies = data['melodies'][:5000]
 	chords = data['chords'][:5000]
@@ -85,6 +89,8 @@ def create_dataset(folder, chord_collection):
 
 	with open('chord_collection.json', 'w') as f:
 		json.dump(chord_collection, f)
+	os.chmod('chord_collection.json', S_IREAD | S_IRGRP | S_IROTH)
+	os.chmod(args.olddata+ '.json', S_IREAD | S_IRGRP | S_IROTH)
 
 	if args.mode == 'chord':
 		input_shape = (args.num_bars * args.steps_per_bar, 32)

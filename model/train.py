@@ -9,7 +9,6 @@ from scripts import *
 
 from collections import Counter
 
-
 def chord_generate(model, phrases, transformer, chord_collection):
 	for phrase in phrases:
 		phrase_dict = transformer.transform(phrase, chord_collection)
