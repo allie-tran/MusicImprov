@@ -80,7 +80,7 @@ def encode_chord(c, chord_collection, test=args.test):
 		string_chord = ''
 		for p in c.pitches:
 			string_chord += p.name + '.'
-	if test and string_chord not in chord_collection:
+	if test and string_chord not in chord_collection.keys():
 		return 0
 	chord_collection[string_chord] += 1
 	return string_chord
@@ -118,7 +118,7 @@ def find_chord_duration(i, chord_sequence):
 	chord = chord_sequence[i]
 	duration = 1
 	i += 1
-	while i < len(chord_sequence) and (chord_sequence[i] == 0 or chord_sequence[i] == chord):
+	while i < len(chord_sequence) and (chord_sequence[i] == '' or chord_sequence[i] == chord):
 		duration += 1
 		i += 1
 	return duration, i
