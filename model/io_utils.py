@@ -65,27 +65,26 @@ def create_dataset(folder, chord_collection):
 						json.dump(chord_collection, f)
 			except:
 				continue
+		# Chord mapping
+		chord_mapping = {}
+		cutoff = 5
+		i = 0
+		for chord in chord_collection.keys():
+			if chord_collection[chord] > cutoff:
+				chord_mapping[chord] = i
+				i += 1
+
+		chord_collection = chord_mapping
+		args.test = True
 
 	with open(args.olddata+'.json') as f:
 		data = json.load(f)
-
 
 	melodies = data['melodies'][:5000]
 	chords = data['chords'][:5000]
 	inputs = []
 	outputs = []
 
-	# Chord mapping
-	chord_mapping = {}
-	cutoff = 5
-	i = 0
-	for chord in chord_collection.keys():
-		if chord_collection[chord] > cutoff:
-			chord_mapping[chord] = i
-			i += 1
-
-	chord_collection = chord_mapping
-	args.test = True
 
 	with open('chord_collection.json', 'w') as f:
 		json.dump(chord_collection, f)
