@@ -63,7 +63,6 @@ def create_dataset(folder, chord_collection):
 						json.dump(chord_collection, f)
 			except:
 				continue
-
 	with open(args.olddata+'.json') as f:
 		data = json.load(f)
 
@@ -82,6 +81,7 @@ def create_dataset(folder, chord_collection):
 			i += 1
 
 	chord_collection = chord_mapping
+	args.test = True
 
 	with open('chord_collection.json', 'w') as f:
 		json.dump(chord_collection, f)
