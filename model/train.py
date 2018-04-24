@@ -82,8 +82,6 @@ def generate():
 	else:
 		combine_generate(melody_model, chord_model, phrases, transformer)
 
-	with open('chord_collection.json', 'w') as f:
-		json.dump(chord_collection, f)
 
 if __name__ == '__main__':
 	generate()
