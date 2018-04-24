@@ -6,13 +6,7 @@ from keras.utils import to_categorical
 from music21 import *
 from numpy import argmax
 from numpy import array
-from configure import args
-
-try:
-	with open('chord_collection.json', 'r') as f:
-		chord_collection = json.load(f)
-except IOError:
-	chord_collection = Counter()
+from scripts import args, chord_collection, score_list
 
 class MelodySequence(list):
 	"""
@@ -86,10 +80,9 @@ def encode_chord(c, test=args.test):
 		string_chord = ''
 		for p in c.pitches:
 			string_chord += p.name + '.'
-	if string_chord not in chord_collection:
-		if test:
-			return 0
-		chord_collection[string_chord] += 1
+	if test and string_chord not in chord_collection:
+		return 0
+	chord_collection[string_chord] += 1
 	return string_chord
 
 def decode_chord(num):

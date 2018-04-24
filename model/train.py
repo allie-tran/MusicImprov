@@ -4,7 +4,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from model import *
 from scripts.configure import args
-from scripts import MusicXML, XMLtoNoteSequence, chord_collection
+from scripts import *
 
 def chord_generate(model, phrases, transformer):
 	for phrase in phrases:
