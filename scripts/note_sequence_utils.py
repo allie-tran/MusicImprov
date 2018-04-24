@@ -126,7 +126,7 @@ class ChordSequence(list):
 	A list of chord for one phrase.
 	"""
 
-	def __init__(self, chord_sequence, encode=False):
+	def __init__(self, chord_sequence, chord_collection, encode=False):
 		"""
 		Constructs a chord sequence
 		:param chord_sequence: a list of chord.Chord objects
@@ -136,7 +136,7 @@ class ChordSequence(list):
 		else:
 			encoded_chords = []
 			for c in chord_sequence:
-				encoded_chords.append(encode_chord(c))
+				encoded_chords.append(encode_chord(c, chord_collection))
 		assert len(encoded_chords) == args.steps_per_bar * args.num_bars
 		super(ChordSequence, self).__init__(encoded_chords)
 		self._chords_per_bar = args.chords_per_bar
