@@ -77,7 +77,7 @@ def create_dataset(folder, chord_collection):
 	outputs = []
 
 	# Chord mapping
-	chord_mapping = defaultdict(int)
+	chord_mapping = {}
 	cutoff = 5
 	i = 0
 	for chord in chord_collection.keys():
@@ -94,7 +94,7 @@ def create_dataset(folder, chord_collection):
 		for melody in melodies:
 			inputs.append(array(encode_melody(melody)))
 		for chord in chords:
-			encoded = [chord_collection[c] for c in chord]
+			encoded = [chord_collection[c] if c in chord_collection.keys() else 0 for c in chord]
 			outputs.append(array(to_onehot(encoded, output_shape[1])))
 
 	elif args.mode == 'melody':

@@ -6,7 +6,7 @@ from keras.utils import to_categorical
 from music21 import *
 from numpy import argmax
 from numpy import array
-from scripts import args, chord_collection, score_list
+from scripts import args
 
 class MelodySequence(list):
 	"""
@@ -62,7 +62,7 @@ class MelodySequence(list):
 		return mid
 
 
-def encode_chord(c, test=args.test):
+def encode_chord(c, chord_collection, test=args.test):
 	"""
 	Assign chord to a number. If new chord, add to the collection
 	:param c: a chord.Chord object
@@ -85,21 +85,21 @@ def encode_chord(c, test=args.test):
 	chord_collection[string_chord] += 1
 	return string_chord
 
-def decode_chord(num):
+def decode_chord(string_chord):
 	"""
 	Given the number, find the encoded chord from the chord_collection
-	:param num: the encoded number
+	:param string_chord: the string_chord
 	:return: list of the pitches the original chord consists of
 	"""
-	if num <= 0:
-		return None
-	string_chord = ''
-	for c, n in chord_collection.items():
-		if n == num:
-			string_chord = c
-			break
-
-	assert len(string_chord) > 0, "Can't find the chords in the collection with number" + str(num)
+	# if num <= 0:
+	# 	return None
+	# string_chord = ''
+	# for c, n in chord_collection.items():
+	# 	if n == num:
+	# 		string_chord = c
+	# 		break
+    #
+	# assert len(string_chord) > 0, "Can't find the chords in the collection with number" + str(num)
 
 	# Split the name of the chords into pitches
 	notes = []
