@@ -10,9 +10,9 @@ from scripts import *
 from collections import Counter
 
 
-def chord_generate(model, phrases, transformer):
+def chord_generate(model, phrases, transformer, chord_collection):
 	for phrase in phrases:
-		phrase_dict = transformer.transform(phrase)
+		phrase_dict = transformer.transform(phrase, chord_collection)
 		if phrase_dict is not None:
 			chord_sequence = phrase_dict['chord']
 			print(chord_sequence)
@@ -69,8 +69,6 @@ def generate():
 
 	if args.train:
 		model.train(inputs, outputs)
-	with open('chord_collection.json', 'w') as f:
-		json.dump(chord_collection, f)
 
 	testscore = MusicXML()
 	testscore.from_file('narnia.mxl')
@@ -78,7 +76,7 @@ def generate():
 	transformer = XMLtoNoteSequence()
 
 	if args.mode == 'chord':
-		chord_generate(model, phrases, transformer)
+		chord_generate(model, phrases, transformer, chord_collection)
 	elif args.mode == 'melody':
 		melody_generate(model, phrases, transformer)
 	else:
