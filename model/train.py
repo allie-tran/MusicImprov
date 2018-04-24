@@ -6,6 +6,10 @@ from model import *
 from scripts.configure import args
 from scripts import *
 
+
+from collections import Counter
+
+
 def chord_generate(model, phrases, transformer):
 	for phrase in phrases:
 		phrase_dict = transformer.transform(phrase)
@@ -39,8 +43,9 @@ def combine_generate(melody_model, chord_model, phrases, transformer):
 		chord_sequence = chord_model.generate(primer, 'generated/with_chords' + str(i))
 
 def generate():
+	chord_collection = Counter()
 	if args.train:
-		inputs, outputs, input_shape, output_shape = create_dataset('xml')
+		inputs, outputs, input_shape, output_shape, chord_collection = create_dataset('xml', chord_collection)
 
 	with open('chord_collection.json', 'w') as f:
 		json.dump(chord_collection, f)
