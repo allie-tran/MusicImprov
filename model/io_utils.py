@@ -4,8 +4,9 @@ import music21
 from numpy import array, zeros, shape, ndarray
 from scripts import *
 from xml.etree import cElementTree
+from collections import defaultdict
 
-def create_dataset(folder):
+def create_dataset(folder, chord_collection):
 	"""
 	Generate training and testing dataset from a folder of MusicXML file
 	:param folder: the path to the folder
@@ -21,7 +22,7 @@ def create_dataset(folder):
 		scores = os.listdir(folder)
 		for i, score in enumerate(scores):
 			print i
-			if i > 2000:
+			if i > 500:
 				break
 			try:
 				if (score.endswith('.mxl')) and (score not in score_list):
@@ -31,8 +32,8 @@ def create_dataset(folder):
 					try:
 						s.from_file(folder + '/' + score)
 					except (cElementTree.ParseError,
-					        music21.musicxml.xmlToM21.MusicXMLImportException,
-					        music21.exceptions21.StreamException):
+							music21.musicxml.xmlToM21.MusicXMLImportException,
+							music21.exceptions21.StreamException):
 						print("Conversion failed.")
 						continue
 
@@ -67,13 +68,16 @@ def create_dataset(folder):
 	with open(args.olddata+'.json') as f:
 		data = json.load(f)
 
+	with open('chord_collection.json') as f:
+		chord_collection = json.load(f)
+
 	melodies = data['melodies'][:5000]
 	chords = data['chords'][:5000]
 	inputs = []
 	outputs = []
 
 	# Chord mapping
-	chord_mapping = {}
+	chord_mapping = defaultdict(int)
 	cutoff = 5
 	i = 0
 	for chord in chord_collection.keys():
@@ -90,7 +94,8 @@ def create_dataset(folder):
 		for melody in melodies:
 			inputs.append(array(encode_melody(melody)))
 		for chord in chords:
-			outputs.append(array(to_onehot(chord, output_shape[1])))
+			encoded = [chord_collection[c] for c in chord]
+			outputs.append(array(to_onehot(encoded, output_shape[1])))
 
 	elif args.mode == 'melody':
 		input_shape = (args.num_bars * args.steps_per_bar, 32)
@@ -108,7 +113,7 @@ def create_dataset(folder):
 	print(shape(outputs))
 	print(input_shape)
 	print(output_shape)
-	return array(inputs), array(outputs), input_shape, output_shape
+	return array(inputs), array(outputs), input_shape, output_shape, chord_collection
 
 
 def encode_melody(melody):
