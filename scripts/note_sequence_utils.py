@@ -85,21 +85,22 @@ def encode_chord(c, chord_collection, test=args.test):
 	chord_collection[string_chord] += 1
 	return string_chord
 
-def decode_chord(string_chord):
+def decode_chord_from_num(num):
 	"""
 	Given the number, find the encoded chord from the chord_collection
 	:param string_chord: the string_chord
 	:return: list of the pitches the original chord consists of
 	"""
-	# if num <= 0:
-	# 	return None
-	# string_chord = ''
-	# for c, n in chord_collection.items():
-	# 	if n == num:
-	# 		string_chord = c
-	# 		break
-    #
-	# assert len(string_chord) > 0, "Can't find the chords in the collection with number" + str(num)
+	if num <= 0:
+		return None
+	string_chord = ''
+	for c, n in chord_collection.items():
+		if n == num:
+			string_chord = c
+			break
+	return string_chord
+
+def decode_chord_from_string(string_chord):
 
 	# Split the name of the chords into pitches
 	notes = []
@@ -132,7 +133,7 @@ class ChordSequence(list):
 		:param chord_sequence: a list of chord.Chord objects
 		"""
 		if encode:
-			encoded_chords = chord_sequence
+			encoded_chords = [decode_chord_from_num(num_chord) for num_chord in chord_sequence]
 		else:
 			encoded_chords = []
 			for c in chord_sequence:
@@ -153,7 +154,7 @@ class ChordSequence(list):
 		track = mid.add_track('Chord')
 		i = 0
 		while i < len(self):
-			c = decode_chord(self[i])
+			c = decode_chord_from_string(self[i])
 			if c is None:
 				track.append(mido.Message('control_change', time=melody_sequence.steps_per_bar / self._chords_per_bar))
 				i += 1

@@ -22,7 +22,7 @@ def create_dataset(folder, chord_collection):
 		scores = os.listdir(folder)
 		for i, score in enumerate(scores):
 			print i
-			if i >10:
+			if i > 10:
 				break
 			if (score.endswith('.mxl')) and (score not in score_list):
 				score_list.append(score)
@@ -78,10 +78,13 @@ def create_dataset(folder, chord_collection):
 	i = 0
 	for chord in chord_collection.keys():
 		if chord_collection[chord] > cutoff:
-			i += 1
 			chord_mapping[chord] = i
+			i += 1
 
 	chord_collection = chord_mapping
+
+	with open('chord_collection.json', 'w') as f:
+		json.dump(chord_collection, f)
 
 	if args.mode == 'chord':
 		input_shape = (args.num_bars * args.steps_per_bar, 32)
