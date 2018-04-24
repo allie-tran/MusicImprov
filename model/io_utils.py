@@ -22,48 +22,44 @@ def create_dataset(folder, chord_collection):
 		scores = os.listdir(folder)
 		for i, score in enumerate(scores):
 			print i
-			if i > 500:
+			if i >10:
 				break
-			try:
-				if (score.endswith('.mxl')) and (score not in score_list):
-					score_list.append(score)
-					print('Processing ' + score + '...')
-					s = MusicXML()
-					try:
-						s.from_file(folder + '/' + score)
-					except (cElementTree.ParseError,
-							music21.musicxml.xmlToM21.MusicXMLImportException,
-							music21.exceptions21.StreamException):
-						print("Conversion failed.")
-						continue
+			if (score.endswith('.mxl')) and (score not in score_list):
+				score_list.append(score)
+				print('Processing ' + score + '...')
+				s = MusicXML()
+				try:
+					s.from_file(folder + '/' + score)
+				except (cElementTree.ParseError,
+						music21.musicxml.xmlToM21.MusicXMLImportException,
+						music21.exceptions21.StreamException):
+					print("Conversion failed.")
+					continue
 
-					transformer = XMLtoNoteSequence()
-					if s.time_signature.ratioString != '4/4':
-						print("Skipping this because it's " + s.time_signature.ratioString)
-						continue
-					phrases = list(s.phrases(reanalyze=False))
-					for phrase in phrases:
-					# 	print "---------------------------------------------------------------------"
-					# 	phrase._score.show('text')
-						phrase_dict = transformer.transform(phrase)
-						if phrase_dict is not None:
-							melody_sequence = phrase_dict['melody']
-							chord_sequence = phrase_dict['chord']
-							data['melodies'].append(melody_sequence)
-							data['chords'].append(chord_sequence)
+				transformer = XMLtoNoteSequence()
+				if s.time_signature.ratioString != '4/4':
+					print("Skipping this because it's " + s.time_signature.ratioString)
+					continue
+				phrases = list(s.phrases(reanalyze=False))
+				for phrase in phrases:
+				# 	print "---------------------------------------------------------------------"
+				# 	phrase._score.show('text')
+					phrase_dict = transformer.transform(phrase, chord_collection)
+					if phrase_dict is not None:
+						melody_sequence = phrase_dict['melody']
+						chord_sequence = phrase_dict['chord']
+						data['melodies'].append(melody_sequence)
+						data['chords'].append(chord_sequence)
 
-					print str(len(score_list)) + "(" +  str(len(data['melodies']))+ ")/" + str(len(scores))
-					with open('score_list.json', 'w') as f:
-						json.dump(score_list, f)
+				print str(len(score_list)) + "(" +  str(len(data['melodies']))+ ")/" + str(len(scores))
+				with open('score_list.json', 'w') as f:
+					json.dump(score_list, f)
 
-					with open(args.newdata + '.json', 'w') as f:
-						json.dump(data, f)
+				with open(args.newdata + '.json', 'w') as f:
+					json.dump(data, f)
 
-					with open('chord_collection.json', 'w') as f:
-						json.dump(chord_collection, f)
-			except:
-				continue
-
+				with open('chord_collection.json', 'w') as f:
+					json.dump(chord_collection, f)
 
 	with open(args.olddata+'.json') as f:
 		data = json.load(f)
