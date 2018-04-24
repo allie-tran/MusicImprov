@@ -74,8 +74,14 @@ def create_dataset(folder, chord_collection):
 				chord_mapping[chord] = i
 				i += 1
 
+
 		chord_collection = chord_mapping
 		args.test = True
+
+		with open('chord_collection.json', 'w') as f:
+			json.dump(chord_collection, f)
+		os.chmod('chord_collection.json', S_IREAD | S_IRGRP | S_IROTH)
+		os.chmod(args.olddata + '.json', S_IREAD | S_IRGRP | S_IROTH)
 
 	with open(args.olddata+'.json') as f:
 		data = json.load(f)
@@ -84,12 +90,6 @@ def create_dataset(folder, chord_collection):
 	chords = data['chords'][:5000]
 	inputs = []
 	outputs = []
-
-
-	with open('chord_collection.json', 'w') as f:
-		json.dump(chord_collection, f)
-	os.chmod('chord_collection.json', S_IREAD | S_IRGRP | S_IROTH)
-	os.chmod(args.olddata+ '.json', S_IREAD | S_IRGRP | S_IROTH)
 
 	if args.mode == 'chord':
 		input_shape = (args.num_bars * args.steps_per_bar, 32)
