@@ -85,7 +85,7 @@ def encode_chord(c, chord_collection, test=args.test):
 	chord_collection[string_chord] += 1
 	return string_chord
 
-def decode_chord_from_num(num):
+def decode_chord_from_num(num, chord_collection):
 	"""
 	Given the number, find the encoded chord from the chord_collection
 	:param string_chord: the string_chord
@@ -134,7 +134,7 @@ class ChordSequence(list):
 		:param chord_sequence: a list of chord.Chord objects
 		"""
 		if encode:
-			encoded_chords = [decode_chord_from_num(num_chord) for num_chord in chord_sequence]
+			encoded_chords = [decode_chord_from_num(num_chord, chord_collection) for num_chord in chord_sequence]
 		else:
 			encoded_chords = []
 			for c in chord_sequence:
