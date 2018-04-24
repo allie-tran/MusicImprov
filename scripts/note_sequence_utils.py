@@ -92,7 +92,7 @@ def decode_chord_from_num(num):
 	:return: list of the pitches the original chord consists of
 	"""
 	if num <= 0:
-		return None
+		return ''
 	string_chord = ''
 	for c, n in chord_collection.items():
 		if n == num:
@@ -101,7 +101,8 @@ def decode_chord_from_num(num):
 	return string_chord
 
 def decode_chord_from_string(string_chord):
-
+	if string_chord == '':
+		return None
 	# Split the name of the chords into pitches
 	notes = []
 	if string_chord.endswith('.'):
