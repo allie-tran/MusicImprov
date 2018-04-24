@@ -2,15 +2,8 @@ import json
 import os
 import music21
 from numpy import array, zeros, shape, ndarray
-from scripts import args, to_onehot, MusicXML, XMLtoNoteSequence
-from model.train import chord_collection
+from scripts import *
 from xml.etree import cElementTree
-
-try:
-	with open('score_list.json', 'r') as f:
-		score_list = json.load(f)
-except IOError:
-	score_list = []
 
 def create_dataset(folder):
 	"""
