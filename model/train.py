@@ -18,15 +18,15 @@ def chord_generate(model, phrases, transformer, chord_collection):
 			print(model.generate(phrase_dict['melody'], 'generated/generated_' + phrase_dict['name'], chord_collection))
 
 
-def melody_generate(model, phrases, transformer, use_generated_as_primer=True):
+def melody_generate(model, phrases, transformer, chord_collection, use_generated_as_primer=False):
 	if use_generated_as_primer:
-		primer = transformer.transform(phrases[4])['melody']
+		primer = transformer.transform(phrases[4], chord_collection, test=True)['melody']
 		for i in range(5):
 			primer = model.generate(encode_melody(primer), 'generated/generate_' + str(i))
 
 	else:
 		for phrase in phrases[:-1]:
-			phrase_dict = transformer.transform(phrase)
+			phrase_dict = transformer.transform(phrase, chord_collection, test=True)
 			if phrase_dict is not None:
 				melody = phrase_dict['melody']
 				next_melody = model.generate(encode_melody(melody), 'generated/generate_' + phrase_dict['name'])
@@ -79,7 +79,7 @@ def generate():
 	if args.mode == 'chord':
 		chord_generate(model, phrases, transformer, chord_collection)
 	elif args.mode == 'melody':
-		melody_generate(model, phrases, transformer)
+		melody_generate(model, phrases, transformer, chord_collection)
 	else:
 		combine_generate(melody_model, chord_model, phrases, transformer)
 

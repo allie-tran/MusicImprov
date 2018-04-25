@@ -26,10 +26,10 @@ class GeneralNet(Model):
 		self._model_name = model_name
 		input = Input(shape=input_shape)
 
-		encoder = Bidirectional(LSTM(128))(input)
+		encoder = Bidirectional(LSTM(512))(input)
 		merge = Dropout(0.3)(encoder)
 		repeat = RepeatVector(output_shape[0])(merge)
-		decoder = LSTM(128, return_sequences=True)(repeat)
+		decoder = LSTM(512, return_sequences=True)(repeat)
 		dropout = Dropout(0.3)(decoder)
 		final = TimeDistributed(Dense(output_shape[1], activation='softmax'))(dropout)
 
