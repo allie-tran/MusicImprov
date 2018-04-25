@@ -24,7 +24,7 @@ def create_dataset(folder, chord_collection):
 		scores = os.listdir(folder)
 		for i, score in enumerate(scores):
 			print i
-			if i > 10:
+			if i > 100:
 				break
 			try:
 				if (score.endswith('.mxl')) and (score not in score_list):
