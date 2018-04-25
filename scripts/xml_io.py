@@ -162,7 +162,8 @@ class Phrase(MusicXML):
 
 		for c in chords.flat:
 			if isinstance(c, chord.Chord):
-				chord_sequence[int(c.offset * args.steps_per_bar / 4)] = c
+				for i in range(int(c.offset * args.steps_per_bar / 4), len(chord_sequence)):
+					chord_sequence[i] = c
 		# print(chord_sequence)
 
 		return chord_sequence
