@@ -158,7 +158,7 @@ class Phrase(MusicXML):
 		:return: a stream.StaffPart object containing the reduced measures
 		"""
 		chords = self._accompaniment.chordify().sorted
-		chord_sequence = [note.Rest()] * args.steps_per_bar * args.num_bars
+		chord_sequence = [chord.Chord('C')] * args.steps_per_bar * args.num_bars
 
 		for c in chords.flat:
 			if isinstance(c, chord.Chord):
@@ -173,7 +173,6 @@ class XMLtoNoteSequence(Transformer):
 	"""
 	A subclass of Transformer class, which convert a phrase in MusicXML format to 2 note sequences: melody-chord
 	"""
-	chord_index = {'C': 0, 'D': 2}
 
 	def __init__(self):
 		"""

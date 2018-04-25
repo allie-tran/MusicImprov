@@ -46,6 +46,7 @@ def generate():
 			chord_collection = json.load(f)
 	except IOError:
 		chord_collection = Counter()
+		chord_collection['C'] = 10
 
 	if args.train:
 		inputs, outputs, input_shape, output_shape, chord_collection = create_dataset('xml', chord_collection)
