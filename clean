@@ -1,4 +1,4 @@
 #!/bin/bash
-sudo rm -r weights phrases.json chord_collection.json score_list.json generated
+sudo rm -r weights chord_collection.json score_list.json generated
 mkdir weights
 mkdir generated
