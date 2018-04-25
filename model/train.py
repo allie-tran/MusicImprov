@@ -11,7 +11,7 @@ from collections import Counter
 
 def chord_generate(model, phrases, transformer, chord_collection):
 	for phrase in phrases:
-		phrase_dict = transformer.transform(phrase, chord_collection)
+		phrase_dict = transformer.transform(phrase, chord_collection, test=True)
 		if phrase_dict is not None:
 			# chord_sequence = phrase_dict['chord']
 			# chord_sequence.to_midi(phrase_dict['melody'], 'generated/original_' + phrase_dict['name'])
@@ -53,11 +53,11 @@ def generate():
 
 	if args.mode == 'chord':
 		input_shape = (args.num_bars * args.steps_per_bar, 32)
-		output_shape = (args.num_bars * args.chords_per_bar, len(chord_collection) + 1)
+		output_shape = (args.num_bars * args.chords_per_bar, len(chord_collection))
 		model = ChordNet(input_shape, output_shape, 'ChordModel')
 	elif args.mode == 'combine':
 		input_shape1 = (args.num_bars * args.steps_per_bar, 32)
-		output_shape1 = (args.num_bars * args.chords_per_bar, len(chord_collection) + 1)
+		output_shape1 = (args.num_bars * args.chords_per_bar, len(chord_collection))
 		input_shape2 = (args.num_bars * args.steps_per_bar, 32)
 		output_shape2 = (args.num_bars * args.steps_per_bar, 82)
 
