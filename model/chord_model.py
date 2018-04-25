@@ -16,8 +16,8 @@ class ChordNet(GeneralNet):
 		input_sequence = array([model.encode_melody(primer_notesequence)])
 		self.load_weights('weights/' + self._model_name + '-weights.hdf5')
 		output = self.predict(input_sequence, verbose=0)[0]
-		chords = ChordSequence(list(argmax(output, axis=1)), chord_collection, encode=True)
-		print(chords)
+		chords = ChordSequence(list(argmax(output, axis=1)), chord_collection, True, encode=True)
+		# print(chords)
 		chords.to_midi(primer_notesequence, name)
 		return chords
 

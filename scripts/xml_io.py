@@ -180,7 +180,7 @@ class XMLtoNoteSequence(Transformer):
 		"""
 		super(XMLtoNoteSequence, self).__init__(MusicXML, (MelodySequence, ChordSequence))
 
-	def transform(self, input, chord_collection):
+	def transform(self, input, chord_collection, test):
 		"""
 		:param input: a Phrase object
 		:return: a dictionary with the form
@@ -208,5 +208,5 @@ class XMLtoNoteSequence(Transformer):
 
 
 		return {'melody': MelodySequence(note_sequence),
-		        'chord': ChordSequence(chord_sequence, chord_collection),
+		        'chord': ChordSequence(chord_sequence, chord_collection, test, False),
 		        'name': input.name}

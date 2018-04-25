@@ -62,7 +62,7 @@ class MelodySequence(list):
 		return mid
 
 
-def encode_chord(c, chord_collection, test=args.test):
+def encode_chord(c, chord_collection, test):
 	"""
 	Assign chord to a number. If new chord, add to the collection
 	:param c: a chord.Chord object
@@ -80,8 +80,11 @@ def encode_chord(c, chord_collection, test=args.test):
 		string_chord = ''
 		for p in c.pitches:
 			string_chord += p.name + '.'
-	if test and string_chord not in chord_collection.keys():
-		return -1
+	if test:
+		if string_chord not in chord_collection.keys():
+			return -1
+		else:
+			return string_chord
 	chord_collection[string_chord] += 1
 	return string_chord
 
@@ -91,11 +94,9 @@ def decode_chord_from_num(num, chord_collection):
 	:param string_chord: the string_chord
 	:return: list of the pitches the original chord consists of
 	"""
-	print(num)
 	if num < 0:
 		return ''
 	string_chord = ''
-	print(chord_collection)
 	for c, n in chord_collection.items():
 		if n == num:
 			string_chord = c
@@ -130,7 +131,7 @@ class ChordSequence(list):
 	A list of chord for one phrase.
 	"""
 
-	def __init__(self, chord_sequence, chord_collection, encode=False):
+	def __init__(self, chord_sequence, chord_collection, test, encode=False):
 		"""
 		Constructs a chord sequence
 		:param chord_sequence: a list of chord.Chord objects
@@ -140,7 +141,7 @@ class ChordSequence(list):
 		else:
 			encoded_chords = []
 			for c in chord_sequence:
-				encoded_chords.append(encode_chord(c, chord_collection))
+				encoded_chords.append(encode_chord(c, chord_collection, test=test))
 		assert len(encoded_chords) == args.steps_per_bar * args.num_bars
 		super(ChordSequence, self).__init__(encoded_chords)
 		self._chords_per_bar = args.chords_per_bar

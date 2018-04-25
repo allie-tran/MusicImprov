@@ -71,17 +71,16 @@ def create_dataset(folder, chord_collection):
 		i = 0
 		for chord in chord_collection.keys():
 			if chord_collection[chord] > cutoff:
-				chord_mapping[chord] = i
 				i += 1
+				chord_mapping[chord] = i
 
 
 		chord_collection = chord_mapping
-		args.test = True
 
 		with open('chord_collection.json', 'w') as f:
 			json.dump(chord_collection, f)
 		os.chmod('chord_collection.json', S_IREAD | S_IRGRP | S_IROTH)
-		os.chmod(args.olddata + '.json', S_IREAD | S_IRGRP | S_IROTH)
+		args.test = True
 
 	with open(args.olddata+'.json') as f:
 		data = json.load(f)
