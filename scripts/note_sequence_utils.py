@@ -81,7 +81,7 @@ def encode_chord(c, chord_collection, test=args.test):
 		for p in c.pitches:
 			string_chord += p.name + '.'
 	if test and string_chord not in chord_collection.keys():
-		return 0
+		return -1
 	chord_collection[string_chord] += 1
 	return string_chord
 
@@ -91,9 +91,11 @@ def decode_chord_from_num(num, chord_collection):
 	:param string_chord: the string_chord
 	:return: list of the pitches the original chord consists of
 	"""
-	if num <= 0:
+	print(num)
+	if num < 0:
 		return ''
 	string_chord = ''
+	print(chord_collection)
 	for c, n in chord_collection.items():
 		if n == num:
 			string_chord = c

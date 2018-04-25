@@ -5,7 +5,7 @@ from numpy import ones, floor
 from note_sequence_utils import *
 from scripts import args, GeneralMusic
 from transformer import *
-from music21 import chord, key
+from music21 import chord, key, harmony
 
 import xml.etree.ElementTree as ET
 
@@ -158,7 +158,7 @@ class Phrase(MusicXML):
 		:return: a stream.StaffPart object containing the reduced measures
 		"""
 		chords = self._accompaniment.chordify().sorted
-		chord_sequence = [chord.Chord('C')] * args.steps_per_bar * args.num_bars
+		chord_sequence = [harmony.ChordSymbol('C')] * args.steps_per_bar * args.num_bars
 
 		for c in chords.flat:
 			if isinstance(c, chord.Chord):
