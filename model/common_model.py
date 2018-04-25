@@ -7,6 +7,7 @@ from keras.layers import Dropout, TimeDistributed, RepeatVector
 from keras.layers import LSTM, Bidirectional, Cropping1D, Concatenate
 from keras.models import Model, load_model
 from keras.utils import print_summary
+from keras.optimizers import RMSprop
 from keras import backend as K
 import numpy as np
 
@@ -25,16 +26,16 @@ class GeneralNet(Model):
 		self._model_name = model_name
 		input = Input(shape=input_shape)
 
-		encoder = Bidirectional(LSTM(512))(input)
+		encoder = Bidirectional(LSTM(128))(input)
 		merge = Dropout(0.3)(encoder)
 		repeat = RepeatVector(output_shape[0])(merge)
-		decoder = LSTM(512, return_sequences=True)(repeat)
+		decoder = LSTM(128, return_sequences=True)(repeat)
 		dropout = Dropout(0.3)(decoder)
 		final = TimeDistributed(Dense(output_shape[1], activation='softmax'))(dropout)
 
 		super(GeneralNet, self).__init__(input, final)
 		
-		self.compile(optimizer=args.optimizer, loss=weighted_loss, metrics=['acc'])
+		self.compile(optimizer='adam', loss=weighted_loss, metrics=['acc'])
 		print_summary(self)
 
 	def train(self, net_input, net_output):
@@ -71,6 +72,9 @@ def weighted_loss(target, output):
 	loss = [0] * args.batch_size
 	weights = [10, 1, 4, 1, 5, 1, 4, 1, 7, 1, 4, 1, 5, 1, 4, 1, 8, 1, 4, 1, 5, 1, 4, 1, 7, 1, 4, 1, 5, 1, 4, 1,
 	           10, 1, 4, 1, 5, 1, 4, 1, 7, 1, 4, 1, 5, 1, 4, 1, 8, 1, 4, 1, 5, 1, 4, 1, 7, 1, 4, 1, 5, 1, 4, 1]
+	if args.mode == 'chord':
+		weights = [10, 0, 0, 0, 5, 0, 0, 0, 7, 0, 0, 0, 5, 0, 0, 0, 8, 0, 0, 0, 5, 0, 0, 0, 7, 0, 0, 0, 5, 0, 0, 0,
+				   10, 0, 0, 0, 5, 0, 0, 0, 7, 0, 0, 0, 5, 0, 0, 0, 8, 0, 0, 0, 5, 0, 0, 0, 7, 0, 0, 0, 5, 0, 0, 0]
 	weights = K.variable(weights)
 
 	output /= K.sum(output, axis=-1, keepdims=True)
