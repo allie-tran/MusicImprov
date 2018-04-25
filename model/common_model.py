@@ -26,14 +26,15 @@ class GeneralNet(Model):
 		self._model_name = model_name
 		input = Input(shape=input_shape)
 
-		encoder = Bidirectional(LSTM(512))(input)
-		merge = Dropout(0.3)(encoder)
-		repeat = RepeatVector(output_shape[0])(merge)
-		decoder = LSTM(512, return_sequences=True)(repeat)
-		dropout = Dropout(0.3)(decoder)
-		final = TimeDistributed(Dense(output_shape[1], activation='softmax'))(dropout)
+		encoder = Bidirectional(LSTM(512, return_sequences=True))(input)
+		dropout1 = Dropout(0.1)(encoder)
+		decoder = Bidirectional(LSTM(512, return_sequences=True))(dropout1)
+		dropout2 = Dropout(0.1)(decoder)
+		reshape = Reshape((output_shape[0], -1))(dropout2)
+		output = Dense(output_shape[1])(reshape)
+		activate = Activation('softmax')(output)
 
-		super(GeneralNet, self).__init__(input, final)
+		super(GeneralNet, self).__init__(input, activate)
 		
 		self.compile(optimizer='adam', loss=weighted_loss, metrics=['acc'])
 		print_summary(self)
