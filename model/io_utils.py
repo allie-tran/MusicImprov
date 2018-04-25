@@ -47,7 +47,7 @@ def create_dataset(folder, chord_collection):
 					for phrase in phrases:
 					# 	print "---------------------------------------------------------------------"
 					# 	phrase._score.show('text')
-						phrase_dict = transformer.transform(phrase, chord_collection)
+						phrase_dict = transformer.transform(phrase, chord_collection, test=False)
 						if phrase_dict is not None:
 							melody_sequence = phrase_dict['melody']
 							chord_sequence = phrase_dict['chord']
@@ -92,13 +92,12 @@ def create_dataset(folder, chord_collection):
 
 	if args.mode == 'chord':
 		input_shape = (args.num_bars * args.steps_per_bar, 32)
-		output_shape = (args.num_bars * args.steps_per_bar, len(chord_collection))
-
-		for melody in melodies:
-			inputs.append(array(encode_melody(melody)))
-		for chord in chords:
-			encoded = [chord_collection[c] if c in chord_collection.keys() else 0 for c in chord]
-			outputs.append(array(to_onehot(encoded, output_shape[1])))
+		output_shape = (args.num_bars * args.steps_per_bar, len(chord_collection)+1)
+		for i in range(len(melodies)):
+			encoded = [chord_collection[c] if c in chord_collection.keys() else 0 for c in chords[i]]
+			if sum(encoded) > 0:
+				outputs.append(array(to_onehot(encoded, output_shape[1])))
+				inputs.append(array(encode_melody(melodies[i])))
 
 	elif args.mode == 'melody':
 		input_shape = (args.num_bars * args.steps_per_bar, 32)
@@ -110,7 +109,7 @@ def create_dataset(folder, chord_collection):
 			inputs.append(encode_melody(melody))
 	else:
 		# raise NotImplementedError
-		output_shape = (args.num_bars * args.steps_per_bar, len(chord_collection))
+		output_shape = (args.num_bars * args.steps_per_bar, len(chord_collection)+1)
 		input_shape = (args.num_bars * args.steps_per_bar, 32)
 	print(shape(inputs))
 	print(shape(outputs))
