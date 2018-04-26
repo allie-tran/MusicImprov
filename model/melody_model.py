@@ -10,8 +10,6 @@ class MelodyAnswerNet(GeneralNet):
 		super(MelodyAnswerNet, self).__init__(input_shape, output_shape, model_name)
 
 	def generate(self, primer_notesequence, name):
-		# Load the weights to each node
-		# self.load_weights('best-weights-without-rests.hdf5')
 		input_sequence = array([primer_notesequence])
 		self.load_weights('weights/' + self._model_name + '-weights.hdf5')
 		output = self.predict(input_sequence, verbose=0)[0]

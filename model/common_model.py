@@ -65,25 +65,17 @@ class GeneralNet(Model):
 		)
 
 	@abc.abstractmethod
-	def generate(self, primer_notesequence, name):
+	def generate(self, primer_notesequence, chord_collection, name):
 		pass
 
 def weighted_loss(target, output):
-	n = 64
-	loss = [0] * args.batch_size
 	weights = [10, 1, 4, 1, 5, 1, 4, 1, 7, 1, 4, 1, 5, 1, 4, 1, 8, 1, 4, 1, 5, 1, 4, 1, 7, 1, 4, 1, 5, 1, 4, 1,
 	           10, 1, 4, 1, 5, 1, 4, 1, 7, 1, 4, 1, 5, 1, 4, 1, 8, 1, 4, 1, 5, 1, 4, 1, 7, 1, 4, 1, 5, 1, 4, 1]
-	# if args.mode == 'chord':
-	# 	weights = [10, 0, 0, 0, 5, 0, 0, 0, 7, 0, 0, 0, 5, 0, 0, 0, 8, 0, 0, 0, 5, 0, 0, 0, 7, 0, 0, 0, 5, 0, 0, 0,
-	# 			   10, 0, 0, 0, 5, 0, 0, 0, 7, 0, 0, 0, 5, 0, 0, 0, 8, 0, 0, 0, 5, 0, 0, 0, 7, 0, 0, 0, 5, 0, 0, 0]
 	weights = K.variable(weights)
 
 	output /= K.sum(output, axis=-1, keepdims=True)
 	output = K.clip(output, K.epsilon(), 1.0 - K.epsilon())
 
 	loss = -K.sum(target * K.log(output), axis=-1)
-	# print(K.int_shape(loss))
-	# print(K.int_shape(weights))
 	loss = K.sum(loss * weights / K.sum(weights))
-	# print(K.int_shape(loss))
 	return loss
