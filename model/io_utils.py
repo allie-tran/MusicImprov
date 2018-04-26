@@ -14,9 +14,9 @@ def create_dataset(folder, chord_collection):
 	:param folder: the path to the folder
 	:return: a list of input-output, input args, output args
 	"""
-	if args.newdata:
+	if args.savedata:
 		try:
-			with open(args.olddata + '.json', 'r') as f:
+			with open(args.phrase_file + '.json', 'r') as f:
 				data = json.load(f)
 		except IOError:
 			data = {'melodies': [], 'chords': []}
@@ -24,7 +24,7 @@ def create_dataset(folder, chord_collection):
 		scores = os.listdir(folder)
 		for i, score in enumerate(scores):
 			print i
-			if i > 2000:
+			if i > 100:
 				break
 			try:
 				if (score.endswith('.mxl')) and (score not in score_list):
@@ -58,16 +58,17 @@ def create_dataset(folder, chord_collection):
 					with open('score_list.json', 'w') as f:
 						json.dump(score_list, f)
 
-					with open(args.newdata + '.json', 'w') as f:
+					with open(args.phrase_file + '.json', 'w') as f:
 						json.dump(data, f)
 
 					with open('chord_collection.json', 'w') as f:
 						json.dump(chord_collection, f)
 			except:
 				continue
+
 		# Chord mapping
 		chord_mapping = {}
-		cutoff = 5
+		cutoff = 15
 		i = 0
 		for chord in chord_collection.keys():
 			if chord_collection[chord] > cutoff:
@@ -80,9 +81,8 @@ def create_dataset(folder, chord_collection):
 		with open('chord_collection.json', 'w') as f:
 			json.dump(chord_collection, f)
 		os.chmod('chord_collection.json', S_IREAD | S_IRGRP | S_IROTH)
-		args.test = True
 
-	with open(args.olddata+'.json') as f:
+	with open(args.phrase_file+'.json') as f:
 		data = json.load(f)
 
 	melodies = data['melodies'][:5000]
@@ -91,8 +91,6 @@ def create_dataset(folder, chord_collection):
 	outputs = []
 
 	if args.mode == 'chord':
-		input_shape = (args.num_bars * args.steps_per_bar, 32)
-		output_shape = (args.num_bars * args.steps_per_bar, len(chord_collection)+1)
 		for i in range(len(melodies)):
 			encoded = [chord_collection[c] if c in chord_collection.keys() else 0 for c in chords[i]]
 			if sum(encoded) > 0:
@@ -100,22 +98,13 @@ def create_dataset(folder, chord_collection):
 				inputs.append(array(encode_melody(melodies[i])))
 
 	elif args.mode == 'melody':
-		input_shape = (args.num_bars * args.steps_per_bar, 32)
-		output_shape = (args.num_bars * args.steps_per_bar, 82)
 		for i, melody in enumerate(melodies):
 			next_melody = melodies[i]
 			next_melody = [n + 2 for n in next_melody]
 			outputs.append(to_onehot(next_melody, output_shape[1]))
 			inputs.append(encode_melody(melody))
-	else:
-		# raise NotImplementedError
-		output_shape = (args.num_bars * args.steps_per_bar, len(chord_collection)+1)
-		input_shape = (args.num_bars * args.steps_per_bar, 32)
-	print(shape(inputs))
-	print(shape(outputs))
-	print(input_shape)
-	print(output_shape)
-	return array(inputs), array(outputs), input_shape, output_shape, chord_collection
+
+	return array(inputs), array(outputs), chord_collection
 
 
 def encode_melody(melody):
