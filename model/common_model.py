@@ -48,7 +48,7 @@ class GeneralNet(Model):
 
 		checkpoint = ModelCheckpoint(
 			filepath,
-			monitor=args.monitor,
+			monitor='loss',
 			verbose=0,
 			save_best_only=True,
 			mode='min'
@@ -59,7 +59,7 @@ class GeneralNet(Model):
 			net_input,
 			net_output,
 			epochs=args.epochs,
-			batch_size=args.batch_size,
+			batch_size=32,
 			callbacks=callbacks_list,
 			validation_split=0.2
 		)

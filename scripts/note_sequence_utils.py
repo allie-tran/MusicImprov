@@ -144,7 +144,6 @@ class ChordSequence(list):
 				encoded_chords.append(encode_chord(c, chord_collection, test=test))
 		assert len(encoded_chords) == args.steps_per_bar * args.num_bars
 		super(ChordSequence, self).__init__(encoded_chords)
-		self._chords_per_bar = args.chords_per_bar
 		self._num_bars = args.num_bars
 
 	def to_midi(self, melody_sequence, name):
@@ -160,14 +159,14 @@ class ChordSequence(list):
 		while i < len(self):
 			c = decode_chord_from_string(self[i])
 			if c is None:
-				track.append(mido.Message('control_change', time=melody_sequence.steps_per_bar / self._chords_per_bar))
+				track.append(mido.Message('control_change', time=1))
 				i += 1
 				continue
 			duration, i = find_chord_duration(i, self)
 			notes = [n.midi for n in c]
 			for n in notes:
 				track.append(mido.Message('note_on', note=int(n), velocity=60, time=0, channel=2))
-			track.append(mido.Message('control_change', time=duration * melody_sequence.steps_per_bar / self._chords_per_bar))
+			track.append(mido.Message('control_change', time=duration))
 			for n in notes:
 				track.append(mido.Message('note_off', note=int(n), velocity=60, time=0, channel=2))
 		mid.save(name + '.mid')
