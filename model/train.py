@@ -58,9 +58,9 @@ def generate():
 	transformer = XMLtoNoteSequence()
 
 	if args.mode == 'chord':
-		chord_generate(model, phrases, transformer, chord_collection)
+		chord_generate(chord_model, phrases, transformer, chord_collection)
 	elif args.mode == 'melody':
-		melody_generate(model, phrases, transformer, chord_collection)
+		melody_generate(melody_model, phrases, transformer, chord_collection)
 	else:
 		combine_generate(melody_model, chord_model, chord_collection, phrases, transformer)
 
