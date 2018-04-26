@@ -36,16 +36,17 @@ def generate():
 		chord_collection = Counter()
 		chord_collection['C'] = 100
 
-	input_shape1 = (args.num_bars * args.steps_per_bar, 32)
-	output_shape1 = (args.num_bars * args.chords_per_bar, len(chord_collection) + 1)
-	input_shape2 = (args.num_bars * args.steps_per_bar, 32)
+	inputs, outputs, chord_collection = create_dataset('xml', chord_collection)
+
+	input_shape = (args.num_bars * args.steps_per_bar, 32)
+	output_shape1 = (args.num_bars * args.steps_per_bar, len(chord_collection) + 1)
 	output_shape2 = (args.num_bars * args.steps_per_bar, 82)
 
-	chord_model = ChordNet(input_shape1, output_shape1, 'ChordModel')
-	melody_model = MelodyAnswerNet(input_shape2, output_shape2, 'MelodyModel')
+	chord_model = ChordNet(input_shape, output_shape1, 'ChordModel')
+	melody_model = MelodyAnswerNet(input_shape, output_shape2, 'MelodyModel')
 
 	if args.train:
-		inputs, outputs, chord_collection = create_dataset('xml', chord_collection)
+
 		if args.mode == 'chord':
 			chord_model.train(inputs, outputs)
 		if args.mode == 'melody':

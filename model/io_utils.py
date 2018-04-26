@@ -24,84 +24,88 @@ def create_dataset(folder, chord_collection):
 		scores = os.listdir(folder)
 		for i, score in enumerate(scores):
 			print i
-			if i > 100:
+			if i > 5:
 				break
-			try:
-				if (score.endswith('.mxl')) and (score not in score_list):
-					score_list.append(score)
-					print('Processing ' + score + '...')
-					s = MusicXML()
-					try:
-						s.from_file(folder + '/' + score)
-					except (cElementTree.ParseError,
-							music21.musicxml.xmlToM21.MusicXMLImportException,
-							music21.exceptions21.StreamException):
-						print("Conversion failed.")
-						continue
+			if (score.endswith('.mxl')) and (score not in score_list):
+				score_list.append(score)
+				print('Processing ' + score + '...')
+				s = MusicXML()
+				try:
+					s.from_file(folder + '/' + score)
+				except (cElementTree.ParseError,
+						music21.musicxml.xmlToM21.MusicXMLImportException,
+						music21.exceptions21.StreamException):
+					print("Conversion failed.")
+					continue
 
-					transformer = XMLtoNoteSequence()
-					if s.time_signature.ratioString != '4/4':
-						print("Skipping this because it's " + s.time_signature.ratioString)
-						continue
-					phrases = list(s.phrases(reanalyze=False))
-					for phrase in phrases:
-					# 	print "---------------------------------------------------------------------"
-					# 	phrase._score.show('text')
-						phrase_dict = transformer.transform(phrase, chord_collection, test=False)
-						if phrase_dict is not None:
-							melody_sequence = phrase_dict['melody']
-							chord_sequence = phrase_dict['chord']
-							data['melodies'].append(melody_sequence)
-							data['chords'].append(chord_sequence)
+				transformer = XMLtoNoteSequence()
+				if s.time_signature.ratioString != '4/4':
+					print("Skipping this because it's " + s.time_signature.ratioString)
+					continue
+				phrases = list(s.phrases(reanalyze=False))
+				for phrase in phrases:
+				# 	print "---------------------------------------------------------------------"
+				# 	phrase._score.show('text')
+					phrase_dict = transformer.transform(phrase, chord_collection, test=False)
+					if phrase_dict is not None:
+						melody_sequence = phrase_dict['melody']
+						chord_sequence = phrase_dict['chord']
+						data['melodies'].append(melody_sequence)
+						data['chords'].append(chord_sequence)
 
-					print str(len(score_list)) + "(" +  str(len(data['melodies']))+ ")/" + str(len(scores))
-					with open('score_list.json', 'w') as f:
-						json.dump(score_list, f)
+				print str(len(score_list)) + "(" +  str(len(data['melodies']))+ ")/" + str(len(scores))
+				with open('score_list.json', 'w') as f:
+					json.dump(score_list, f)
 
-					with open(args.phrase_file + '.json', 'w') as f:
-						json.dump(data, f)
+				with open(args.phrase_file + '.json', 'w') as f:
+					json.dump(data, f)
 
-					with open('chord_collection.json', 'w') as f:
-						json.dump(chord_collection, f)
-			except:
-				continue
+				with open('chord_counter.json', 'w') as f:
+					json.dump(chord_counter, f)
 
-		# Chord mapping
-		chord_mapping = {}
-		cutoff = 15
-		i = 0
-		for chord in chord_collection.keys():
-			if chord_collection[chord] > cutoff:
-				i += 1
-				chord_mapping[chord] = i
+	# Chord mapping
+	with open('chord_counter.json', 'w') as f:
+		chord_collection = json.load(f)
+
+	chord_mapping = {}
+	cutoff = 15
+	i = 0
+	for chord in chord_collection.keys():
+		if chord_collection[chord] > cutoff:
+			i += 1
+			chord_mapping[chord] = i
+
+	chord_collection = chord_mapping
+	with open('chord_collection.json', 'w') as f:
+		json.dump(chord_collection, f)
+	os.chmod('chord_collection.json', S_IREAD | S_IRGRP | S_IROTH)
 
 
-		chord_collection = chord_mapping
-
-		with open('chord_collection.json', 'w') as f:
-			json.dump(chord_collection, f)
-		os.chmod('chord_collection.json', S_IREAD | S_IRGRP | S_IROTH)
 
 	with open(args.phrase_file+'.json') as f:
 		data = json.load(f)
 
-	melodies = data['melodies'][:5000]
-	chords = data['chords'][:5000]
+	melodies = data['melodies'][:200]
+	chords = data['chords'][:200]
 	inputs = []
 	outputs = []
+
+	input_shape = (args.num_bars * args.steps_per_bar, 32)
+	output_shape1 = (args.num_bars * args.steps_per_bar, len(chord_collection) + 1)
+	output_shape2 = (args.num_bars * args.steps_per_bar, 82)
 
 	if args.mode == 'chord':
 		for i in range(len(melodies)):
 			encoded = [chord_collection[c] if c in chord_collection.keys() else 0 for c in chords[i]]
 			if sum(encoded) > 0:
-				outputs.append(array(to_onehot(encoded, output_shape[1])))
+				outputs.append(array(to_onehot(encoded, output_shape1[1])))
 				inputs.append(array(encode_melody(melodies[i])))
 
 	elif args.mode == 'melody':
 		for i, melody in enumerate(melodies):
 			next_melody = melodies[i]
 			next_melody = [n + 2 for n in next_melody]
-			outputs.append(to_onehot(next_melody, output_shape[1]))
+			outputs.append(to_onehot(next_melody, output_shape2[1]))
 			inputs.append(encode_melody(melody))
 
 	return array(inputs), array(outputs), chord_collection
