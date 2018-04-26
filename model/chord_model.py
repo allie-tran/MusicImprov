@@ -17,7 +17,7 @@ class ChordNet(GeneralNet):
 		output = self.predict(input_sequence, verbose=0)[0]
 		chords = ChordSequence(list(argmax(output, axis=1)), chord_collection, True, encode=True)
 		# print(chords)
-		chords.to_midi(primer_notesequence, name)
+		chords.to_midi(primer_note_sequence, name)
 		return chords
 
 

@@ -61,26 +61,27 @@ def create_dataset(folder, chord_collection):
 					json.dump(data, f)
 
 				with open('chord_counter.json', 'w') as f:
-					json.dump(chord_counter, f)
+					json.dump(chord_collection, f)
 
 	# Chord mapping
-	with open('chord_counter.json', 'w') as f:
-		chord_collection = json.load(f)
+	try:
+		with open('chord_collection.json', 'r') as f:
+			chord_collection = json.load(f)
+	except IOError:
+		with open('chord_counter.json', 'r') as f:
+			chord_counter = json.load(f)
 
-	chord_mapping = {}
-	cutoff = 15
-	i = 0
-	for chord in chord_collection.keys():
-		if chord_collection[chord] > cutoff:
-			i += 1
-			chord_mapping[chord] = i
+		chord_collection = {}
+		cutoff = 15
+		i = 0
+		for chord in chord_counter.keys():
+			if chord_counter[chord] > cutoff:
+				i += 1
+				chord_collection[chord] = i
 
-	chord_collection = chord_mapping
-	with open('chord_collection.json', 'w') as f:
-		json.dump(chord_collection, f)
-	os.chmod('chord_collection.json', S_IREAD | S_IRGRP | S_IROTH)
-
-
+		with open('chord_collection.json', 'w') as f:
+			json.dump(chord_collection, f)
+		os.chmod('chord_collection.json', S_IREAD | S_IRGRP | S_IROTH)
 
 	with open(args.phrase_file+'.json') as f:
 		data = json.load(f)
