@@ -35,7 +35,7 @@ class GeneralNet(Model):
 		activate = Activation('softmax')(output)
 
 		super(GeneralNet, self).__init__(input, activate)
-		
+
 		self.compile(optimizer='adam', loss=weighted_loss, metrics=['acc'])
 		print_summary(self)
 
@@ -69,8 +69,8 @@ class GeneralNet(Model):
 		pass
 
 def weighted_loss(target, output):
-	weights = [10, 1, 4, 1, 5, 1, 4, 1, 7, 1, 4, 1, 5, 1, 4, 1, 8, 1, 4, 1, 5, 1, 4, 1, 7, 1, 4, 1, 5, 1, 4, 1,
-	           10, 1, 4, 1, 5, 1, 4, 1, 7, 1, 4, 1, 5, 1, 4, 1, 8, 1, 4, 1, 5, 1, 4, 1, 7, 1, 4, 1, 5, 1, 4, 1]
+	print(K.int_shape(target))
+	weights = [10, 1, 4, 1, 5, 1, 4, 1, 7, 1, 4, 1, 5, 1, 4, 1, 8, 1, 4, 1, 5, 1, 4, 1, 7, 1, 4, 1, 5, 1, 4, 1] * 4
 	weights = K.variable(weights)
 
 	output /= K.sum(output, axis=-1, keepdims=True)
@@ -79,3 +79,5 @@ def weighted_loss(target, output):
 	loss = -K.sum(target * K.log(output), axis=-1)
 	loss = K.sum(loss * weights / K.sum(weights))
 	return loss
+
+
