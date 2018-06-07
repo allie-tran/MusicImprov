@@ -1,5 +1,5 @@
 from numpy import array, argmax
-from model.io_utils import encode_melody
+from model.io_utils import *
 from common_model import GeneralNet
 from scripts import MelodySequence
 
@@ -13,8 +13,9 @@ class MelodyAnswerNet(GeneralNet):
 		input_sequence = array([primer_notesequence])
 		self.load_weights('weights/' + self._model_name + '-weights.hdf5')
 		output = self.predict(input_sequence, verbose=0)[0]
-		output = list(argmax(output, axis=1))
-		output = [n - 2 for n in output]
+		output = [name_to_midi(spiral_to_name(pos))-48 for pos in output]
+		# output = list(argmax(output, axis=1))
+		# output = [n - 2 for n in output]
 		output_melody = MelodySequence(output)
 		print(output_melody)
 		output_melody.to_midi(name, save=True)

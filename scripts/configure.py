@@ -51,6 +51,11 @@ parser.add_argument("-d", "--dataset",
                     nargs='?',
                     default='xml',
                     help='The folder containing the training mxl files.')
+parser.add_argument("--note",
+                    type=str,
+                    nargs='?',
+                    default='',
+                    help='note for model name')
 
 args = parser.parse_args()
 

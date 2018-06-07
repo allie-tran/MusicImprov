@@ -18,10 +18,10 @@ def melody_generate(model, testscore, transformer, use_generated_as_primer=True)
 		primer = whole[-args.num_bars * args.steps_per_bar:]
 		output = model.generate(encode_melody(primer), 'generated/bar_' + str(count))
 		whole += output
-		MelodySequence(whole).to_midi('generated/whole_' + str(count), save=True)
 		count += 1
-		if count > 5:
+		if count > 6:
 			break
+		MelodySequence(whole).to_midi('generated/whole_' + str(count), save=(count == 6))
 	# if use_generated_as_primer:
 	# 	primer = transformer.transform(phrases[0])
 	# 	print(primer)
@@ -36,7 +36,7 @@ def generate():
 	melody_model = MelodyAnswerNet(input_shape, output_shape, 'MelodyModel'
 	                               + str(args.num_bars) + '_'
 	                               + str(args.steps_per_bar) + '_'
-	                               + str(args.dropout))
+	                               + str(args.dropout) + args.note)
 
 	if args.train:
 		melody_model.train(inputs, outputs)
