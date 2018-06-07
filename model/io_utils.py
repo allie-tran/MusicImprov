@@ -42,19 +42,12 @@ def create_dataset(folder):
 				if s.time_signature.ratioString != '4/4':
 					print("Skipping this because it's " + s.time_signature.ratioString)
 					continue
-				melody = transformer.transform(s)
-				print(len(melody))
+				try:
+					melody = transformer.transform(s)
+				except:
+					continue
+				# print(len(melody))
 				data.append(melody)
-
-				# for phrase in melody:
-				# # 	print "---------------------------------------------------------------------"
-				# # 	phrase._score.show('text')
-				# 	melody = transformer.transform(phrase)
-				# 	if melody is not None:
-				# 		melody_sequence = melody
-				# 		print(shape(melody_sequence))
-				# 		data.append(melody_sequence)
-				# 		print(shape(data))
 
 				print str(len(score_list)) + "(" +  str(len(data))+")/" + str(len(scores))
 
