@@ -16,6 +16,11 @@ parser.add_argument("--epochs",
                     nargs='?',
                     default=100,
                     help="The number of epochs.")
+parser.add_argument("--dropout",
+                    type=float,
+                    nargs='?',
+                    default=0.0,
+                    help="Dropout.")
 parser.add_argument("--num_bars",
                     type=int,
                     nargs='?',
