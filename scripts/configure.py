@@ -26,25 +26,30 @@ parser.add_argument("--steps_per_bar",
                     nargs='?',
                     default=16,
                     help="The number of steps in one bar.")
-parser.add_argument("--mode",
-                    type=str,
-                    nargs='?',
-                    default='melody',
-                    help="Melody or Chord generation?")
+# parser.add_argument("--mode",
+#                     type=str,
+#                     nargs='?',
+#                     default='melody',
+#                     help="Melody or Chord generation?")
 parser.add_argument("--test",
                     type=str,
                     nargs='?',
                     default='narnia.mxl',
                     help='The file used for testing.')
+parser.add_argument("-d", "--dataset",
+                    type=str,
+                    nargs='?',
+                    default='xml',
+                    help='The folder containing the training mxl files.')
 
 args = parser.parse_args()
 
-print("""Generating {}...
+print("""Generating melody...
 		
 		Number of bars per phrase : {}
 		Steps per bar: {}
 		-------------------
 		Epochs: {}
-		""".format(args.mode, args.num_bars, args.steps_per_bar, args.epochs))
+		""".format(args.num_bars, args.steps_per_bar, args.epochs))
 
 

@@ -23,5 +23,5 @@ class Transformer(object):
 		return self._output_type
 
 	@abc.abstractmethod
-	def transform(self, input, chord_collection):
+	def transform(self, input):
 		pass

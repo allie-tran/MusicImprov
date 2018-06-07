@@ -1,5 +1,5 @@
 from numpy import array, argmax
-
+from model.io_utils import encode_melody
 from common_model import GeneralNet
 from scripts import MelodySequence
 
