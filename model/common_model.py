@@ -26,9 +26,9 @@ class GeneralNet(Model):
 		self._model_name = model_name
 		input = Input(shape=input_shape)
 
-		encoder = Bidirectional(LSTM(512, return_sequences=True))(input)
+		encoder = Bidirectional(LSTM(args.num_units, return_sequences=True))(input)
 		dropout1 = Dropout(args.dropout)(encoder)
-		decoder = Bidirectional(LSTM(512, return_sequences=True))(dropout1)
+		decoder = Bidirectional(LSTM(args.num_units, return_sequences=True))(dropout1)
 		dropout2 = Dropout(args.dropout)(decoder)
 		reshape = Reshape((output_shape[0], -1))(dropout2)
 		output = Dense(output_shape[1])(reshape)

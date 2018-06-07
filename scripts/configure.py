@@ -21,6 +21,11 @@ parser.add_argument("--dropout",
                     nargs='?',
                     default=0.0,
                     help="Dropout.")
+parser.add_argument("--num_units",
+                    type=int,
+                    nargs='?',
+                    default=256,
+                    help="Number of units in the decoder and encoder.")
 parser.add_argument("--num_bars",
                     type=int,
                     nargs='?',
