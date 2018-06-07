@@ -44,10 +44,10 @@ class MusicXML(GeneralMusic):
 		"""
 		# Splitting
 		voices = self._score.getElementsByClass(stream.PartStaff)
-		print(len(voices))
+		# print(len(voices))
 		if len(voices) < 2:
 			voices = self._score.parts
-		print(len(voices))
+		# print(len(voices))
 		if len(voices) == 1:
 			try:
 				measures = voices[0].flat.measures(1, None, collect=['TimeSignature'],
@@ -69,6 +69,8 @@ class MusicXML(GeneralMusic):
 
 		self._melody = full_melody
 		self._accompaniment = full_chord
+		self.num_bars = len(full_melody)
+		# print(self.num_bars)
 		# For keys
 		try:
 			self._key = self._score.key
@@ -76,98 +78,6 @@ class MusicXML(GeneralMusic):
 			self._key = self._score.analyze('key')
 
 		# logging.debug(self._key)
-
-	def phrases(self, reanalyze=False):
-		"""
-		Extract phrases from the original score
-		:param reanalyze: use local, piecewise time signature and key
-		:return: a list of fragments
-		"""
-		i = 1
-		total = len(self._melody)
-		while True:
-			phrase_melody = stream.Stream(self._melody.measures(i, i + args.num_bars - 1, collect=['TimeSignature']))
-			phrase_accompaniment = stream.PartStaff(self._accompaniment.measures(i, i + args.num_bars - 1, collect=['TimeSignature']))
-
-			lowest = min(phrase_melody.lowestOffset, phrase_accompaniment.lowestOffset)
-			phrase_melody.shiftElements(-lowest)
-			phrase_accompaniment.shiftElements(-lowest)
-
-			# phrase = phrase.getElementBeforeOffset(args.num_bars * args.steps_per_bar/4)
-			# print('---------------------------------------------------------------------')
-			# phrase.flat.show('text')
-			# phrase.show()
-			all_time_signature = phrase_melody.recurse().getElementsByClass(meter.TimeSignature)
-			current_time_signature = True
-			for ts in all_time_signature:
-				if ts.ratioString != '4/4':
-					current_time_signature = False
-					break
-
-			if current_time_signature:
-				yield Phrase(self._name + ' ' + str(i / args.num_bars),
-				             phrase_melody,
-				             phrase_accompaniment,
-				             self.time_signature,
-				             self._key, True)
-
-			i += args.num_bars
-			if i + args.num_bars > total:
-				break
-
-
-class Phrase(MusicXML):
-	"""
-	A subclass of MusicXML class, which indicates a short (usually 4-bar) phrase of the score.
-	The phrase should have only 1 key and 1 time signature.
-	"""
-
-	def __init__(self, name='untitled', melody=None, accompaniment=None, time=None, current_key=key.Key(), will_transpose=True):
-		"""
-		Construct a phrase
-		:param transpose: if True, transpose the phrase into the key of C major or A minor.
-		"""
-		super(Phrase, self).__init__(name, melody, accompaniment, time, current_key)
-
-		if will_transpose:
-			i = interval.Interval(self._key.tonic, pitch.Pitch('C'))
-			self._melody.transpose(i, inPlace=True)
-			self._accompaniment.transpose(i, inPlace=True)
-			self._key = key.Key('C')
-		self._num_bars = args.num_bars
-		self._name = name
-
-	@property
-	def num_bars(self):
-		"""
-		Returns the number of bars the phrase lasts. Usually set to 4.
-		"""
-		return self._num_bars
-
-	@property
-	def name(self):
-		"""
-		Returns the phrase's name
-		"""
-		return self._name
-
-	def accompaniment_to_chords(self):
-		"""
-		Turn left hand part into chords.
-		:param chords_per_bar: Maximum chords per bar. Usually 1, for the most simple form
-		:return: a stream.StaffPart object containing the reduced measures
-		"""
-		chords = self._accompaniment.chordify().sorted
-		chord_sequence = [harmony.ChordSymbol('C')] * args.steps_per_bar * args.num_bars
-
-		for c in chords.flat:
-			if isinstance(c, chord.Chord):
-				for i in range(int(c.offset * args.steps_per_bar / 4), len(chord_sequence)):
-					chord_sequence[i] = c
-		# print(chord_sequence)
-
-		return chord_sequence
-
 
 class XMLtoNoteSequence(Transformer):
 	"""
@@ -180,14 +90,11 @@ class XMLtoNoteSequence(Transformer):
 		"""
 		super(XMLtoNoteSequence, self).__init__(MusicXML, (MelodySequence, ChordSequence))
 
-	def transform(self, input, chord_collection, test):
+	def transform(self, input):
 		"""
-		:param input: a Phrase object
-		:return: a dictionary with the form
-		{'melody': MelodySequence, 'chord': ChordSequence, 'name': name of the phrase}
+		:param input: an XML object
+		:return: a MelodySequence
 		"""
-		print(input.name)
-		assert isinstance(input, Phrase), 'Please provide a valid Phrase object'
 
 		# For melody: taking only the highest note (monophonic)
 		note_sequence = ones(args.steps_per_bar * input.num_bars) * -1
@@ -202,11 +109,9 @@ class XMLtoNoteSequence(Transformer):
 		for n in input.melody.flat.getElementsByClass(note.Rest):
 			note_sequence[int(n.offset * args.steps_per_bar / 4)] = -2
 
-		# For accompaniment
-		chord_sequence = input.accompaniment_to_chords()
-		# print(chord_sequence)
+		# print(note_sequence)
 
 
-		return {'melody': MelodySequence(note_sequence),
-		        'chord': ChordSequence(chord_sequence, chord_collection, test, False),
-		        'name': input.name}
+		return MelodySequence(note_sequence)
+
+

@@ -65,12 +65,13 @@ class GeneralNet(Model):
 		)
 
 	@abc.abstractmethod
-	def generate(self, primer_notesequence, chord_collection, name):
+	def generate(self, primer_notesequence, name):
 		pass
 
 def weighted_loss(target, output):
 	print(K.int_shape(target))
-	weights = [10, 1, 4, 1, 5, 1, 4, 1, 7, 1, 4, 1, 5, 1, 4, 1, 8, 1, 4, 1, 5, 1, 4, 1, 7, 1, 4, 1, 5, 1, 4, 1] * 4
+	# weights = [10, 1, 4, 1, 5, 1, 4, 1, 7, 1, 4, 1, 5, 1, 4, 1, 8, 1, 4, 1, 5, 1, 4, 1, 7, 1, 4, 1, 5, 1, 4, 1] * 2
+	weights = [10, 1, 5, 1, 8, 1, 5, 1] * 2
 	weights = K.variable(weights)
 
 	output /= K.sum(output, axis=-1, keepdims=True)
