@@ -27,9 +27,9 @@ class GeneralNet(Model):
 		input = Input(shape=input_shape)
 
 		encoder = Bidirectional(LSTM(512, return_sequences=True))(input)
-		dropout1 = Dropout(0.1)(encoder)
+		dropout1 = Dropout(args.dropout)(encoder)
 		decoder = Bidirectional(LSTM(512, return_sequences=True))(dropout1)
-		dropout2 = Dropout(0.1)(decoder)
+		dropout2 = Dropout(args.dropout)(decoder)
 		reshape = Reshape((output_shape[0], -1))(dropout2)
 		output = Dense(output_shape[1])(reshape)
 		activate = Activation('softmax')(output)

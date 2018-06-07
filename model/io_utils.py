@@ -72,10 +72,10 @@ def create_dataset(folder):
 		# outputs.append(to_onehot(next_melody, output_shape[1]))
 		# inputs.append(encode_melody(melody))
 		j = 0
-		while j < len(melody) - 5 * args.steps_per_bar:
-			next_bar = melody[j+args.steps_per_bar * 4: j+args.steps_per_bar*5]
+		while j < len(melody) - (args.num_bars+1) * args.steps_per_bar:
+			next_bar = melody[j+args.steps_per_bar * args.num_bars: j+args.steps_per_bar*(args.num_bars + 1)]
 			next_bar = [n+2 for n in next_bar]
-			inputs.append(encode_melody(melody[j: j + args.steps_per_bar * 4]))
+			inputs.append(encode_melody(melody[j: j + args.steps_per_bar * args.num_bars]))
 			outputs.append(to_onehot(next_bar, output_shape[1]))
 			j += args.steps_per_bar
 
