@@ -26,9 +26,9 @@ class GeneralNet(Model):
 		self._model_name = model_name
 		input = Input(shape=input_shape)
 
-		encoder = Bidirectional(LSTM(args.num_units, return_sequences=True))(input)
+		encoder = LSTM(args.num_units, return_sequences=True)(input)
 		dropout1 = Dropout(args.dropout)(encoder)
-		decoder = Bidirectional(LSTM(args.num_units, return_sequences=True))(dropout1)
+		decoder = LSTM(args.num_units, return_sequences=True)(dropout1)
 		dropout2 = Dropout(args.dropout)(decoder)
 		reshape = Reshape((output_shape[0], -1))(dropout2)
 		output = Dense(output_shape[1])(reshape)
@@ -36,7 +36,7 @@ class GeneralNet(Model):
 
 		super(GeneralNet, self).__init__(input, activate)
 
-		self.compile(optimizer='adam', loss=weighted_loss, metrics=['acc'])
+		self.compile(optimizer='rmsprop', loss=weighted_loss, metrics=['acc'])
 		print_summary(self)
 
 	def train(self, net_input, net_output):
