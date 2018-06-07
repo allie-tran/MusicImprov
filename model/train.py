@@ -13,9 +13,15 @@ from collections import Counter
 def melody_generate(model, testscore, transformer, use_generated_as_primer=True):
 	testscore = transformer.transform(testscore)
 	count = 0
+<<<<<<< HEAD
 	whole = testscore[:64]
 	while True:
 		primer = whole[-64:]
+=======
+	whole = testscore[:args.num_bars * args.steps_per_bar]
+	while True:
+		primer = whole[-args.num_bars * args.steps_per_bar:]
+>>>>>>> 84379fdd7c470df2fb41a86b618be614b30e95e8
 		output = model.generate(encode_melody(primer), 'generated/bar_' + str(count))
 		whole += output
 		MelodySequence(whole).to_midi('generated/whole_' + str(count), save=True)
