@@ -41,7 +41,7 @@ class GeneralNet(Model):
 		print_summary(self)
 
 	def train(self, net_input, net_output):
-		filepath = "weights/{}-weights.hdf5".format(self._model_name)
+		filepath = "weights/{}.hdf5".format(self._model_name)
 		try:
 			self.load_weights(filepath)
 		except IOError:
@@ -72,7 +72,8 @@ class GeneralNet(Model):
 def weighted_loss(target, output):
 	print(K.int_shape(target))
 	# weights = [10, 1, 4, 1, 5, 1, 4, 1, 7, 1, 4, 1, 5, 1, 4, 1, 8, 1, 4, 1, 5, 1, 4, 1, 7, 1, 4, 1, 5, 1, 4, 1] * 2
-	weights = [10, 1, 5, 1, 8, 1, 5, 1] * 2
+	# weights = [10, 1, 5, 1, 8, 1, 5, 1] * 2
+	weights = [1] * 63
 	weights = K.variable(weights)
 
 	output /= K.sum(output, axis=-1, keepdims=True)

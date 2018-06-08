@@ -15,12 +15,13 @@ class MelodyAnswerNet(GeneralNet):
 		output = self.predict(input_sequence, verbose=0)[0]
 		# output = [name_to_midi(spiral_to_name(pos))-48 for pos in output]
 		output = list(argmax(output, axis=1))
-		output = [n - 2 for n in output]
-		output_melody = MelodySequence(output)
-		print(output_melody)
-		output_melody.to_midi(name, save=True)
+		return output[-1] - 2
+		# output = [n - 2 for n in output]
+		# output_melody = MelodySequence(output)
+		# print(output_melody)
+		# # output_melody.to_midi(name, save=True)
 
-		return output_melody
+		# return output_melody
 
 class GenerativeRecursiveModel(object):
 
