@@ -64,8 +64,8 @@ def create_dataset(folder):
 	inputs = []
 	outputs = []
 	print('Datashape: ', shape(data))
-	input_shape = (args.num_bars * args.steps_per_bar, 3)
-	output_shape = (args.steps_per_bar, 3)
+	input_shape = (args.num_bars * args.steps_per_bar, 32)
+	output_shape = (args.num_bars * args.steps_per_bar, 82)
 	for i, melody in enumerate(melodies):
 		# next_melody = melodies[i+1]
 		# next_melody = [n + 2 for n in next_melody]
@@ -73,10 +73,10 @@ def create_dataset(folder):
 		# inputs.append(encode_melody(melody))
 		j = 0
 		while j < len(melody) - (args.num_bars+1) * args.steps_per_bar:
-			next_bar = melody[j+args.steps_per_bar * args.num_bars: j+args.steps_per_bar*(args.num_bars + 1)]
+			next_bar = melody[j+args.steps_per_bar: j+args.steps_per_bar*(args.num_bars + 1)]
 			next_bar = [n+2 for n in next_bar]
 			inputs.append(encode_melody(melody[j: j + args.steps_per_bar * args.num_bars]))
-			outputs.append(encode_melody(next_bar))
+			outputs.append(to_onehot(next_bar, output_shape[1]))
 			j += args.steps_per_bar
 
 	print(shape(inputs))
@@ -86,19 +86,24 @@ def create_dataset(folder):
 	return array(inputs), array(outputs), input_shape, output_shape
 
 def midi_to_name(midi):
+	if midi < 0:
+		return "R"
 	midi = midi + 48
 	names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
 	# octave = (midi / 12) - 1
-	note_index = midi % 12
+	note_index = int(midi % 12)
 	return names[note_index]
 
 def name_to_spiral(name):
+	if name == "R":
+		return [0, 0, 0]
 	r = 4
 	h = 1
 	spiral = ["C", "G", "D", "A", "E", "B", "F#", "C#", "G#", "D#", "A#", "F"]
 	k = spiral.index(name)
-	return [r*sin(k*pi/2), r*cos(k*pi/2), r*h]
+	# print([int(r*sin(k*pi/2)), int(r*cos(k*pi/2)), k*h])
+	return [int(r*sin(k*pi/2)), int(r*cos(k*pi/2)), k*h]
 
 def dist(p1, p2):
 	dist = 0
@@ -110,14 +115,18 @@ def dist(p1, p2):
 def spiral_to_name(position):
 	r = 4
 	h = 1
-	spiral = ["C", "G", "D", "A", "E", "B", "F#", "C#", "G#", "D#", "A#", "F"]
-	positions = [[r*sin(k*pi/2), r*cos(k*pi/2), r*h] for k in range(len(spiral))]
+	spiral = ["R", "C", "G", "D", "A", "E", "B", "F#", "C#", "G#", "D#", "A#", "F"]
+	positions = [[0, 0, 0]] + [[int(r*sin(k*pi/2)), int(r*cos(k*pi/2)), k*h] for k in range(len(spiral))]
 	distances = array([dist(position, p) for p in positions])
 	return spiral[distances.argmin()]
 
 def name_to_midi(name):
+	if name == "R":
+		return -1
 	names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 	return 60 + names.index(name)
+
+
 
 def encode_melody(melody):
 	"""
@@ -125,7 +134,7 @@ def encode_melody(melody):
 	:param melody:
 	:return:
 	"""
-	return [name_to_spiral(midi_to_name(n+2)) for n in melody]
+	# return [name_to_spiral(midi_to_name(n)) for n in melody]
 
 	melody = [n + 2 for n in melody]
 	input_sequence = []

@@ -36,7 +36,8 @@ def generate():
 	melody_model = MelodyAnswerNet(input_shape, output_shape, 'MelodyModel'
 	                               + str(args.num_bars) + '_'
 	                               + str(args.steps_per_bar) + '_'
-	                               + str(args.dropout) + args.note)
+	                               + str(args.dropout) + '_'
+	                               + str(args.temperature) + args.note)
 
 	if args.train:
 		melody_model.train(inputs, outputs)
