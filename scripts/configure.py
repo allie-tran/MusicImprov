@@ -21,6 +21,11 @@ parser.add_argument("--dropout",
                     nargs='?',
                     default=0.0,
                     help="Dropout.")
+parser.add_argument("--temperature",
+                    type=float,
+                    nargs='?',
+                    default=1.0,
+                    help="Temperature.")
 parser.add_argument("--num_units",
                     type=int,
                     nargs='?',

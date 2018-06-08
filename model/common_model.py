@@ -2,7 +2,7 @@ import abc
 
 from keras.callbacks import ModelCheckpoint
 from keras.layers import Activation, Reshape
-from keras.layers import Dense, Input, Multiply
+from keras.layers import Dense, Input, Multiply, Lambda
 from keras.layers import Dropout, TimeDistributed, RepeatVector
 from keras.layers import LSTM, Bidirectional, Cropping1D, Concatenate
 from keras.models import Model, load_model
@@ -31,8 +31,9 @@ class GeneralNet(Model):
 		decoder = LSTM(args.num_units, return_sequences=True)(dropout1)
 		dropout2 = Dropout(args.dropout)(decoder)
 		reshape = Reshape((output_shape[0], -1))(dropout2)
-		output = Dense(output_shape[1])(reshape)
-		activate = Activation('softmax')(output)
+		lobprob = Dense(output_shape[1])(reshape)
+		temp_lobprob = Lambda(lambda x: x / args.temperature)(lobprob)
+		activate = Activation('softmax')(temp_lobprob)
 
 		super(GeneralNet, self).__init__(input, activate)
 
