@@ -64,18 +64,18 @@ def create_dataset(folder):
 	inputs = []
 	outputs = []
 	print('Datashape: ', shape(data))
-	input_shape = (args.num_bars * args.steps_per_bar, 32)
-	output_shape = (args.num_bars * args.steps_per_bar, 82)
+	input_shape = (args.num_bars * args.steps_per_bar - 1, 32)
+	output_shape = (args.num_bars * args.steps_per_bar - 1, 82)
 	for i, melody in enumerate(melodies):
 		# next_melody = melodies[i+1]
 		# next_melody = [n + 2 for n in next_melody]
 		# outputs.append(to_onehot(next_melody, output_shape[1]))
 		# inputs.append(encode_melody(melody))
 		j = 0
-		while j < len(melody) - (args.num_bars+1) * args.steps_per_bar:
-			next_bar = melody[j+args.steps_per_bar: j+args.steps_per_bar*(args.num_bars + 1)]
+		while j < len(melody) - (args.num_bars) * args.steps_per_bar:
+			next_bar = melody[j+1: j+args.steps_per_bar * args.num_bars]
 			next_bar = [n+2 for n in next_bar]
-			inputs.append(encode_melody(melody[j: j + args.steps_per_bar * args.num_bars]))
+			inputs.append(encode_melody(melody[j: j + args.steps_per_bar * args.num_bars - 1 ]))
 			outputs.append(to_onehot(next_bar, output_shape[1]))
 			j += args.steps_per_bar
 
