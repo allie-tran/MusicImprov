@@ -6,8 +6,8 @@ from scripts import MelodySequence
 
 class MelodyAnswerNet(GeneralNet):
 
-	def __init__(self, input_shape, output_shape, model_name):
-		super(MelodyAnswerNet, self).__init__(input_shape, output_shape, model_name)
+	def __init__(self, input_shape, input_shape2, output_shape, model_name):
+		super(MelodyAnswerNet, self).__init__(input_shape, input_shape2, output_shape, model_name)
 
 	def generate(self, primer_notesequence, name):
 		input_sequence = array([primer_notesequence])

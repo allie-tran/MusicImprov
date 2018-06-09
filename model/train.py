@@ -17,11 +17,12 @@ def melody_generate(model, testscore, transformer, use_generated_as_primer=True)
 	while True:
 		primer = whole[-(args.num_bars * args.steps_per_bar-1):]
 		output_note = model.generate(encode_melody(primer), 'generated/bar_' + str(count))
-		whole += output_note
+		print(output_note)
+		whole += [output_note]
 		count += 1
 		if count > 128:
+			MelodySequence(whole).to_midi('generated/whole', save=True)
 			break
-		MelodySequence(whole).to_midi('generated/whole', save=(count == 128))
 	# if use_generated_as_primer:
 	# 	primer = transformer.transform(phrases[0])
 	# 	print(primer)
@@ -31,20 +32,21 @@ def melody_generate(model, testscore, transformer, use_generated_as_primer=True)
 	pass
 
 def generate():
-	inputs, outputs, input_shape, output_shape = create_dataset(args.dataset)
+	inputs1, inputs2, outputs, input_shape, input_shape2, output_shape = create_dataset(args.dataset)
 
-	melody_model = MelodyAnswerNet(input_shape, output_shape, 'MelodyModel'
+	melody_model = MelodyAnswerNet(input_shape, input_shape2, output_shape, 'MelodyModel'
 	                               + str(args.num_bars) + '_'
 	                               + str(args.steps_per_bar) + '_'
 	                               + str(args.dropout) + '_'
 	                               + str(args.temperature) + args.note)
 
-	if args.train:
-		melody_model.train(inputs, outputs)
 
 	testscore = MusicXML()
 	testscore.from_file(args.test)
 	transformer = XMLtoNoteSequence()
+
+	if args.train:
+		melody_model.train([inputs1, inputs2], outputs, testscore, transformer)
 
 	melody_generate(melody_model, testscore, transformer)
 
