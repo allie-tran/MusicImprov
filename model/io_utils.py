@@ -61,29 +61,36 @@ def create_dataset(folder):
 		data = json.load(f)
 
 	melodies = data
-	inputs = []
+	inputs1 = []
+	inputs2 = []
 	outputs = []
 	print('Datashape: ', shape(data))
 	input_shape = (args.num_bars * args.steps_per_bar - 1, 32)
+	input_shape2 = (args.num_bars * args.steps_per_bar - 1, args.steps_per_bar)
 	output_shape = (args.num_bars * args.steps_per_bar - 1, 82)
-	for i, melody in enumerate(melodies):
-		# next_melody = melodies[i+1]
-		# next_melody = [n + 2 for n in next_melody]
-		# outputs.append(to_onehot(next_melody, output_shape[1]))
-		# inputs.append(encode_melody(melody))
-		j = 0
-		while j < len(melody) - (args.num_bars) * args.steps_per_bar:
-			next_bar = melody[j+1: j+args.steps_per_bar * args.num_bars]
-			next_bar = [n+2 for n in next_bar]
-			inputs.append(encode_melody(melody[j: j + args.steps_per_bar * args.num_bars - 1 ]))
-			outputs.append(to_onehot(next_bar, output_shape[1]))
-			j += args.steps_per_bar
+	if args.train:
+		for i, melody in enumerate(melodies):
+			# next_melody = melodies[i+1]
+			# next_melody = [n + 2 for n in next_melody]
+			# outputs.append(to_onehot(next_melody, output_shape[1]))
+			# inputs.append(encode_melody(melody))
+			j = 0
+			while j < len(melody) - (args.num_bars) * args.steps_per_bar:
+				next_bar = melody[j+1: j+args.steps_per_bar * args.num_bars]
+				next_bar = [n+2 for n in next_bar]
+				inputs1.append(encode_melody(melody[j: j + args.steps_per_bar * args.num_bars - 1]))
+				position_in_measure = [j % args.steps_per_bar for j in range(j, j + j + args.steps_per_bar * args.num_bars - 1)]
+				inputs2.append(to_onehot(position_in_measure, args.steps_per_bar))
+				outputs.append(to_onehot(next_bar, output_shape[1]))
+				j += 1
 
-	print(shape(inputs))
+	print(shape(inputs1))
+	print(shape(inputs2))
 	print(shape(outputs))
 	print(input_shape)
+	print(input_shape2)
 	print(output_shape)
-	return array(inputs), array(outputs), input_shape, output_shape
+	return array(inputs1), array(inputs2), array(outputs), input_shape, input_shape2, output_shape
 
 def midi_to_name(midi):
 	if midi < 0:
