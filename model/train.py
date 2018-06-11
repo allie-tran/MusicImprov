@@ -52,7 +52,7 @@ def generate():
 	if args.train:
 		melody_model.train(inputs1, inputs2, outputs, testscore)
 
-	melody_generate(melody_model, testscore)
+	# melody_generate(melody_model, testscore)
 
 if __name__ == '__main__':
 	generate()

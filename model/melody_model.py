@@ -11,6 +11,7 @@ class MelodyAnswerNet(GeneralNet):
 
 	def generate(self, primer_notesequence, positions, name):
 		input_sequence = array([primer_notesequence])
+		input_sequence = pad_sequences(input_sequence, maxlen=64 * 4, dtype='float32')
 		self.load_weights('weights/' + self._model_name + '.hdf5')
 		output = self.predict([input_sequence, array([to_onehot(positions, args.steps_per_bar)])], verbose=0)[0]
 		# output = [name_to_midi(spiral_to_name(pos))-48 for pos in output]
@@ -22,22 +23,3 @@ class MelodyAnswerNet(GeneralNet):
 		# # output_melody.to_midi(name, save=True)
 
 		# return output_melody
-
-class GenerativeRecursiveModel(object):
-
-	def __init__(self, input_shape, output_shape, model_name):
-		self._model_name = model_name
-		# num_layers = math.log(input_shape[0]) - 3
-
-		self._model64 = MelodyAnswerNet((64, input_shape[1]), (64, output_shape[1]), 'Model64')
-		self._model128 = MelodyAnswerNet((128, input_shape[1]), (128, output_shape[1]), 'Model128')
-		self._model256 = MelodyAnswerNet((256, input_shape[1]), (256, output_shape[1]), 'Model256')
-
-	def generate(self, input_melody):
-		output64 = self._model64.generate(encode_melody(input_melody), 'melody64')
-		input128 = input_melody + output64
-		output128 = self._model128.generate(encode_melody(input_melody), 'melody64')
-		input256 = input128 + output128
-		output256 = self._model256.generate(encode_melody(input_melody), 'melody64')
-
-		return input256 + output256
