@@ -10,15 +10,18 @@ from scripts import *
 from collections import Counter
 
 
-def melody_generate(model, testscore, transformer, use_generated_as_primer=True):
-	testscore = transformer.transform(testscore)
+def melody_generate(model, testscore, use_generated_as_primer=True):
 	count = 0
 	whole = testscore[:args.num_bars * args.steps_per_bar - 1]
+	positions = [k % 12 for k in range(args.num_bars * args.steps_per_bar - 1)]
+
 	while True:
 		primer = whole[-(args.num_bars * args.steps_per_bar-1):]
-		output_note = model.generate(encode_melody(primer), 'generated/bar_' + str(count))
+		output_note = model.generate(encode_melody(primer), array(positions), 'generated/bar_' + str(count))
 		print(output_note)
 		whole += [output_note]
+		positions = [(k + count) % 12 for k in range(args.num_bars * args.steps_per_bar - 1)]
+
 		count += 1
 		if count > 128:
 			MelodySequence(whole).to_midi('generated/whole', save=True)
@@ -44,11 +47,12 @@ def generate():
 	testscore = MusicXML()
 	testscore.from_file(args.test)
 	transformer = XMLtoNoteSequence()
+	testscore = transformer.transform(testscore)
 
 	if args.train:
-		melody_model.train([inputs1, inputs2], outputs, testscore, transformer)
+		melody_model.train(inputs1, inputs2, outputs, testscore)
 
-	melody_generate(melody_model, testscore, transformer)
+	melody_generate(melody_model, testscore)
 
 if __name__ == '__main__':
 	generate()

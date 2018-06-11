@@ -1,7 +1,7 @@
 from numpy import array, argmax
 from model.io_utils import *
 from common_model import GeneralNet
-from scripts import MelodySequence
+from scripts import MelodySequence, args
 
 
 class MelodyAnswerNet(GeneralNet):
@@ -9,10 +9,10 @@ class MelodyAnswerNet(GeneralNet):
 	def __init__(self, input_shape, input_shape2, output_shape, model_name):
 		super(MelodyAnswerNet, self).__init__(input_shape, input_shape2, output_shape, model_name)
 
-	def generate(self, primer_notesequence, name):
+	def generate(self, primer_notesequence, positions, name):
 		input_sequence = array([primer_notesequence])
 		self.load_weights('weights/' + self._model_name + '.hdf5')
-		output = self.predict(input_sequence, verbose=0)[0]
+		output = self.predict([input_sequence, array([to_onehot(positions, args.steps_per_bar)])], verbose=0)[0]
 		# output = [name_to_midi(spiral_to_name(pos))-48 for pos in output]
 		output = list(argmax(output, axis=1))
 		return output[-1] - 2
