@@ -16,11 +16,11 @@ parser.add_argument("--epochs",
                     nargs='?',
                     default=100,
                     help="The number of epochs.")
-parser.add_argument("--sequence_length",
+parser.add_argument("--num_samples",
                     type=int,
                     nargs='?',
-                    default=1,
-                    help="The length of sequences in each batch.")
+                    default=1000,
+                    help="The number of training sample from 1 song.")
 parser.add_argument("--dropout",
                     type=float,
                     nargs='?',

@@ -73,10 +73,10 @@ class GeneralNet(Model):
 				validation_split=0.2
 			)
 			count = 0
-			whole = testscore[:64*4]
+			whole = testscore[:args.num_bars * args.steps_per_bar]
 			positions = [k % 12 for k in range(args.num_bars * args.steps_per_bar - 1)]
 			while True:
-				primer = whole[-64*4]
+				primer = whole[-args.num_bars * args.steps_per_bar]
 				output_note = self.generate(encode_melody(primer), positions, 'generated/bar_' + str(count))
 				print(output_note)
 				whole += [output_note]

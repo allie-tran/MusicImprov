@@ -1,7 +1,7 @@
 import json
 import os
 import music21
-from numpy import array, zeros, shape, ndarray, sin, cos, pi, sqrt, argmin
+from numpy import array, zeros, shape, ndarray, sin, cos, pi, sqrt, argmin, random
 from scripts import args, to_onehot, MusicXML, XMLtoNoteSequence
 from xml.etree import cElementTree
 from keras.preprocessing.sequence import pad_sequences
@@ -76,19 +76,19 @@ def create_dataset(folder):
 			# outputs.append(to_onehot(next_melody, output_shape[1]))
 			# inputs.append(encode_melody(melody))
 
-			for sequence_length in [1] + list(range(1, 64 * 4, 4)):
+			for sequence_length in random.randint(1, args.num_bars * args.steps_per_bar, args.num_samples):
 				j = 0
 				while j < len(melody) - sequence_length - 1:
 					next_bar = melody[j + sequence_length:j + sequence_length + 1]
 					next_bar = [n + 2 for n in next_bar]
-					inputs1.append(encode_melody(melody[j: j+args.sequence_length]))
+					inputs1.append(encode_melody(melody[j: j+sequence_length]))
 					position_in_measure = [k % args.steps_per_bar for k in range(j, j + sequence_length)]
 					inputs2.append(to_onehot(position_in_measure, args.steps_per_bar))
 					outputs.append(to_onehot(next_bar, output_shape[1]))
-					j += args.sequence_length
+					j += sequence_length
 
-	inputs1 = pad_sequences(inputs1, maxlen=64*4, dtype='float32')
-	inputs2 = pad_sequences(inputs2, maxlen=64*4, dtype='float32')
+	inputs1 = pad_sequences(inputs1, maxlen=args.num_bars * args.steps_per_bar, dtype='float32')
+	inputs2 = pad_sequences(inputs2, maxlen=args.num_bars * args.steps_per_bar, dtype='float32')
 	print(shape(inputs1))
 	print(shape(inputs2))
 	print(shape(outputs))
