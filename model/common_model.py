@@ -27,11 +27,11 @@ class GeneralNet(Model):
 	def __init__(self, input_shape, input_shape2, output_shape, model_name):
 		self._model_name = model_name
 		input = Input(shape=input_shape)
-		lstm = LSTM(args.num_units, return_sequences=True, stateful=True)(input)
+		lstm = LSTM(args.num_units)(input)
 		dropout1 = Dropout(args.dropout)(lstm)
 
 		input2 = Input(shape=input_shape2)
-		lstm2 = LSTM(args.num_units, return_sequences=True, stateful=True)(input2)
+		lstm2 = LSTM(args.num_units)(input2)
 		dropout2 = Dropout(args.dropout)(lstm2)
 
 		merge = Concatenate()([dropout1, dropout2])
@@ -73,10 +73,10 @@ class GeneralNet(Model):
 				validation_split=0.2
 			)
 			count = 0
-			whole = testscore[:args.num_bars * args.steps_per_bar - 1]
+			whole = testscore[:64*4]
 			positions = [k % 12 for k in range(args.num_bars * args.steps_per_bar - 1)]
 			while True:
-				primer = whole[-(args.num_bars * args.steps_per_bar - 1):]
+				primer = whole[-64*4]
 				output_note = self.generate(encode_melody(primer), positions, 'generated/bar_' + str(count))
 				print(output_note)
 				whole += [output_note]
