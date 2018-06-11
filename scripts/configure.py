@@ -16,6 +16,11 @@ parser.add_argument("--epochs",
                     nargs='?',
                     default=100,
                     help="The number of epochs.")
+parser.add_argument("--sequence_length",
+                    type=int,
+                    nargs='?',
+                    default=1,
+                    help="The length of sequences in each batch.")
 parser.add_argument("--dropout",
                     type=float,
                     nargs='?',

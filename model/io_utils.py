@@ -75,14 +75,14 @@ def create_dataset(folder):
 			# outputs.append(to_onehot(next_melody, output_shape[1]))
 			# inputs.append(encode_melody(melody))
 			j = 0
-			while j < len(melody) - (args.num_bars) * args.steps_per_bar:
-				next_bar = melody[j+1: j+args.steps_per_bar * args.num_bars]
-				next_bar = [n+2 for n in next_bar]
-				inputs1.append(encode_melody(melody[j: j + args.steps_per_bar * args.num_bars - 1]))
-				position_in_measure = [j % args.steps_per_bar for j in range(j, j + j + args.steps_per_bar * args.num_bars - 1)]
+			while j < len(melody) - args.sequence_length:
+				next_bar = melody[j + 1: j + args.sequence_length + 1]
+				next_bar = [n + 2 for n in next_bar]
+				inputs1.append(encode_melody(melody[j: j+args.sequence_length]))
+				position_in_measure = [k % args.steps_per_bar for k in range(j, j + args.sequence_length)]
 				inputs2.append(to_onehot(position_in_measure, args.steps_per_bar))
-				outputs.append(to_onehot(next_bar, output_shape[1]))
-				j += 1
+				outputs.append(to_onehot([next_bar, output_shape[1]]))
+			 	j += args.sequence_length
 
 	print(shape(inputs1))
 	print(shape(inputs2))
