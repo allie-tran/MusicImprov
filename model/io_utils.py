@@ -65,34 +65,38 @@ def create_dataset(folder):
 	melodies = data
 	inputs1 = []
 	inputs2 = []
-	outputs = []
+	outputs1 = []
+	outputs2 = []
 	print('Datashape: ', shape(data))
 	input_shape = (args.num_bars * args.steps_per_bar, 32)
 	input_shape2 = (args.num_bars * args.steps_per_bar, args.steps_per_bar)
-	output_shape = (1, 82)
+	output_shape = (args.num_bars * args.steps_per_bar, 82)
 	if args.train:
 		for i, melody in enumerate(melodies):
 			# next_melody = melodies[i+1]
 			# next_melody = [n + 2 for n in next_melody]
 			# outputs.append(to_onehot(next_melody, output_shape[1]))
 			# inputs.append(encode_melody(melody))
-
-			for sequence_length in sample(range(args.steps_per_bar, args.num_bars * args.steps_per_bar + 1), args.num_samples):
-				j = 0
+			sequence_length = args.num_bars * args.steps_per_bar
+			for start_point in sample(range(args.steps_per_bar * args.num_bars), args.num_samples):
+				j = start_point
 				while j < len(melody) - sequence_length - 1:
 					next_bar = melody[j+1:j + sequence_length + 1]
 					next_bar = [n + 2 for n in next_bar]
 					inputs1.append(encode_melody(melody[j: j+sequence_length]))
-					position_in_measure = [k % args.steps_per_bar for k in range(j, j + sequence_length)]
-					inputs2.append(to_onehot(position_in_measure, args.steps_per_bar))
-					outputs.append(to_onehot(next_bar, output_shape[1]))
+					position_input = [k % args.steps_per_bar for k in range(j, j + sequence_length)]
+					inputs2.append(to_onehot(position_input, args.steps_per_bar))
+					position_output = [k % args.steps_per_bar for k in range(j+1, j + sequence_length+1)]
+					outputs1.append(to_onehot(position_output, args.steps_per_bar))
+					outputs2.append(to_onehot(next_bar, output_shape[1]))
 					j += sequence_length
 
-	inputs1 = pad_sequences(inputs1, maxlen=args.num_bars * args.steps_per_bar, dtype='float32')
-	inputs2 = pad_sequences(inputs2, maxlen=args.num_bars * args.steps_per_bar, dtype='float32')
+	# inputs1 = pad_sequences(inputs1, maxlen=args.num_bars * args.steps_per_bar, dtype='float32')
+	# inputs2 = pad_sequences(inputs2, maxlen=args.num_bars * args.steps_per_bar, dtype='float32')
 	print(shape(inputs1))
 	print(shape(inputs2))
-	print(shape(outputs))
+	print(shape(outputs1))
+	print(shape(outputs2))
 	print(input_shape)
 	print(input_shape2)
 	print(output_shape)
