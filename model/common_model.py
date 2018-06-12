@@ -26,21 +26,23 @@ class GeneralNet(Model):
 
 	def __init__(self, input_shape, input_shape2, output_shape, model_name):
 		self._model_name = model_name
-		input = Input(shape=input_shape)
-		lstm = LSTM(args.num_units)(input)
-		dropout1 = Dropout(args.dropout)(lstm)
 
-		input2 = Input(shape=input_shape2)
-		lstm2 = LSTM(args.num_units)(input2)
-		dropout2 = Dropout(args.dropout)(lstm2)
+		# Autoencoder for input -> input2
+		X1 = Input(shape=input_shape)
+		encoded = LSTM(args.num_units, dropout=args.dropout)(input)
+		decoded = RepeatVector(Dense(128))(encoded)
+		X2 = Dense(input_shape2)(decoded)
 
-		merge = Concatenate()([dropout1, dropout2])
-		logprob = Dense(output_shape[1])(merge)
+		# The decoded layer is the embedded input of X1
+		main_lstm = LSTM(args.num_units, return_sequences=True, dropout=args.dropout)(decoded)
+
+		logprob = Dense(output_shape[1])(main_lstm)
+		# reshape = Reshape([1, -1])(logprob)
 		# logprob = Dense(output_shape[1])(reshape)
 		temp_logprob = Lambda(lambda x: x / args.temperature)(logprob)
 		activate = Activation('softmax')(temp_logprob)
 
-		super(GeneralNet, self).__init__([input, input2], activate)
+		super(GeneralNet, self).__init__(X1, [X2, activate])
 
 		self.compile(optimizer='rmsprop', loss=weighted_loss, metrics=['acc'])
 		print_summary(self)
@@ -65,8 +67,8 @@ class GeneralNet(Model):
 		for i in range(args.epochs):
 			print("EPOCH " + str(i))
 			self.fit(
-				[net_input1, net_input2],
-				net_output,
+				net_input1,
+				[net_input2, net_output],
 				epochs=1,
 				batch_size=32,
 				callbacks=callbacks_list,
@@ -74,14 +76,14 @@ class GeneralNet(Model):
 			)
 			count = 0
 			whole = testscore[:args.num_bars * args.steps_per_bar]
-			positions = [k % 12 for k in range(args.num_bars * args.steps_per_bar - 1)]
+			positions = [k % 12 for k in range(args.num_bars * args.steps_per_bar)]
 			while True:
-				primer = whole[-args.num_bars * args.steps_per_bar]
+				primer = whole[-args.num_bars * args.steps_per_bar:]
 				output_note = self.generate(encode_melody(primer), positions, 'generated/bar_' + str(count))
 				print(output_note)
 				whole += [output_note]
 				count += 1
-				positions = [(k+count) % 12 for k in range(args.num_bars * args.steps_per_bar - 1)]
+				positions = [(k+count) % 12 for k in range(args.num_bars * args.steps_per_bar)]
 				if count > 128:
 					MelodySequence(whole).to_midi('generated/whole_' + str(i), save=True)
 					break
