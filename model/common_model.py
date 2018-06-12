@@ -28,35 +28,36 @@ class GeneralNet(Model):
 		self._model_name = model_name
 
 		# Autoencoder for input -> input2
-		X1 = Input(shape=input_shape)
-		encoder = LSTM(args.num_units, return_state=True, return_sequences=True)
+		X1 = Input(shape=input_shape, name="X1")
+		encoder = LSTM(args.num_units, return_state=True, return_sequences=True, name="encoder")
 		encoder_outputs, state_h, state_c = encoder(X1)
 		# We discard `encoder_outputs` and only keep the states.
 		encoder_states = [state_h, state_c]
 
 		# Set up the decoder, using `encoder_states` as initial state.
-		X2 = Input(shape=input_shape2)
+		X2 = Input(shape=input_shape2, name="X2")
 		# We set up our decoder to return full output sequences,
 		# and to return internal states as well. We don't use the
 		# return states in the training model, but we will use them in inference.
-		decoder_lstm = LSTM(args.num_units, return_sequences=True, return_state=True)
+		decoder_lstm = LSTM(args.num_units, return_sequences=True, return_state=True, name="DecoderLSTM")
 		decoder_outputs, _, _ = decoder_lstm(X2,
 		                                     initial_state=encoder_states)
-		decoder_dense = Dense(output_shape[1], activation='softmax')
+		decoder_dense = Dense(output_shape[1], activation='softmax', name="Dense1")
 		decoder_outputs = decoder_dense(decoder_outputs)
 
 		# The decoded layer is the embedded input of X1
-		main_lstm = LSTM(args.num_units, return_sequences=True, dropout=args.dropout)(encoder_outputs)
+		main_lstm = LSTM(args.num_units, return_sequences=True, dropout=args.dropout, name="MainLSTM")(encoder_outputs)
 
-		logprob = Dense(output_shape[1])(main_lstm)
+		logprob = Dense(output_shape[1], name="Log_probability")(main_lstm)
 		# reshape = Reshape([1, -1])(logprob)
 		# logprob = Dense(output_shape[1])(reshape)
-		temp_logprob = Lambda(lambda x: x / args.temperature)(logprob)
-		activate = Activation('softmax')(temp_logprob)
+		temp_logprob = Lambda(lambda x: x / args.temperature, name="Apply_temperature")(logprob)
+		activate = Activation('softmax', name="Softmax_activation")(temp_logprob)
 
 		super(GeneralNet, self).__init__([X1, X2], [decoder_outputs, activate])
 
 		self.compile(optimizer='rmsprop', loss=weighted_loss, metrics=['acc'])
+
 		print_summary(self)
 
 	def train(self, net_input1, net_input2, net_output1, net_output2, testscore):
