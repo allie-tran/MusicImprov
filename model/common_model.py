@@ -29,12 +29,24 @@ class GeneralNet(Model):
 
 		# Autoencoder for input -> input2
 		X1 = Input(shape=input_shape)
-		encoded = LSTM(args.num_units, dropout=args.dropout)(input)
-		decoded = RepeatVector(Dense(128))(encoded)
-		X2 = Dense(input_shape2)(decoded)
+		encoder = LSTM(args.num_units, return_state=True)
+		encoder_outputs, state_h, state_c = encoder(X1)
+		# We discard `encoder_outputs` and only keep the states.
+		encoder_states = [state_h, state_c]
+
+		# Set up the decoder, using `encoder_states` as initial state.
+		X2 = Input(shape=input_shape2)
+		# We set up our decoder to return full output sequences,
+		# and to return internal states as well. We don't use the
+		# return states in the training model, but we will use them in inference.
+		decoder_lstm = LSTM(args.num_units, return_sequences=True, return_state=True)
+		decoder_outputs, _, _ = decoder_lstm(X2,
+		                                     initial_state=encoder_states)
+		decoder_dense = Dense(input_shape2[1], activation='softmax')
+		decoder_outputs = decoder_dense(decoder_outputs)
 
 		# The decoded layer is the embedded input of X1
-		main_lstm = LSTM(args.num_units, return_sequences=True, dropout=args.dropout)(decoded)
+		main_lstm = LSTM(args.num_units, return_sequences=True, dropout=args.dropout)(decoder_outputs)
 
 		logprob = Dense(output_shape[1])(main_lstm)
 		# reshape = Reshape([1, -1])(logprob)
@@ -42,12 +54,12 @@ class GeneralNet(Model):
 		temp_logprob = Lambda(lambda x: x / args.temperature)(logprob)
 		activate = Activation('softmax')(temp_logprob)
 
-		super(GeneralNet, self).__init__(X1, [X2, activate])
+		super(GeneralNet, self).__init__([X1, X2], [decoder_outputs, activate])
 
 		self.compile(optimizer='rmsprop', loss=weighted_loss, metrics=['acc'])
 		print_summary(self)
 
-	def train(self, net_input1, net_input2, net_output, testscore):
+	def train(self, net_input1, net_input2, net_output1, net_output2, testscore):
 		filepath = "weights/{}.hdf5".format(self._model_name)
 		try:
 			self.load_weights(filepath)
@@ -67,8 +79,8 @@ class GeneralNet(Model):
 		for i in range(args.epochs):
 			print("EPOCH " + str(i))
 			self.fit(
-				net_input1,
-				[net_input2, net_output],
+				[net_input1, net_input2],
+				[net_output1, net_output2],
 				epochs=1,
 				batch_size=32,
 				callbacks=callbacks_list,
@@ -103,9 +115,9 @@ class ParallelLSTM(LSTM):
 
 def weighted_loss(target, output):
 	print(K.int_shape(target))
-	# weights = [10, 1, 4, 1, 5, 1, 4, 1, 7, 1, 4, 1, 5, 1, 4, 1, 8, 1, 4, 1, 5, 1, 4, 1, 7, 1, 4, 1, 5, 1, 4, 1] * 2
+	weights = [10, 1, 4, 1, 5, 1, 4, 1, 7, 1, 4, 1, 5, 1, 4, 1, 8, 1, 4, 1, 5, 1, 4, 1, 7, 1, 4, 1, 5, 1, 4, 1] * 2
 	# weights = [10, 1, 5, 1, 8, 1, 5, 1] * 2
-	weights = [1] * 63
+	# weights = [1] * 64
 	weights = K.variable(weights)
 
 	output /= K.sum(output, axis=-1, keepdims=True)
