@@ -3,6 +3,8 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from model import *
+from keras.utils import plot_model
+
 from scripts.configure import args
 from scripts import *
 
@@ -39,7 +41,7 @@ def generate():
 	                               + str(args.num_bars) + '_'
 	                               + str(args.steps_per_bar) + '_' + args.note)
 
-
+	plot_model(melody_model, to_file='model.png')
 	testscore = MusicXML()
 	testscore.from_file(args.test)
 	transformer = XMLtoNoteSequence()
