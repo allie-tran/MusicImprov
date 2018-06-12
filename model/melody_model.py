@@ -11,13 +11,13 @@ class MelodyAnswerNet(GeneralNet):
 
 	def generate(self, primer_notesequence, positions, name):
 		input_sequence = array([primer_notesequence])
-		input_sequence = pad_sequences(input_sequence, maxlen=args.num_bars * args.steps_per_bar, dtype='float32')
+		# input_sequence = pad_sequences(input_sequence, maxlen=args.num_bars * args.steps_per_bar, dtype='float32')
 		self.load_weights('weights/' + self._model_name + '.hdf5')
-		# output = self.predict([input_sequence, array([to_onehot(positions, args.steps_per_bar)])], verbose=0)[0]
-		output = self.predict(input_sequence, verbose=0)
-		print(output)
+		output = self.predict([input_sequence, array([to_onehot(positions, args.steps_per_bar)])], verbose=0)[1]
+		# output = self.predict(input_sequence, verbose=0)
+		# print(output[0])
 		# output = [name_to_midi(spiral_to_name(pos))-48 for pos in output]
-		output = list(argmax(output, axis=1))
+		output = list(argmax(output[0], axis=1))
 		return output[-1] - 2
 		# output = [n - 2 for n in output]
 		# output_melody = MelodySequence(output)

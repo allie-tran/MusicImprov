@@ -46,7 +46,7 @@ class GeneralNet(Model):
 		decoder_outputs = decoder_dense(decoder_outputs)
 
 		# The decoded layer is the embedded input of X1
-		main_lstm = LSTM(args.num_units, return_sequences=True, dropout=args.dropout)(decoder_outputs)
+		main_lstm = LSTM(args.num_units, return_sequences=True, dropout=args.dropout)(encoder_outputs)
 
 		logprob = Dense(output_shape[1])(main_lstm)
 		# reshape = Reshape([1, -1])(logprob)
@@ -115,9 +115,9 @@ class ParallelLSTM(LSTM):
 
 def weighted_loss(target, output):
 	print(K.int_shape(target))
-	weights = [10, 1, 4, 1, 5, 1, 4, 1, 7, 1, 4, 1, 5, 1, 4, 1, 8, 1, 4, 1, 5, 1, 4, 1, 7, 1, 4, 1, 5, 1, 4, 1] * 2
+	# weights = [10, 1, 4, 1, 5, 1, 4, 1, 7, 1, 4, 1, 5, 1, 4, 1, 8, 1, 4, 1, 5, 1, 4, 1, 7, 1, 4, 1, 5, 1, 4, 1] * 2
 	# weights = [10, 1, 5, 1, 8, 1, 5, 1] * 2
-	# weights = [1] * 64
+	weights = [1] * 64
 	weights = K.variable(weights)
 
 	output /= K.sum(output, axis=-1, keepdims=True)
