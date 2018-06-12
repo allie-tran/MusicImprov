@@ -100,7 +100,7 @@ def create_dataset(folder):
 	print(input_shape)
 	print(input_shape2)
 	print(output_shape)
-	return array(inputs1), array(inputs2), array(outputs), input_shape, input_shape2, output_shape
+	return array(inputs1), array(inputs2), array(outputs1), array(outputs2), input_shape, input_shape2, output_shape
 
 def midi_to_name(midi):
 	if midi < 0:

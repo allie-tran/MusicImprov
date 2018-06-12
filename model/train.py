@@ -11,20 +11,18 @@ from collections import Counter
 
 
 def melody_generate(model, testscore, use_generated_as_primer=True):
+	whole = testscore[:args.num_bars * args.steps_per_bar]
 	count = 0
-	whole = testscore[:args.num_bars * args.steps_per_bar - 1]
-	positions = [k % 12 for k in range(args.num_bars * args.steps_per_bar - 1)]
-
+	positions = [k % 12 for k in range(args.num_bars * args.steps_per_bar)]
 	while True:
-		primer = whole[-(args.num_bars * args.steps_per_bar-1):]
-		output_note = model.generate(encode_melody(primer), array(positions), 'generated/bar_' + str(count))
+		primer = whole[-args.num_bars * args.steps_per_bar:]
+		output_note = model.generate(encode_melody(primer), positions, 'generated/bar_' + str(count))
 		print(output_note)
 		whole += [output_note]
-		positions = [(k + count) % 12 for k in range(args.num_bars * args.steps_per_bar - 1)]
-
 		count += 1
+		positions = [(k + count) % 12 for k in range(args.num_bars * args.steps_per_bar)]
 		if count > 128:
-			MelodySequence(whole).to_midi('generated/whole', save=True)
+			MelodySequence(whole).to_midi('generated/whole_', save=True)
 			break
 	# if use_generated_as_primer:
 	# 	primer = transformer.transform(phrases[0])
@@ -50,9 +48,9 @@ def generate():
 	testscore = transformer.transform(testscore)
 
 	if args.train:
-		melody_model.train(inputs1, inputs2, outputs1, outputs2 testscore)
+		melody_model.train(inputs1, inputs2, outputs1, outputs2, testscore)
 
-	# melody_generate(melody_model, testscore)
+	melody_generate(melody_model, testscore)
 
 if __name__ == '__main__':
 	generate()
