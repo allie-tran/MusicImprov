@@ -37,9 +37,7 @@ def generate():
 
 	melody_model = MelodyAnswerNet(input_shape, input_shape2, output_shape, 'MelodyModel'
 	                               + str(args.num_bars) + '_'
-	                               + str(args.steps_per_bar) + '_'
-	                               + str(args.dropout) + '_'
-	                               + str(args.temperature) + args.note)
+	                               + str(args.steps_per_bar) + '_' + args.note)
 
 
 	testscore = MusicXML()
