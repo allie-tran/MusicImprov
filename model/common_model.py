@@ -29,7 +29,7 @@ class GeneralNet(Model):
 
 		# Autoencoder for input -> input2
 		X1 = Input(shape=input_shape)
-		encoder = LSTM(args.num_units, return_state=True)
+		encoder = LSTM(args.num_units, return_state=True, return_sequences=True)
 		encoder_outputs, state_h, state_c = encoder(X1)
 		# We discard `encoder_outputs` and only keep the states.
 		encoder_states = [state_h, state_c]
