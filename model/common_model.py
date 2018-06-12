@@ -42,7 +42,7 @@ class GeneralNet(Model):
 		decoder_lstm = LSTM(args.num_units, return_sequences=True, return_state=True)
 		decoder_outputs, _, _ = decoder_lstm(X2,
 		                                     initial_state=encoder_states)
-		decoder_dense = Dense(input_shape2[1], activation='softmax')
+		decoder_dense = Dense(output_shape[1], activation='softmax')
 		decoder_outputs = decoder_dense(decoder_outputs)
 
 		# The decoded layer is the embedded input of X1
