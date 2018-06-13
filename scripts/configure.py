@@ -15,7 +15,7 @@ parser.add_argument("-s", "--savedata",
                     action="store_true")
 parser.add_argument('-o', "--phrase_file",
                     help="To grab new data? Save file name",
-                    default='phrases'
+                    default='midiphrases'
                     )
 parser.add_argument("--epochs",
                     type=int,

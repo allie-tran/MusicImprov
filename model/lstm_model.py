@@ -44,6 +44,9 @@ def generate():
 	inputs1, inputs2, input_shape1, input_shape2, starting_points = get_inputs(melodies)
 	outputs, output_shape = get_outputs(melodies, starting_points)
 
+	with open('starting_points.json', 'w') as f:
+		json.dump(starting_points, f)
+
 	encoder = Encoder(input_shape1, input_shape2, 'Encoder')
 
 

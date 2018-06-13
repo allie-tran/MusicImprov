@@ -117,7 +117,7 @@ def get_inputs(melodies):
 
 def get_outputs(melodies, start_points):
 	outputs = []
-	output_shape = (args.num_bars * args.steps_per_bar, 82)
+	output_shape = (1, 82)
 	k = 0
 	if args.train:
 		for i, melody in enumerate(melodies):
@@ -125,9 +125,9 @@ def get_outputs(melodies, start_points):
 			for n in range(args.num_samples):
 				j = start_points[k]
 				while j < len(melody) - sequence_length - 1:
-					next_bar = melody[j+1:j + sequence_length + 1]
+					next_bar = melody[j + sequence_length:j + sequence_length + 1]
 					next_bar = [n + 2 for n in next_bar]
-					outputs.append(to_onehot(next_bar, output_shape[1]))
+					outputs.append(to_onehot(next_bar, output_shape[1])[0])
 					j += sequence_length
 				k += 1
 
