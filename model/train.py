@@ -35,7 +35,11 @@ def melody_generate(model, testscore, use_generated_as_primer=True):
 	pass
 
 def generate():
-	inputs1, inputs2, outputs1, outputs2, input_shape, input_shape2, output_shape = create_dataset(args.dataset)
+	if args.savedata:
+		create_dataset(args.dataset)
+
+	inputs1, inputs2, input_shape, input_shape2, starting_points = get_inputs()
+	outputs1, outputs2, output_shape = get_outputs(starting_points)
 
 	melody_model = MelodyAnswerNet(input_shape, input_shape2, output_shape, 'MelodyModel'
 	                               + str(args.num_bars) + '_'
