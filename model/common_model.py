@@ -1,66 +1,42 @@
 import abc
 
 from keras.callbacks import ModelCheckpoint
-from keras.layers import Activation, Reshape
-from keras.layers import Dense, Input, Multiply, Lambda, Concatenate
-from keras.layers import Dropout, TimeDistributed, RepeatVector
-from keras.layers import LSTM, Bidirectional, Cropping1D, Concatenate
+from keras.layers import Activation
+from keras.layers import Dense, Input, Lambda, LSTM
 from keras.models import Model, load_model
 from keras.utils import print_summary
-from keras.optimizers import RMSprop
 from keras import backend as K
-import numpy as np
 
 from tensorflow.python.ops import math_ops
 from scripts.configure import args
 from scripts.note_sequence_utils import *
 from model.io_utils import *
-from tensorflow.python.framework import ops
-
-from tensorflow.python.ops import clip_ops
+from pomegranate import *
 
 class GeneralNet(Model):
 	"""
 		Create a general structure of the neural network
 		"""
 
-	def __init__(self, input_shape, input_shape2, output_shape, model_name):
+	def __init__(self, input_shape, output_shape, model_name):
 		self._model_name = model_name
-
-		# Autoencoder for input -> input2
-		X1 = Input(shape=input_shape, name="X1")
-		encoder = LSTM(args.num_units, return_state=True, return_sequences=True, name="encoder")
-		encoder_outputs, state_h, state_c = encoder(X1)
-		# We discard `encoder_outputs` and only keep the states.
-		encoder_states = [state_h, state_c]
-
-		# Set up the decoder, using `encoder_states` as initial state.
-		X2 = Input(shape=input_shape2, name="X2")
-		# We set up our decoder to return full output sequences,
-		# and to return internal states as well. We don't use the
-		# return states in the training model, but we will use them in inference.
-		decoder_lstm = LSTM(args.num_units, return_sequences=True, return_state=True, name="DecoderLSTM")
-		decoder_outputs, _, _ = decoder_lstm(X2,
-		                                     initial_state=encoder_states)
-		decoder_dense = Dense(output_shape[1], activation='softmax', name="Dense1")
-		decoder_outputs = decoder_dense(decoder_outputs)
+		encoded_X1 = Input(shape=input_shape, name="X1")
 
 		# The decoded layer is the embedded input of X1
-		main_lstm = LSTM(args.num_units, return_sequences=True, dropout=args.dropout, name="MainLSTM")(encoder_outputs)
+		main_lstm = LSTM(args.num_units, return_sequences=True, dropout=args.dropout, name="MainLSTM")(encoded_X1)
 
 		logprob = Dense(output_shape[1], name="Log_probability")(main_lstm)
-		# reshape = Reshape([1, -1])(logprob)
-		# logprob = Dense(output_shape[1])(reshape)
 		temp_logprob = Lambda(lambda x: x / args.temperature, name="Apply_temperature")(logprob)
 		activate = Activation('softmax', name="Softmax_activation")(temp_logprob)
 
-		super(GeneralNet, self).__init__([X1, X2], [decoder_outputs, activate])
+		super(GeneralNet, self).__init__(encoded_X1, activate)
 
-		self.compile(optimizer='rmsprop', loss=weighted_loss, metrics=['acc'])
+		self.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['acc'])
 
 		print_summary(self)
 
-	def train(self, net_input1, net_input2, net_output1, net_output2, testscore):
+
+	def train(self, net_input, net_output, encoder, testscore):
 		filepath = "weights/{}.hdf5".format(self._model_name)
 		try:
 			self.load_weights(filepath)
@@ -80,8 +56,8 @@ class GeneralNet(Model):
 		for i in range(args.epochs):
 			print("EPOCH " + str(i))
 			self.fit(
-				[net_input1, net_input2],
-				[net_output1, net_output2],
+				net_input,
+				net_output,
 				epochs=1,
 				batch_size=32,
 				callbacks=callbacks_list,
@@ -92,7 +68,7 @@ class GeneralNet(Model):
 			positions = [k % 12 for k in range(args.num_bars * args.steps_per_bar)]
 			while True:
 				primer = whole[-args.num_bars * args.steps_per_bar:]
-				output_note = self.generate(encode_melody(primer), positions, 'generated/bar_' + str(count))
+				output_note = self.generate(encoder.encode(encode_melody(primer)), positions, 'generated/bar_' + str(count))
 				print(output_note)
 				whole += [output_note]
 				count += 1
@@ -127,5 +103,17 @@ def weighted_loss(target, output):
 	loss = -K.sum(target * K.log(output), axis=-1)
 	loss = K.sum(loss * weights / K.sum(weights))
 	return loss
+
+
+# class HMM():
+# 	def __init__(self):
+# 		pass
+#
+# 	def fit(self, samples, num_states):
+# 		self._model = HiddenMarkovModel.from_samples(DiscreteDistribution, n_components=num_states, X=samples)
+#
+# 	def evaluate(self):
+
+
 
 
