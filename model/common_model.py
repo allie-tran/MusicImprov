@@ -11,7 +11,6 @@ from tensorflow.python.ops import math_ops
 from scripts.configure import args
 from scripts.note_sequence_utils import *
 from model.io_utils import *
-from pomegranate import HiddenMarkovModel
 
 
 class MelodyNet(Model):
@@ -24,7 +23,7 @@ class MelodyNet(Model):
 		encoded_X1 = Input(shape=input_shape, name="X1")
 
 		# The decoded layer is the embedded input of X1
-		main_lstm = LSTM(args.num_units, return_sequences=True, dropout=args.dropout, name="MainLSTM")(encoded_X1)
+		main_lstm = LSTM(args.num_units, dropout=args.dropout, name="MainLSTM")(encoded_X1)
 
 		logprob = Dense(output_shape[1], name="Log_probability")(main_lstm)
 		temp_logprob = Lambda(lambda x: x / args.temperature, name="Apply_temperature")(logprob)
@@ -32,7 +31,7 @@ class MelodyNet(Model):
 
 		super(MelodyNet, self).__init__(encoded_X1, activate)
 
-		self.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['categorical_accuracy'])
+		self.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
 
 		print_summary(self)
 
@@ -89,12 +88,12 @@ class MelodyNet(Model):
 		input_sequence = array([primer_notesequence])
 		# input_sequence = pad_sequences(input_sequence, maxlen=args.num_bars * args.steps_per_bar, dtype='float32')
 		self.load_weights('weights/' + self._model_name + '.hdf5')
-		output = self.predict([input_sequence, array([to_onehot(positions, args.steps_per_bar)])], verbose=0)[1]
+		output = self.predict([input_sequence, array([to_onehot(positions, args.steps_per_bar)])], verbose=0)[0]
 		# output = self.predict(input_sequence, verbose=0)
 		# print(output[0])
 		# output = [name_to_midi(spiral_to_name(pos))-48 for pos in output]
-		output = list(argmax(output[0], axis=1))
-		return output[-1] - 2
+		output = argmax(output, axis=1)
+		return output - 2
 		# output = [n - 2 for n in output]
 		# output_melody = MelodySequence(output)
 		# print(output_melody)
@@ -107,17 +106,6 @@ class MelodyNet(Model):
 
 	def get_score(self, inputs, outputs):
 		return self.evaluate(x=inputs, y=outputs)
-
-
-# class HMM():
-# 	def __init__(self):
-# 		pass
-#
-# 	def fit(self, samples, num_states):
-# 		self._model = HiddenMarkovModel.from_samples(DiscreteDistribution, n_components=num_states, X=samples)
-#
-# 	def evaluate(self):
-
 
 
 
