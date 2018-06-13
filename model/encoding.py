@@ -7,11 +7,12 @@ from scripts import args
 class Encoder(Model):
 	def __init__(self, input_shape, output_shape, model_name):
 		self._model_name = model_name
+		self._file_path = "weights/{}.hdf5".format(self._model_name)
 
 		X1 = Input(shape=input_shape)
 
-		encoder = LSTM(args.num_units, return_sequences=True, name="encoder")
-		decoder = LSTM(args.num_units, return_sequences=True, name="decoder")
+		encoder = LSTM(args.num_units, return_sequences=True, name="encoder", dropout=args.dropout)(X1)
+		decoder = LSTM(args.num_units, return_sequences=True, name="decoder", dropout=args.dropout)(encoder)
 		X2 = Dense(output_shape[1], activation='softmax', name="Dense")(decoder)
 
 		super(Encoder, self).__init__(X1, X2)
@@ -20,14 +21,13 @@ class Encoder(Model):
 
 
 	def train(self, inputs, outputs):
-		filepath = "weights/{}.hdf5".format(self._model_name)
 		try:
-			self.load_weights(filepath)
+			self.load()
 		except IOError:
 			pass
 
 		checkpoint = ModelCheckpoint(
-			filepath,
+			self._file_path,
 			monitor='loss',
 			verbose=0,
 			save_best_only=True,
@@ -38,12 +38,14 @@ class Encoder(Model):
 		self.fit(
 			inputs,
 			outputs,
-			epochs=50,
+			epochs=args.encoder_epochs,
 			batch_size=32,
 			callbacks=callbacks_list,
 			validation_split=0.2
 		)
 
+	def load(self):
+		self.load_weights(self._file_path)
 
 	def encode(self, X):
 		print(len(self.layers))
@@ -53,4 +55,4 @@ class Encoder(Model):
 		get_encoded = K.function([self.layers[0].input],
 		                                  [self.layers[1].output])
 
-		return get_encoded([X])[0]
+		return get_encoded([X])

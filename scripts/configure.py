@@ -4,6 +4,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--train",
                     help="To train or just generate?",
                     action="store_true")
+parser.add_argument("-e", "--train_encoder",
+                    help="To train encoder.",
+                    action="store_true")
 parser.add_argument("-s", "--savedata",
                     help="To grab new data? Save file name",
                     action="store_true")
@@ -16,6 +19,11 @@ parser.add_argument("--epochs",
                     nargs='?',
                     default=100,
                     help="The number of epochs.")
+parser.add_argument("--encoder_epochs",
+                    type=int,
+                    nargs='?',
+                    default=20,
+                    help="The number of epochs for the encoder.")
 parser.add_argument("--num_samples",
                     type=int,
                     nargs='?',
@@ -68,13 +76,5 @@ parser.add_argument("--note",
                     help='note for model name')
 
 args = parser.parse_args()
-
-print("""Generating melody...
-		
-		Number of bars per phrase : {}
-		Steps per bar: {}
-		-------------------
-		Epochs: {}
-		""".format(args.num_bars, args.steps_per_bar, args.epochs))
 
 
