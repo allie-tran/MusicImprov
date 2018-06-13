@@ -38,13 +38,16 @@ def generate():
 	if args.savedata:
 		create_dataset(args.dataset)
 
-	inputs1, inputs2, input_shape1, input_shape2, starting_points = get_inputs()
-	outputs, output_shape = get_outputs(starting_points)
+	with open(args.phrase_file+'.json') as f:
+		melodies = json.load(f)
+
+	inputs1, inputs2, input_shape1, input_shape2, starting_points = get_inputs(melodies)
+	outputs, output_shape = get_outputs(melodies, starting_points)
 
 	encoder = Encoder(input_shape1, input_shape2, 'Encoder')
 
 
-	melody_model = MelodyAnswerNet([input_shape1[0], args.num_units], output_shape, 'MelodyModel'
+	melody_model = MelodyNet([input_shape1[0], args.num_units], output_shape, 'MelodyModel'
 	                               + str(args.num_bars) + '_'
 	                               + str(args.steps_per_bar) + '_' + args.note)
 
@@ -60,6 +63,8 @@ def generate():
 		encoder.load()
 		melody_model.train(encoder.encode(inputs1), outputs, encoder, testscore)
 
+
+	# Generation from prime melody
 	melody_generate(melody_model, testscore)
 
 if __name__ == '__main__':
