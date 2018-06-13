@@ -11,7 +11,8 @@ from tensorflow.python.ops import math_ops
 from scripts.configure import args
 from scripts.note_sequence_utils import *
 from model.io_utils import *
-from pomegranate import *
+from pomegranate import HiddenMarkovModel
+
 
 class GeneralNet(Model):
 	"""
@@ -20,6 +21,7 @@ class GeneralNet(Model):
 
 	def __init__(self, input_shape, output_shape, model_name):
 		self._model_name = model_name
+		self._file_path = "weights/{}.hdf5".format(self._model_name)
 		encoded_X1 = Input(shape=input_shape, name="X1")
 
 		# The decoded layer is the embedded input of X1
@@ -37,14 +39,13 @@ class GeneralNet(Model):
 
 
 	def train(self, net_input, net_output, encoder, testscore):
-		filepath = "weights/{}.hdf5".format(self._model_name)
 		try:
-			self.load_weights(filepath)
+			self.load()
 		except IOError:
 			pass
 
 		checkpoint = ModelCheckpoint(
-			filepath,
+			self._file_path,
 			monitor='loss',
 			verbose=0,
 			save_best_only=True,
@@ -82,28 +83,8 @@ class GeneralNet(Model):
 	def generate(self, primer_notesequence, positions, name):
 		pass
 
-class ParallelLSTM(LSTM):
-	def __init__(self, *args, **kwargs):
-		super(ParallelLSTM, self).__init__(*args, **kwargs)
-
-	def build(self, input_shape):
-		pass
-
-
-def weighted_loss(target, output):
-	print(K.int_shape(target))
-	# weights = [10, 1, 4, 1, 5, 1, 4, 1, 7, 1, 4, 1, 5, 1, 4, 1, 8, 1, 4, 1, 5, 1, 4, 1, 7, 1, 4, 1, 5, 1, 4, 1] * 2
-	# weights = [10, 1, 5, 1, 8, 1, 5, 1] * 2
-	weights = [1] * 64
-	weights = K.variable(weights)
-
-	output /= K.sum(output, axis=-1, keepdims=True)
-	output = K.clip(output, K.epsilon(), 1.0 - K.epsilon())
-
-	loss = -K.sum(target * K.log(output), axis=-1)
-	loss = K.sum(loss * weights / K.sum(weights))
-	return loss
-
+	def load(self):
+		self.load_weights(self._file_path)
 
 # class HMM():
 # 	def __init__(self):
