@@ -19,114 +19,136 @@ def create_dataset(folder):
 	:param folder: the path to the folder
 	:return: a list of input-output, input args, output args
 	"""
-	if args.savedata:
-		try:
-			with open(args.phrase_file + '.json', 'r') as f:
-				data = json.load(f)
-		except IOError:
-			data = []
 
-		scores = os.listdir(folder)
-		if args.dataset.startswith('xml'):
-			for score in scores:
-				try:
-					if (score.endswith('.mxl')) and (score not in score_list):
-						score_list.append(score)
-						print('Processing ' + score + '...')
-						s = MusicXML()
-						try:
-							s.from_file(folder + '/' + score)
-						except (cElementTree.ParseError,
-						        music21.musicxml.xmlToM21.MusicXMLImportException,
-						        music21.exceptions21.StreamException):
-							print("Conversion failed.")
-							continue
+	try:
+		with open(args.phrase_file + '.json', 'r') as f:
+			data = json.load(f)
+	except IOError:
+		data = []
 
-						transformer = XMLtoNoteSequence()
-						if s.time_signature.ratioString != '4/4':
-							print("Skipping this because it's " + s.time_signature.ratioString)
-							continue
-						try:
-							melody = transformer.transform(s)
-						except:
-							continue
-						data.append(melody)
-
-						print str(len(score_list)) + "(" +  str(len(data))+")/" + str(len(scores))
-
-					with open('score_list.json', 'w') as f:
-						json.dump(score_list, f)
-
-					with open(args.phrase_file + '.json', 'w') as f:
-						json.dump(data, f)
-				except:
-					continue
-		elif args.dataset.startswith('midi'):
-			for genre in os.listdir(args.dataset):
-				folders = os.listdir(args.dataset + '/' + genre)
-				for folder in folders:
+	scores = os.listdir(folder)
+	if args.dataset.startswith('xml'):
+		for score in scores:
+			try:
+				if (score.endswith('.mxl')) and (score not in score_list):
+					score_list.append(score)
+					print('Processing ' + score + '...')
+					s = MusicXML()
 					try:
-						print('Processing ' + genre + '/' + folder)
-						s = Midi()
-						s.from_file(args.dataset + '/' + genre + '/' + folder)
-
-						transformer = XMLtoNoteSequence()
-						if s.time_signature.ratioString != '4/4':
-							print("Skipping this because it's " + s.time_signature.ratioString)
-							continue
-
-						melody = transformer.transform(s)
-						data.append(melody)
-
-						print str(len(data)) + "/" + str(len(folders))
-					except:
+						s.from_file(folder + '/' + score)
+					except (cElementTree.ParseError,
+					        music21.musicxml.xmlToM21.MusicXMLImportException,
+					        music21.exceptions21.StreamException):
+						print("Conversion failed.")
 						continue
 
-			with open(args.phrase_file + '.json', 'w') as f:
-				json.dump(data, f)
+					transformer = XMLtoNoteSequence()
+					if s.time_signature.ratioString != '4/4':
+						print("Skipping this because it's " + s.time_signature.ratioString)
+						continue
+					try:
+						melody = transformer.transform(s)
+					except:
+						continue
+					data.append(melody)
 
+					print str(len(score_list)) + "(" +  str(len(data))+")/" + str(len(scores))
 
+				with open('score_list.json', 'w') as f:
+					json.dump(score_list, f)
+
+				with open(args.phrase_file + '.json', 'w') as f:
+					json.dump(data, f)
+			except:
+				continue
+	elif args.dataset.startswith('midi'):
+		for genre in os.listdir(args.dataset):
+			folders = os.listdir(args.dataset + '/' + genre)
+			for folder in folders:
+				try:
+					print('Processing ' + genre + '/' + folder)
+					s = Midi()
+					s.from_file(args.dataset + '/' + genre + '/' + folder)
+
+					transformer = XMLtoNoteSequence()
+					if s.time_signature.ratioString != '4/4':
+						print("Skipping this because it's " + s.time_signature.ratioString)
+						continue
+
+					melody = transformer.transform(s)
+					data.append(melody)
+
+					print str(len(data)) + "/" + str(len(folders))
+				except:
+					continue
+
+		with open(args.phrase_file + '.json', 'w') as f:
+			json.dump(data, f)
+
+def get_inputs():
 	with open(args.phrase_file+'.json') as f:
 		data = json.load(f)
 
 	melodies = data
 	inputs1 = []
 	inputs2 = []
-	outputs1 = []
-	outputs2 = []
-	print('Datashape: ', shape(data))
 	input_shape = (args.num_bars * args.steps_per_bar, 32)
 	input_shape2 = (args.num_bars * args.steps_per_bar, args.steps_per_bar)
-	output_shape = (args.num_bars * args.steps_per_bar, 82)
+	start_points = []
 	if args.train:
 		for i, melody in enumerate(melodies):
-			# next_melody = melodies[i+1]
-			# next_melody = [n + 2 for n in next_melody]
-			# outputs.append(to_onehot(next_melody, output_shape[1]))
-			# inputs.append(encode_melody(melody))
 			sequence_length = args.num_bars * args.steps_per_bar
 			for start_point in sample(range(args.steps_per_bar * args.num_bars), args.num_samples):
+				start_points.append(start_point)
 				j = start_point
 				while j < len(melody) - sequence_length - 1:
-					next_bar = melody[j+1:j + sequence_length + 1]
-					next_bar = [n + 2 for n in next_bar]
 					inputs1.append(encode_melody(melody[j: j+sequence_length]))
 					position_input = [k % args.steps_per_bar for k in range(j, j + sequence_length)]
 					inputs2.append(to_onehot(position_input, args.steps_per_bar))
-					outputs1.append(to_onehot(melody[j:j+sequence_length], output_shape[1]))
-					outputs2.append(to_onehot(next_bar, output_shape[1]))
 					j += sequence_length
 
 	# inputs1 = pad_sequences(inputs1, maxlen=args.num_bars * args.steps_per_bar, dtype='float32')
 	# inputs2 = pad_sequences(inputs2, maxlen=args.num_bars * args.steps_per_bar, dtype='float32')
+	print('Input shapes:')
+	inputs1 = array(inputs1)
+	inputs2 = array(inputs2)
 	print(shape(inputs1))
 	print(shape(inputs2))
-	print(shape(outputs1))
-	print(shape(outputs2))
 	print(input_shape)
 	print(input_shape2)
+	return inputs1, inputs2, input_shape, input_shape2, start_points
+
+
+def get_outputs(start_points):
+	with open(args.phrase_file+'.json') as f:
+		data = json.load(f)
+
+	melodies = data
+	outputs1 = []
+	outputs2 = []
+	output_shape = (args.num_bars * args.steps_per_bar, 82)
+	k = 0
+	if args.train:
+		for i, melody in enumerate(melodies):
+			sequence_length = args.num_bars * args.steps_per_bar
+			for n in range(args.num_samples):
+				j = start_points[k]
+				while j < len(melody) - sequence_length - 1:
+					next_bar = melody[j+1:j + sequence_length + 1]
+					next_bar = [n + 2 for n in next_bar]
+					outputs1.append(to_onehot(melody[j:j+sequence_length], output_shape[1]))
+					outputs2.append(to_onehot(next_bar, output_shape[1]))
+					j += sequence_length
+				k += 1
+
+	outputs1 = array(outputs1)
+	outputs2 = array(outputs2)
+	print('Output shapes:')
+	print(shape(outputs1))
+	print(shape(outputs2))
 	print(output_shape)
-	return array(inputs1), array(inputs2), array(outputs1), array(outputs2), input_shape, input_shape2, output_shape
+	return outputs1, outputs2, output_shape
+
 
 def midi_to_name(midi):
 	if midi < 0:
