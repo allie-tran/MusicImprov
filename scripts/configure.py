@@ -59,7 +59,7 @@ parser.add_argument("--test",
 parser.add_argument("-d", "--dataset",
                     type=str,
                     nargs='?',
-                    default='xml',
+                    default='midi',
                     help='The folder containing the training mxl files.')
 parser.add_argument("--note",
                     type=str,

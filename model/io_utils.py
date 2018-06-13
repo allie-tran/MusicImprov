@@ -3,7 +3,7 @@ import os
 import music21
 from numpy import array, zeros, shape, ndarray, sin, cos, pi, sqrt, argmin
 from random import sample
-from scripts import args, to_onehot, MusicXML, XMLtoNoteSequence
+from scripts import args, to_onehot, MusicXML, XMLtoNoteSequence, Midi
 from xml.etree import cElementTree
 from keras.preprocessing.sequence import pad_sequences
 
@@ -27,37 +27,64 @@ def create_dataset(folder):
 			data = []
 
 		scores = os.listdir(folder)
-		for score in scores:
-			if (score.endswith('.mxl')) and (score not in score_list):
-				score_list.append(score)
-				print('Processing ' + score + '...')
-				s = MusicXML()
+		if args.dataset.startswith('xml'):
+			for score in scores:
 				try:
-					s.from_file(folder + '/' + score)
-				except (cElementTree.ParseError,
-				        music21.musicxml.xmlToM21.MusicXMLImportException,
-				        music21.exceptions21.StreamException):
-					print("Conversion failed.")
-					continue
+					if (score.endswith('.mxl')) and (score not in score_list):
+						score_list.append(score)
+						print('Processing ' + score + '...')
+						s = MusicXML()
+						try:
+							s.from_file(folder + '/' + score)
+						except (cElementTree.ParseError,
+						        music21.musicxml.xmlToM21.MusicXMLImportException,
+						        music21.exceptions21.StreamException):
+							print("Conversion failed.")
+							continue
 
-				transformer = XMLtoNoteSequence()
-				if s.time_signature.ratioString != '4/4':
-					print("Skipping this because it's " + s.time_signature.ratioString)
-					continue
-				try:
-					melody = transformer.transform(s)
+						transformer = XMLtoNoteSequence()
+						if s.time_signature.ratioString != '4/4':
+							print("Skipping this because it's " + s.time_signature.ratioString)
+							continue
+						try:
+							melody = transformer.transform(s)
+						except:
+							continue
+						data.append(melody)
+
+						print str(len(score_list)) + "(" +  str(len(data))+")/" + str(len(scores))
+
+					with open('score_list.json', 'w') as f:
+						json.dump(score_list, f)
+
+					with open(args.phrase_file + '.json', 'w') as f:
+						json.dump(data, f)
 				except:
 					continue
-				# print(len(melody))
-				data.append(melody)
+		elif args.dataset.startswith('midi'):
+			for genre in os.listdir(args.dataset):
+				folders = os.listdir(args.dataset + '/' + genre)
+				for folder in folders:
+					try:
+						print('Processing ' + genre + '/' + folder)
+						s = Midi()
+						s.from_file(args.dataset + '/' + genre + '/' + folder)
 
-				print str(len(score_list)) + "(" +  str(len(data))+")/" + str(len(scores))
+						transformer = XMLtoNoteSequence()
+						if s.time_signature.ratioString != '4/4':
+							print("Skipping this because it's " + s.time_signature.ratioString)
+							continue
 
-			with open('score_list.json', 'w') as f:
-				json.dump(score_list, f)
+						melody = transformer.transform(s)
+						data.append(melody)
+
+						print str(len(data)) + "/" + str(len(folders))
+					except:
+						continue
 
 			with open(args.phrase_file + '.json', 'w') as f:
 				json.dump(data, f)
+
 
 	with open(args.phrase_file+'.json') as f:
 		data = json.load(f)
