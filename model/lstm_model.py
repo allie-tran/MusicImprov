@@ -38,10 +38,13 @@ def generate():
 	if args.savedata:
 		create_dataset(args.dataset)
 
-	inputs1, inputs2, input_shape, input_shape2, starting_points = get_inputs()
-	outputs1, outputs2, output_shape = get_outputs(starting_points)
+	inputs1, inputs2, input_shape1, input_shape2, starting_points = get_inputs()
+	outputs, output_shape = get_outputs(starting_points)
 
-	melody_model = MelodyAnswerNet(input_shape, input_shape2, output_shape, 'MelodyModel'
+	encoder = Encoder(input_shape1, input_shape2, 'Encoder')
+
+
+	melody_model = MelodyAnswerNet([input_shape1[0], args.num_units], output_shape, 'MelodyModel'
 	                               + str(args.num_bars) + '_'
 	                               + str(args.steps_per_bar) + '_' + args.note)
 
@@ -52,7 +55,8 @@ def generate():
 	testscore = transformer.transform(testscore)
 
 	if args.train:
-		melody_model.train(inputs1, inputs2, outputs1, outputs2, testscore)
+		encoder.train(inputs1, inputs2)
+		melody_model.train(encoder.encode(inputs1), outputs, encoder, testscore)
 
 	melody_generate(melody_model, testscore)
 

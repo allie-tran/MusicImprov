@@ -124,8 +124,7 @@ def get_outputs(start_points):
 		data = json.load(f)
 
 	melodies = data
-	outputs1 = []
-	outputs2 = []
+	outputs = []
 	output_shape = (args.num_bars * args.steps_per_bar, 82)
 	k = 0
 	if args.train:
@@ -136,18 +135,15 @@ def get_outputs(start_points):
 				while j < len(melody) - sequence_length - 1:
 					next_bar = melody[j+1:j + sequence_length + 1]
 					next_bar = [n + 2 for n in next_bar]
-					outputs1.append(to_onehot(melody[j:j+sequence_length], output_shape[1]))
-					outputs2.append(to_onehot(next_bar, output_shape[1]))
+					outputs.append(to_onehot(next_bar, output_shape[1]))
 					j += sequence_length
 				k += 1
 
-	outputs1 = array(outputs1)
-	outputs2 = array(outputs2)
+	outputs = array(outputs)
 	print('Output shapes:')
-	print(shape(outputs1))
-	print(shape(outputs2))
+	print(shape(outputs))
 	print(output_shape)
-	return outputs1, outputs2, output_shape
+	return outputs, output_shape
 
 
 def midi_to_name(midi):
