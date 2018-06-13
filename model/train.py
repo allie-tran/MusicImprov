@@ -45,7 +45,7 @@ def generate():
 	                               + str(args.num_bars) + '_'
 	                               + str(args.steps_per_bar) + '_' + args.note)
 
-	plot_model(melody_model, to_file='model.png')
+	# plot_model(melody_model, to_file='model.png')
 	testscore = MusicXML()
 	testscore.from_file(args.test)
 	transformer = XMLtoNoteSequence()
