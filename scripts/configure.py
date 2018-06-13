@@ -4,7 +4,10 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--train",
                     help="To train or just generate?",
                     action="store_true")
-parser.add_argument("-e", "--train_encoder",
+parser.add_argument("-e", "--encode",
+                    help="To encode or just raw input?",
+                    action="store_true")
+parser.add_argument("--train_encoder",
                     help="To train encoder.",
                     action="store_true")
 parser.add_argument("-s", "--savedata",

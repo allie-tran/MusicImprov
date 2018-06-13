@@ -85,11 +85,7 @@ def create_dataset(folder):
 		with open(args.phrase_file + '.json', 'w') as f:
 			json.dump(data, f)
 
-def get_inputs():
-	with open(args.phrase_file+'.json') as f:
-		data = json.load(f)
-
-	melodies = data
+def get_inputs(melodies):
 	inputs1 = []
 	inputs2 = []
 	input_shape = (args.num_bars * args.steps_per_bar, 32)
@@ -119,11 +115,7 @@ def get_inputs():
 	return inputs1, inputs2, input_shape, input_shape2, start_points
 
 
-def get_outputs(start_points):
-	with open(args.phrase_file+'.json') as f:
-		data = json.load(f)
-
-	melodies = data
+def get_outputs(melodies, start_points):
 	outputs = []
 	output_shape = (args.num_bars * args.steps_per_bar, 82)
 	k = 0
@@ -186,7 +178,6 @@ def name_to_midi(name):
 		return -1
 	names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 	return 60 + names.index(name)
-
 
 
 def encode_melody(melody):

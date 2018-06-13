@@ -14,11 +14,10 @@ from model.io_utils import *
 from pomegranate import HiddenMarkovModel
 
 
-class GeneralNet(Model):
+class MelodyNet(Model):
 	"""
 		Create a general structure of the neural network
 		"""
-
 	def __init__(self, input_shape, output_shape, model_name):
 		self._model_name = model_name
 		self._file_path = "weights/{}.hdf5".format(self._model_name)
@@ -31,9 +30,9 @@ class GeneralNet(Model):
 		temp_logprob = Lambda(lambda x: x / args.temperature, name="Apply_temperature")(logprob)
 		activate = Activation('softmax', name="Softmax_activation")(temp_logprob)
 
-		super(GeneralNet, self).__init__(encoded_X1, activate)
+		super(MelodyNet, self).__init__(encoded_X1, activate)
 
-		self.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['acc'])
+		self.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['categorical_accuracy'])
 
 		print_summary(self)
 
@@ -55,6 +54,7 @@ class GeneralNet(Model):
 
 
 		for i in range(args.epochs):
+			# Train
 			print("EPOCH " + str(i))
 			self.fit(
 				net_input,
@@ -64,6 +64,12 @@ class GeneralNet(Model):
 				callbacks=callbacks_list,
 				validation_split=0.2
 			)
+			# Evaluation
+			inputs1, inputs2, input_shape1, input_shape2, starting_points = get_inputs([testscore])
+			outputs, output_shape = get_outputs([testscore], starting_points)
+			print '###Test Score: ', self.get_score(encoder.encode(inputs1), outputs)
+
+			# Generation
 			count = 0
 			whole = testscore[:args.num_bars * args.steps_per_bar]
 			positions = [k % 12 for k in range(args.num_bars * args.steps_per_bar)]
@@ -79,12 +85,29 @@ class GeneralNet(Model):
 					break
 
 
-	@abc.abstractmethod
 	def generate(self, primer_notesequence, positions, name):
-		pass
+		input_sequence = array([primer_notesequence])
+		# input_sequence = pad_sequences(input_sequence, maxlen=args.num_bars * args.steps_per_bar, dtype='float32')
+		self.load_weights('weights/' + self._model_name + '.hdf5')
+		output = self.predict([input_sequence, array([to_onehot(positions, args.steps_per_bar)])], verbose=0)[1]
+		# output = self.predict(input_sequence, verbose=0)
+		# print(output[0])
+		# output = [name_to_midi(spiral_to_name(pos))-48 for pos in output]
+		output = list(argmax(output[0], axis=1))
+		return output[-1] - 2
+		# output = [n - 2 for n in output]
+		# output_melody = MelodySequence(output)
+		# print(output_melody)
+		# # output_melody.to_midi(name, save=True)
+
+		# return output_melody
 
 	def load(self):
 		self.load_weights(self._file_path)
+
+	def get_score(self, inputs, outputs):
+		return self.evaluate(x=inputs, y=outputs)
+
 
 # class HMM():
 # 	def __init__(self):

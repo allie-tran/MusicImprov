@@ -17,7 +17,7 @@ class Encoder(Model):
 
 		super(Encoder, self).__init__(X1, X2)
 
-		self.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['acc'])
+		self.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['categorical_accuracy'])
 
 
 	def train(self, inputs, outputs):
@@ -48,7 +48,10 @@ class Encoder(Model):
 		self.load_weights(self._file_path)
 
 	def encode(self, X):
-		print(len(self.layers))
+		if not args.encode:
+			return X
+
+		print 'Number of layers in encoder: ', len(self.layers)
 		from keras import backend as K
 
 		# with a Sequential model
