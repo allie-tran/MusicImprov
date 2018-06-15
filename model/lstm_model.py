@@ -17,13 +17,14 @@ def melody_generate(model, embedder, testscore, use_generated_as_primer=True):
 	count = 0
 	positions = [k % 12 for k in range(args.num_bars * args.steps_per_bar)]
 	while True:
-		primer = whole[-args.num_bars * args.steps_per_bar:]
-		output_note = model.generate([primer, embedder.encode(primer)], 'generated/bar_' + str(count))
+		primer = [encode_melody(whole[-args.num_bars * args.steps_per_bar:])]
+		output_note = model.generate(primer, embedder.embed(primer), 'generated/bar_' + str(count))
 		print(output_note)
 		whole += [output_note]
 		count += 1
 		if count > 128:
 			MelodySequence(whole).to_midi('generated/whole_', save=True)
+			print 'Generated: ', whole[-128:]
 			break
 	# if use_generated_as_primer:
 	# 	primer = transformer.transform(phrases[0])
@@ -62,7 +63,7 @@ def generate():
 		if args.train_embedder:
 			embedder.train(inputs1, inputs2)
 		embedder.load()
-		inputs2 = embedder.embed(inputs1)[0]
+		inputs2 = embedder.embed(inputs1)
 		melody_model.train(inputs1, inputs2, outputs, embedder, testscore)
 
 
