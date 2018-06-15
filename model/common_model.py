@@ -16,7 +16,9 @@ def fro_norm(w):
     return K.sqrt(K.sum(K.square(K.abs(w))))
 
 def cust_reg(w):
-	m = K.dot(K.transpose(w), w) - K.eye(w[1].shape[0])
+	print 'Weight matrix shape:', K.int_shape(w)
+
+	m = K.dot(K.transpose(w), w) - K.eye(K.int_shape(w)[-1])
 	return fro_norm(m)
 
 class MelodyNet(Model):
@@ -32,13 +34,13 @@ class MelodyNet(Model):
 		concatenate = Concatenate()([X1, embedded_X1])
 
 		# The decoded layer is the embedded input of X1
-		main_lstm = LSTM(args.num_units, dropout=args.dropout, name="MainLSTM", activity_regularizer=cust_reg)(concatenate)
+		main_lstm = LSTM(args.num_units, dropout=args.dropout, name="MainLSTM", recurrent_regularizer=cust_reg)(concatenate)
 
 		logprob = Dense(output_shape[1], name="Log_probability")(main_lstm)
 		temp_logprob = Lambda(lambda x: x / args.temperature, name="Apply_temperature")(logprob)
 		activate = Activation('softmax', name="Softmax_activation")(temp_logprob)
 
-		super(MelodyNet, self).__init__(embedded_X1, activate)
+		super(MelodyNet, self).__init__([X1, embedded_X1], activate)
 
 		self.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
 

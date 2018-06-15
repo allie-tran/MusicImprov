@@ -12,7 +12,7 @@ class Embedder(Model):
 		X1 = Input(shape=input_shape)
 
 		embedding = LSTM(args.num_units, return_sequences=True, name="encoder", dropout=args.dropout,
-		               activity_regularizer=cust_reg)(X1)
+		                 recurrent_regularizer=cust_reg)(X1)
 
 		X2 = Dense(output_shape[1], activation='softmax', name="Dense")(embedding)
 
