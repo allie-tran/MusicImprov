@@ -85,7 +85,10 @@ def create_dataset(folder):
 		with open(args.phrase_file + '.json', 'w') as f:
 			json.dump(data, f)
 
-def get_inputs(melodies):
+def get_inputs(file):
+	with open(file) as f:
+		melodies = json.load(f)
+
 	inputs1 = []
 	inputs2 = []
 	input_shape = (args.num_bars * args.steps_per_bar, 32)
@@ -115,7 +118,10 @@ def get_inputs(melodies):
 	return inputs1, inputs2, input_shape, input_shape2, start_points
 
 
-def get_outputs(melodies, start_points):
+def get_outputs(file, start_points):
+	with open(file) as f:
+		melodies = json.load(f)
+
 	outputs = []
 	output_shape = (1, 82)
 	k = 0

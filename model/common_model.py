@@ -77,8 +77,8 @@ class MelodyNet(Model):
 			)
 			# Evaluation
 			# args.num_samples *= 10
-			inputs1, inputs2, input_shape1, input_shape2, starting_points = get_inputs([testscore])
-			outputs, output_shape = get_outputs([testscore], starting_points)
+			inputs1, inputs2, input_shape1, input_shape2, starting_points = get_inputs(args.testing_file)
+			outputs, output_shape = get_outputs(args.testing_file, starting_points)
 			print '###Test Score: ', self.get_score([inputs1, embedder.embed(inputs1)], outputs)
 
 			# Generation
