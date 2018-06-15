@@ -62,7 +62,8 @@ def generate():
 		if args.train_embedder:
 			embedder.train(inputs1, inputs2)
 		embedder.load()
-		melody_model.train(inputs1, embedder.embed(inputs1), outputs, embedder, testscore)
+		inputs2 = embedder.embed(inputs1)[0]
+		melody_model.train(inputs1, inputs2, outputs, embedder, testscore)
 
 
 	# Generation from prime melody

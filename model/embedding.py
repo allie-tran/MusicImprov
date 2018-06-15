@@ -1,6 +1,7 @@
 from keras.layers import LSTM, Input, Dense
 from keras import Model
 from keras.callbacks import ModelCheckpoint
+import keras.backend as K
 from common_model import fro_norm, cust_reg
 from scripts import args
 
@@ -52,10 +53,8 @@ class Embedder(Model):
 		if not args.embed:
 			return X
 
-		from keras import backend as K
-
 		# with a Sequential model
 		get_embedded = K.function([self.layers[0].input],
 		                                  [self.layers[1].output])
-
-		return get_embedded([X])
+		result = get_embedded([X])[0]
+		return result
