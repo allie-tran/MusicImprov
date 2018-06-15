@@ -1,6 +1,6 @@
 from keras.layers import LSTM, Input, Dense
 from keras import Model
-from keras.callbacks import ModelCheckpoint
+from keras.callbacks import ModelCheckpoint, EarlyStopping
 import keras.backend as K
 from common_model import fro_norm, cust_reg
 from scripts import args
@@ -28,14 +28,17 @@ class Embedder(Model):
 		except IOError:
 			pass
 
+
 		checkpoint = ModelCheckpoint(
 			self._file_path,
-			monitor='loss',
+			monitor='val_loss',
 			verbose=0,
 			save_best_only=True,
 			mode='min'
 		)
-		callbacks_list = [checkpoint]
+		early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=5, verbose=0, mode='min')
+
+		callbacks_list = [checkpoint, early_stopping]
 
 		self.fit(
 			inputs,

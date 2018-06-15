@@ -1,6 +1,6 @@
 import abc
 
-from keras.callbacks import ModelCheckpoint
+from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras.layers import Activation
 from keras.layers import Dense, Input, Lambda, LSTM, Concatenate
 from keras.models import Model, load_model
@@ -54,12 +54,14 @@ class MelodyNet(Model):
 
 		checkpoint = ModelCheckpoint(
 			self._file_path,
-			monitor='loss',
+			monitor='val_loss',
 			verbose=0,
 			save_best_only=True,
 			mode='min'
 		)
-		callbacks_list = [checkpoint]
+		early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=5, verbose=0, mode='min')
+
+		callbacks_list = [checkpoint, early_stopping]
 
 
 		for i in range(args.epochs):
@@ -74,9 +76,10 @@ class MelodyNet(Model):
 				validation_split=0.2
 			)
 			# Evaluation
+			args.num_samples *= 10
 			inputs1, inputs2, input_shape1, input_shape2, starting_points = get_inputs([testscore])
 			outputs, output_shape = get_outputs([testscore], starting_points)
-			print '###Test Score: ', self.get_score([inputs1, embedder.encode(inputs1)], outputs)
+			print '###Test Score: ', self.get_score([inputs1, embedder.embed(inputs1)], outputs)
 
 			# Generation
 			count = 0
@@ -84,32 +87,24 @@ class MelodyNet(Model):
 			positions = [k % 12 for k in range(args.num_bars * args.steps_per_bar)]
 			while True:
 				primer = [encode_melody(whole[-args.num_bars * args.steps_per_bar:])]
-				output_note = self.generate([primer, embedder.encode(primer)], 'generated/bar_' + str(count))
-				print(output_note)
+				output_note = self.generate(primer, embedder.embed(primer), 'generated/bar_' + str(count))
 				whole += [output_note]
 				count += 1
-				positions = [(k+count) % 12 for k in range(args.num_bars * args.steps_per_bar)]
+				# positions = [(k+count) % 12 for k in range(args.num_bars * args.steps_per_bar)]
 				if count > 128:
 					MelodySequence(whole).to_midi('generated/whole_' + str(i), save=True)
+					print 'Generated: ', whole[-128:]
 					break
 
 
-	def generate(self, primer_notesequence, name):
-		input_sequence = array([primer_notesequence])
+	def generate(self, primer_notesequence, embeded, name):
+		input_sequence = array(primer_notesequence)
 		# input_sequence = pad_sequences(input_sequence, maxlen=args.num_bars * args.steps_per_bar, dtype='float32')
 		self.load_weights('weights/' + self._model_name + '.hdf5')
 		# output = self.predict([input_sequence, array([to_onehot(positions, args.steps_per_bar)])], verbose=0)[0]
-		output = self.predict(input_sequence, verbose=0)[0]
-		# print(output[0])
-		# output = [name_to_midi(spiral_to_name(pos))-48 for pos in output]
-		output = list(argmax(output[0], axis=1))
-		return output[-1] - 2
-		# output = [n - 2 for n in output]
-		# output_melody = MelodySequence(output)
-		# print(output_melody)
-		# # output_melody.to_midi(name, save=True)
-
-		# return output_melody
+		output = self.predict([input_sequence, embeded], verbose=0)
+		output = list(argmax(output, axis=1))
+		return output[0] - 2
 
 	def load(self):
 		self.load_weights(self._file_path)
