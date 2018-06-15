@@ -12,17 +12,16 @@ from scripts import *
 from collections import Counter
 
 
-def melody_generate(model, testscore, use_generated_as_primer=True):
+def melody_generate(model, embedder, testscore, use_generated_as_primer=True):
 	whole = testscore[:args.num_bars * args.steps_per_bar]
 	count = 0
 	positions = [k % 12 for k in range(args.num_bars * args.steps_per_bar)]
 	while True:
 		primer = whole[-args.num_bars * args.steps_per_bar:]
-		output_note = model.generate(encode_melody(primer), positions, 'generated/bar_' + str(count))
+		output_note = model.generate([primer, embedder.encode(primer)], 'generated/bar_' + str(count))
 		print(output_note)
 		whole += [output_note]
 		count += 1
-		positions = [(k + count) % 12 for k in range(args.num_bars * args.steps_per_bar)]
 		if count > 128:
 			MelodySequence(whole).to_midi('generated/whole_', save=True)
 			break
@@ -47,10 +46,9 @@ def generate():
 	with open('starting_points.json', 'w') as f:
 		json.dump(starting_points, f)
 
-	encoder = Encoder(input_shape1, input_shape2, 'Encoder')
+	embedder = Embedder(input_shape1, input_shape2, 'Encoder')
 
-
-	melody_model = MelodyNet([input_shape1[0], args.num_units], output_shape, 'MelodyModel'
+	melody_model = MelodyNet(input_shape1, [input_shape1[0], args.num_units], output_shape, 'MelodyModel'
 	                               + str(args.num_bars) + '_'
 	                               + str(args.steps_per_bar) + '_' + args.note)
 
@@ -62,13 +60,13 @@ def generate():
 
 	if args.train:
 		if args.train_encoder:
-			encoder.train(inputs1, inputs2)
-		encoder.load()
-		melody_model.train(encoder.encode(inputs1), outputs, encoder, testscore)
+			embedder.train(inputs1, inputs2)
+		embedder.load()
+		melody_model.train(inputs1, embedder.embed(inputs1), outputs, embedder, testscore)
 
 
 	# Generation from prime melody
-	melody_generate(melody_model, testscore)
+	melody_generate(melody_model, embedder, testscore)
 
 if __name__ == '__main__':
 	generate()

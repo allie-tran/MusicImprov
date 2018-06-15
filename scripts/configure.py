@@ -4,11 +4,11 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--train",
                     help="To train or just generate?",
                     action="store_true")
-parser.add_argument("-e", "--encode",
+parser.add_argument("-e", "--embed",
                     help="To encode or just raw input?",
                     action="store_true")
-parser.add_argument("--train_encoder",
-                    help="To train encoder.",
+parser.add_argument("--train_embedder",
+                    help="To train embedder.",
                     action="store_true")
 parser.add_argument("-s", "--savedata",
                     help="To grab new data? Save file name",
@@ -22,11 +22,11 @@ parser.add_argument("--epochs",
                     nargs='?',
                     default=100,
                     help="The number of epochs.")
-parser.add_argument("--encoder_epochs",
+parser.add_argument("--embedder_epochs",
                     type=int,
                     nargs='?',
                     default=20,
-                    help="The number of epochs for the encoder.")
+                    help="The number of epochs for the embedder.")
 parser.add_argument("--num_samples",
                     type=int,
                     nargs='?',
