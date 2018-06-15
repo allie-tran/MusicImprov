@@ -16,7 +16,7 @@ def fro_norm(w):
     return K.sqrt(K.sum(K.square(K.abs(w))))
 
 def cust_reg(w):
-
+	print 'Weight matrix size: ', K.int_shape(w)
 	m = K.dot(K.transpose(w), w) - K.eye(K.int_shape(w)[-1])
 	return fro_norm(m)
 
@@ -76,7 +76,7 @@ class MelodyNet(Model):
 				validation_split=0.2
 			)
 			# Evaluation
-			args.num_samples *= 10
+			# args.num_samples *= 10
 			inputs1, inputs2, input_shape1, input_shape2, starting_points = get_inputs([testscore])
 			outputs, output_shape = get_outputs([testscore], starting_points)
 			print '###Test Score: ', self.get_score([inputs1, embedder.embed(inputs1)], outputs)
