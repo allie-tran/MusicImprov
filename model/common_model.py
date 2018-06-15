@@ -73,7 +73,8 @@ class MelodyNet(Model):
 				epochs=1,
 				batch_size=32,
 				callbacks=callbacks_list,
-				validation_split=0.2
+				validation_split=0.2,
+				verbose=2
 			)
 			# Evaluation
 			# args.num_samples *= 10
