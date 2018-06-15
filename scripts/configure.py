@@ -5,7 +5,7 @@ parser.add_argument("-t", "--train",
                     help="To train or just generate?",
                     action="store_true")
 parser.add_argument("-e", "--embed",
-                    help="To encode or just raw input?",
+                    help="To embed or just raw input?",
                     action="store_true")
 parser.add_argument("--train_embedder",
                     help="To train embedder.",
