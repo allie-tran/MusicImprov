@@ -38,14 +38,12 @@ def generate():
 	if args.savedata:
 		create_dataset(args.dataset)
 
-	with open(args.phrase_file+'.json') as f:
-		melodies = json.load(f)
 
-	inputs1, inputs2, input_shape1, input_shape2, starting_points = get_inputs(melodies)
-	outputs, output_shape = get_outputs(melodies, starting_points)
+	inputs1, inputs2, input_shape1, input_shape2, starting_points = get_inputs(args.training_file)
+	outputs, output_shape = get_outputs(args.training_file, starting_points)
 
-	with open('starting_points.json', 'w') as f:
-		json.dump(starting_points, f)
+	# with open('starting_points.json', 'w') as f:
+	# 	json.dump(starting_points, f)
 
 	embedder = Embedder(input_shape1, input_shape2, 'Encoder')
 

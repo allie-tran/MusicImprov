@@ -13,10 +13,12 @@ parser.add_argument("--train_embedder",
 parser.add_argument("-s", "--savedata",
                     help="To grab new data? Save file name",
                     action="store_true")
-parser.add_argument('-o', "--phrase_file",
-                    help="To grab new data? Save file name",
-                    default='midiphrases'
-                    )
+parser.add_argument("--training_file",
+                    help="Training file",
+                    default='training.json')
+parser.add_argument("--testing_file",
+                    help="Testing file",
+                    default='testing.json')
 parser.add_argument("--epochs",
                     type=int,
                     nargs='?',
