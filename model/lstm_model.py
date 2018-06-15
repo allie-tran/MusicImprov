@@ -59,7 +59,7 @@ def generate():
 	testscore = transformer.transform(testscore)
 
 	if args.train:
-		if args.train_encoder:
+		if args.train_embedder:
 			embedder.train(inputs1, inputs2)
 		embedder.load()
 		melody_model.train(inputs1, embedder.embed(inputs1), outputs, embedder, testscore)
