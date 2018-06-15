@@ -46,7 +46,8 @@ class Embedder(Model):
 			epochs=args.embedder_epochs,
 			batch_size=32,
 			callbacks=callbacks_list,
-			validation_split=0.2
+			validation_split=0.2,
+			verbose=2
 		)
 
 	def load(self):
