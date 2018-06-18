@@ -4,7 +4,6 @@ import numpy as np
 from keras import backend as K
 from sklearn.utils import class_weight
 
-
 def fro_norm(w):
     return K.sqrt(K.sum(K.square(K.abs(w))))
 
