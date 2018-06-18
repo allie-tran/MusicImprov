@@ -61,13 +61,14 @@ class MelodyNet(Model):
 			print('='*80)
 			print("EPOCH " + str(i))
 			# Get training data
-			net_input, _, starting_points = get_inputs(args.training_file)
+			net_input, net_input2, starting_points = get_inputs(args.training_file)
 			net_output = get_outputs(args.training_file, starting_points)
-			embedded_input = embedder.embed(net_input)
+			if args.embed:
+				net_input2 = embedder.embed(net_input)
 
 			# Train
 			history = self.fit(
-				[net_input, embedded_input],
+				[net_input, net_input2],
 				net_output,
 				class_weight = get_class_weights(net_output),
 				epochs=1,
@@ -84,7 +85,9 @@ class MelodyNet(Model):
 			# Evaluation
 			inputs1, inputs2, starting_points = get_inputs(args.testing_file, test=True)
 			outputs = get_outputs(args.testing_file, starting_points)
-			print '###Test Score: ', self.get_score([inputs1, embedder.embed(inputs1)], outputs)
+			if args.embed:
+				inputs2 = embedder.embed(net_input)
+			print '###Test Score: ', self.get_score([inputs1, inputs2], outputs)
 
 			# Generation
 			count = 0
