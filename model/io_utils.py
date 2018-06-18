@@ -140,8 +140,8 @@ def create_dataset(folder):
 			json.dump(data, f)
 
 def get_start_points(test):
-	if test:
-		return range(args.steps_per_bar * args.num_bars)
+	# if test:
+	# 	return range(args.steps_per_bar * args.num_bars)
 	start_points = set()
 	while len(start_points) < args.num_samples:
 		new_choice = random.choice(range(args.steps_per_bar * args.num_bars))
