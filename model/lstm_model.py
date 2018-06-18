@@ -19,7 +19,6 @@ def melody_generate(model, embedder, testscore):
 	while True:
 		primer = [encode_melody(whole[-args.num_bars * args.steps_per_bar:])]
 		output_note = model.generate(primer, embedder.embed(primer), 'generated/bar_' + str(count))
-		print(output_note)
 		whole += [output_note]
 		count += 1
 		if count > 128:
@@ -32,8 +31,8 @@ def run():
 	if args.savedata:
 		create_dataset(args.dataset)
 
-	inputs1, inputs2, input_shape1, input_shape2, starting_points = get_inputs(args.training_file)
-	outputs, output_shape = get_outputs(args.training_file, starting_points)
+	input_shape1, input_shape2 = get_input_shapes()
+	output_shape = get_output_shapes()
 
 	# with open('starting_points.json', 'w') as f:
 	# 	json.dump(starting_points, f)
@@ -51,11 +50,11 @@ def run():
 	testscore = transformer.transform(testscore)
 
 	if args.train:
+		inputs1, inputs2, starting_points = get_inputs(args.training_file)
 		if args.train_embedder:
 			embedder.train(inputs1, inputs2)
 		embedder.load()
-		inputs2 = embedder.embed(inputs1)
-		melody_model.train(inputs1, inputs2, outputs, embedder, testscore)
+		melody_model.train(embedder, testscore)
 
 
 	# Generation from prime melody

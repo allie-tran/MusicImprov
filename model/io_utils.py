@@ -149,10 +149,19 @@ def get_start_points(test):
 			if random.random() < 0.9:
 				continue
 		if new_choice % 4 != 0:
-			if random.random() < 0.25:
+			if random.random() < 0.5:
 				continue
 		start_points.add(new_choice)
 	return start_points
+
+def get_input_shapes():
+	input_shape = (args.num_bars * args.steps_per_bar, 32)
+	input_shape2 = (args.num_bars * args.steps_per_bar, args.steps_per_bar)
+	return input_shape, input_shape2
+
+def get_output_shapes():
+	output_shape = (1, 82)
+	return output_shape
 
 def get_inputs(file, test=False):
 	with open(file) as f:
@@ -160,8 +169,7 @@ def get_inputs(file, test=False):
 
 	inputs1 = []
 	inputs2 = []
-	input_shape = (args.num_bars * args.steps_per_bar, 32)
-	input_shape2 = (args.num_bars * args.steps_per_bar, args.steps_per_bar)
+
 	start_points = []
 	if args.train:
 		for i, melody in enumerate(melodies):
@@ -177,14 +185,14 @@ def get_inputs(file, test=False):
 
 	# inputs1 = pad_sequences(inputs1, maxlen=args.num_bars * args.steps_per_bar, dtype='float32')
 	# inputs2 = pad_sequences(inputs2, maxlen=args.num_bars * args.steps_per_bar, dtype='float32')
-	print('Input shapes:')
+
 	inputs1 = array(inputs1)
 	inputs2 = array(inputs2)
-	print(shape(inputs1))
-	print(shape(inputs2))
-	print(input_shape)
-	print(input_shape2)
-	return inputs1, inputs2, input_shape, input_shape2, start_points
+	if not test:
+		print('Input shapes:')
+		print(shape(inputs1))
+		print(shape(inputs2))
+	return inputs1, inputs2, start_points
 
 
 def get_outputs(file, start_points):
@@ -192,8 +200,8 @@ def get_outputs(file, start_points):
 		melodies = json.load(f)
 
 	outputs = []
-	output_shape = (1, 82)
 	k = 0
+	output_shape = get_output_shapes()
 	if args.train:
 		for i, melody in enumerate(melodies):
 			sequence_length = args.num_bars * args.steps_per_bar
@@ -209,8 +217,7 @@ def get_outputs(file, start_points):
 	outputs = array(outputs)
 	print('Output shapes:')
 	print(shape(outputs))
-	print(output_shape)
-	return outputs, output_shape
+	return outputs
 
 
 def midi_to_name(midi):

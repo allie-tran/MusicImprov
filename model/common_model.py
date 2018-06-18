@@ -56,6 +56,11 @@ class MelodyNet(Model):
 		               'val_loss': []}
 
 		for i in range(args.epochs):
+			# Get training data
+			net_input, _, starting_points = get_inputs(args.training_file)
+			net_output = get_outputs(args.training_file, starting_points)
+			embedded_input = embedder.embed(net_input)
+
 			# Train
 			print("EPOCH " + str(i))
 			history = self.fit(
@@ -70,10 +75,12 @@ class MelodyNet(Model):
 			)
 			all_history['loss'] += history.history['loss']
 			all_history['val_loss'] += history.history['val_loss']
+			all_history['acc'] += history.history['acc']
+			all_history['val_acc'] += history.history['val_acc']
 
 			# Evaluation
-			inputs1, inputs2, input_shape1, input_shape2, starting_points = get_inputs(args.testing_file, test=True)
-			outputs, output_shape = get_outputs(args.testing_file, starting_points)
+			inputs1, inputs2, starting_points = get_inputs(args.testing_file, test=True)
+			outputs = get_outputs(args.testing_file, starting_points)
 			print '###Test Score: ', self.get_score([inputs1, embedder.embed(inputs1)], outputs)
 
 			# Generation
@@ -90,6 +97,8 @@ class MelodyNet(Model):
 					MelodySequence(whole).to_midi('generated/whole_' + str(i), save=True)
 					print 'Generated: ', whole[-128:]
 					break
+
+
 
 		plot_training_loss(self.name, all_history)
 
