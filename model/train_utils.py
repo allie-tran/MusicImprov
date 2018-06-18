@@ -1,8 +1,11 @@
 import tensorflow as tf
+import matplotlib
+matplotlib.use('agg')
 import matplotlib.pyplot as plt
 import numpy as np
 from keras import backend as K
 from sklearn.utils import class_weight
+
 
 def fro_norm(w):
     return K.sqrt(K.sum(K.square(K.abs(w))))
@@ -44,6 +47,6 @@ def get_class_weights(y_train):
 	y_ints = [y.argmax() for y in y_train]
 	class_weights = class_weight.compute_class_weight('balanced',
 	                                                  np.unique(y_ints),
-	                                                  y_train)
+	                                                  y_ints)
 	print class_weights
 	return dict(enumerate(class_weights))
