@@ -58,13 +58,14 @@ class MelodyNet(Model):
 		               'val_acc': []}
 
 		for i in range(args.epochs):
+			print('='*80)
+			print("EPOCH " + str(i))
 			# Get training data
 			net_input, _, starting_points = get_inputs(args.training_file)
 			net_output = get_outputs(args.training_file, starting_points)
 			embedded_input = embedder.embed(net_input)
 
 			# Train
-			print("EPOCH " + str(i))
 			history = self.fit(
 				[net_input, embedded_input],
 				net_output,
