@@ -40,16 +40,32 @@ def plot_training_loss(name, history):
 	plt.ylabel('loss')
 	plt.xlabel('epoch')
 	plt.legend(['train', 'validation'], loc='upper left')
-	plt.savefig('train_history.png')
+	plt.savefig('loss_history.png')
+	plt.close()
+
+	plt.figure()
+	plt.plot(history['acc'])
+	plt.plot(history['val_acc'])
+	plt.title('Model ' + name + ' loss')
+	plt.ylabel('loss')
+	plt.xlabel('epoch')
+	plt.legend(['train', 'validation'], loc='upper left')
+	plt.savefig('acc_history.png')
 	plt.close()
 
 def get_class_weights(y_train):
 	y_ints = [y.argmax() for y in y_train]
 	classes = list(range(np.shape(y_train)[1]))
-	add = len(y_ints) // len(classes)
-	counts = [y_ints.count(label) + add for label in classes]
-	multiply = reduce(lambda x, y: x*y, counts)
-	weights = [multiply/count for count in counts]
+	# add = len(y_ints) // len(classes)
+	counts = [y_ints.count(label) for label in classes]
+
+	# added_counts = [count + add for count in counts]
+	# multiply = reduce(lambda x, y: x*y, added_counts)
+	# weights = [multiply/count for count in added_counts]
+
+	weights = [1.0] * len(classes)
+	weights[1] /= 1
+
 	normalizer = sum(weights)
 	class_weights = [weight*1.0/normalizer for weight in weights]
 
@@ -58,4 +74,6 @@ def get_class_weights(y_train):
 	#                                                   y_ints)
 	print 'Class counts'
 	print counts
+	# print 'Class weights'
+	# print ["{0:0.4f}".format(i) for i in class_weights]
 	return dict(enumerate(class_weights))
