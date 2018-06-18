@@ -37,7 +37,8 @@ def plot_training_loss(name, history):
 	plt.ylabel('loss')
 	plt.xlabel('epoch')
 	plt.legend(['train', 'validation'], loc='upper left')
-	plt.show()
+	plt.savefig('train_history.png')
+	plt.close()
 
 def get_class_weights(y_train):
 	y_ints = [y.argmax() for y in y_train]
