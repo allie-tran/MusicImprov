@@ -53,7 +53,9 @@ class MelodyNet(Model):
 		callbacks_list = [checkpoint, early_stopping]
 
 		all_history = {'loss': [],
-		               'val_loss': []}
+		               'val_loss': [],
+		               'acc': [],
+		               'val_acc': []}
 
 		for i in range(args.epochs):
 			# Get training data
