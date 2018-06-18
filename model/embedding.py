@@ -2,7 +2,7 @@ from keras.layers import LSTM, Input, Dense
 from keras import Model
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 import keras.backend as K
-from common_model import fro_norm, cust_reg
+from model import cust_reg
 from scripts import args
 
 class Embedder(Model):

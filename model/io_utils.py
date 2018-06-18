@@ -1,8 +1,8 @@
 import json
 import os
 import music21
-from numpy import array, zeros, shape, ndarray, sin, cos, pi, sqrt, argmin
-from random import sample
+import random
+from numpy import array, zeros, shape, sin, cos, pi, sqrt
 from scripts import args, to_onehot, MusicXML, XMLtoNoteSequence, Midi
 from xml.etree import cElementTree
 from keras.preprocessing.sequence import pad_sequences
@@ -12,6 +12,60 @@ try:
 		score_list = json.load(f)
 except IOError:
 	score_list = []
+
+def encode_melody(melody):
+	"""
+	Encode a melody sequence into the net's input
+	:param melody:
+	:return:
+	"""
+	# return [name_to_spiral(midi_to_name(n)) for n in melody]
+
+	melody = [n + 2 for n in melody]
+	input_sequence = []
+	context = zeros(12)
+	prev = 0
+	silent = 0
+
+	i = 0
+	first_note = melody[i]
+	while first_note < 0:
+		first_note = melody[i+1]
+		i += 1
+
+	for k, n in enumerate(melody):
+		feature = zeros(32)
+		pitchclass = zeros(13)
+		if n >= 2:
+			interval = n - prev
+			prev = n
+			silent = 0
+			interval_from_first_note = n - first_note
+			pitchclass[int((n + 22) % 12)] = 1
+			interval_from_last_note = n
+		else: # silence
+			silent += 1
+			interval = 0
+			interval_from_first_note = 0
+			pitchclass[12] = 1
+
+		position = n
+		position_in_bar = k
+		feature[0] = position
+		feature[1:14] = pitchclass
+		feature[15] = interval
+		feature[16:28] = context
+		feature[29] = silent
+		feature[30] = interval_from_first_note
+		feature[31] = position_in_bar
+		input_sequence.append(feature)
+
+		if n >= 2:
+			context[int((n + 22) % 12)] += 1
+
+	return input_sequence
+
+
 
 def create_dataset(folder):
 	"""
@@ -85,6 +139,19 @@ def create_dataset(folder):
 		with open(args.phrase_file + '.json', 'w') as f:
 			json.dump(data, f)
 
+def get_start_points():
+	start_points = set()
+	while len(start_points) < args.num_samples:
+		new_choice = random.choice(range(args.steps_per_bar * args.num_bars))
+		if new_choice % 2 != 0:
+			if random.random() < 0.8:
+				continue
+		if new_choice % 4 != 0:
+			if random.random() < 0.25:
+				continue
+		start_points.add(new_choice)
+	return start_points
+
 def get_inputs(file):
 	with open(file) as f:
 		melodies = json.load(f)
@@ -97,7 +164,8 @@ def get_inputs(file):
 	if args.train:
 		for i, melody in enumerate(melodies):
 			sequence_length = args.num_bars * args.steps_per_bar
-			for start_point in sample(range(args.steps_per_bar * args.num_bars), args.num_samples):
+
+			for start_point in get_start_points():
 				start_points.append(start_point)
 				j = start_point
 				while j < len(melody) - sequence_length - 1:
@@ -186,54 +254,3 @@ def name_to_midi(name):
 	return 60 + names.index(name)
 
 
-def encode_melody(melody):
-	"""
-	Encode a melody sequence into the net's input
-	:param melody:
-	:return:
-	"""
-	# return [name_to_spiral(midi_to_name(n)) for n in melody]
-
-	melody = [n + 2 for n in melody]
-	input_sequence = []
-	context = zeros(12)
-	prev = 0
-	silent = 0
-
-	i = 0
-	first_note = melody[i]
-	while first_note < 0:
-		first_note = melody[i+1]
-		i += 1
-
-	for k, n in enumerate(melody):
-		feature = zeros(32)
-		pitchclass = zeros(13)
-		if n >= 2:
-			interval = n - prev
-			prev = n
-			silent = 0
-			interval_from_first_note = n - first_note
-			pitchclass[int((n + 22) % 12)] = 1
-			interval_from_last_note = n
-		else: # silence
-			silent += 1
-			interval = 0
-			interval_from_first_note = 0
-			pitchclass[12] = 1
-
-		position = n
-		position_in_bar = k
-		feature[0] = position
-		feature[1:14] = pitchclass
-		feature[15] = interval
-		feature[16:28] = context
-		feature[29] = silent
-		feature[30] = interval_from_first_note
-		feature[31] = position_in_bar
-		input_sequence.append(feature)
-
-		if n >= 2:
-			context[int((n + 22) % 12)] += 1
-
-	return input_sequence
