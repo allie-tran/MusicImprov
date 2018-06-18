@@ -45,8 +45,17 @@ def plot_training_loss(name, history):
 
 def get_class_weights(y_train):
 	y_ints = [y.argmax() for y in y_train]
-	class_weights = class_weight.compute_class_weight('balanced',
-	                                                  np.unique(y_ints),
-	                                                  y_ints)
+	classes = list(range(np.shape(y_train)[1]))
+	add = len(y_ints) // len(classes)
+	counts = [y_ints.count(label) + add for label in classes]
+	multiply = reduce(lambda x, y: x*y, counts)
+	weights = [multiply/count for count in counts]
+	normalizer = sum(weights)
+	class_weights = [weight*1.0/normalizer for weight in weights]
+
+	# class_weights = class_weight.compute_class_weight('balanced',
+	#                                                   list(range(np.shape(y_train)[1])),
+	#                                                   y_ints)
+	print counts
 	print class_weights
 	return dict(enumerate(class_weights))

@@ -139,12 +139,14 @@ def create_dataset(folder):
 		with open(args.phrase_file + '.json', 'w') as f:
 			json.dump(data, f)
 
-def get_start_points():
+def get_start_points(test):
+	if test:
+		return range(args.steps_per_bar * args.num_bars)
 	start_points = set()
 	while len(start_points) < args.num_samples:
 		new_choice = random.choice(range(args.steps_per_bar * args.num_bars))
 		if new_choice % 2 != 0:
-			if random.random() < 0.8:
+			if random.random() < 0.9:
 				continue
 		if new_choice % 4 != 0:
 			if random.random() < 0.25:
@@ -152,7 +154,7 @@ def get_start_points():
 		start_points.add(new_choice)
 	return start_points
 
-def get_inputs(file):
+def get_inputs(file, test=False):
 	with open(file) as f:
 		melodies = json.load(f)
 
@@ -164,8 +166,7 @@ def get_inputs(file):
 	if args.train:
 		for i, melody in enumerate(melodies):
 			sequence_length = args.num_bars * args.steps_per_bar
-
-			for start_point in get_start_points():
+			for start_point in get_start_points(test):
 				start_points.append(start_point)
 				j = start_point
 				while j < len(melody) - sequence_length - 1:
