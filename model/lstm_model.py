@@ -12,7 +12,7 @@ from scripts import *
 from collections import Counter
 
 
-def melody_generate(model, embedder, testscore, use_generated_as_primer=True):
+def melody_generate(model, embedder, testscore):
 	whole = testscore[:args.num_bars * args.steps_per_bar]
 	count = 0
 	positions = [k % 12 for k in range(args.num_bars * args.steps_per_bar)]
@@ -26,18 +26,11 @@ def melody_generate(model, embedder, testscore, use_generated_as_primer=True):
 			MelodySequence(whole).to_midi('generated/whole_', save=True)
 			print 'Generated: ', whole[-128:]
 			break
-	# if use_generated_as_primer:
-	# 	primer = transformer.transform(phrases[0])
-	# 	print(primer)
-	# 	primer.to_midi('original', save=True)
-	# 	for i in range(5):
-	# 		primer = model.generate(encode_melody(primer), 'generated/generate_' + str(i))
-	pass
 
-def generate():
+
+def run():
 	if args.savedata:
 		create_dataset(args.dataset)
-
 
 	inputs1, inputs2, input_shape1, input_shape2, starting_points = get_inputs(args.training_file)
 	outputs, output_shape = get_outputs(args.training_file, starting_points)
@@ -69,4 +62,4 @@ def generate():
 	melody_generate(melody_model, embedder, testscore)
 
 if __name__ == '__main__':
-	generate()
+	run()

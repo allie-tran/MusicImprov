@@ -3,22 +3,11 @@ import abc
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras.layers import Activation
 from keras.layers import Dense, Input, Lambda, LSTM, Concatenate
-from keras.models import Model, load_model
+from keras.models import Model
 from keras.utils import print_summary
-from keras import backend as K
 
-from tensorflow.python.ops import math_ops
-from scripts.configure import args
 from scripts.note_sequence_utils import *
-from model.io_utils import *
-
-def fro_norm(w):
-    return K.sqrt(K.sum(K.square(K.abs(w))))
-
-def cust_reg(w):
-	print 'Weight matrix size: ', K.int_shape(w)
-	m = K.dot(K.transpose(w), w) - K.eye(K.int_shape(w)[-1])
-	return fro_norm(m)
+from model import *
 
 class MelodyNet(Model):
 	"""
@@ -41,7 +30,7 @@ class MelodyNet(Model):
 
 		super(MelodyNet, self).__init__([X1, embedded_X1], activate)
 
-		self.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
+		self.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy', precision, recall])
 
 		print_summary(self)
 
@@ -63,19 +52,24 @@ class MelodyNet(Model):
 
 		callbacks_list = [checkpoint, early_stopping]
 
+		all_history = {'loss': [],
+		               'val_loss': []}
 
 		for i in range(args.epochs):
 			# Train
 			print("EPOCH " + str(i))
-			self.fit(
+			history = self.fit(
 				[net_input, embedded_input],
 				net_output,
+				class_weight = get_class_weights(net_output),
 				epochs=1,
 				batch_size=32,
 				callbacks=callbacks_list,
 				validation_split=0.2,
 				verbose=2
 			)
+			all_history['loss'] += history.history['loss']
+			all_history['val_loss'] += history.history['val_loss']
 			# Evaluation
 			# args.num_samples *= 10
 			inputs1, inputs2, input_shape1, input_shape2, starting_points = get_inputs(args.testing_file)
@@ -96,6 +90,8 @@ class MelodyNet(Model):
 					MelodySequence(whole).to_midi('generated/whole_' + str(i), save=True)
 					print 'Generated: ', whole[-128:]
 					break
+
+		plot_training_loss(self.name, all_history)
 
 
 	def generate(self, primer_notesequence, embeded, name):
