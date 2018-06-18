@@ -35,7 +35,7 @@ class MelodyNet(Model):
 		print_summary(self)
 
 
-	def train(self, net_input, embedded_input, net_output, embedder, testscore):
+	def train(self, embedder, testscore):
 		try:
 			self.load()
 		except IOError:
