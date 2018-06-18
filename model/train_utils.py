@@ -56,6 +56,6 @@ def get_class_weights(y_train):
 	# class_weights = class_weight.compute_class_weight('balanced',
 	#                                                   list(range(np.shape(y_train)[1])),
 	#                                                   y_ints)
+	print 'Class counts'
 	print counts
-	print class_weights
 	return dict(enumerate(class_weights))
