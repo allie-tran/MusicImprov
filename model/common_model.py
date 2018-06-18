@@ -60,11 +60,12 @@ class MelodyNet(Model):
 		for i in range(args.epochs):
 			print('='*80)
 			print("EPOCH " + str(i))
-			# Get training data
-			net_input, net_input2, starting_points = get_inputs(args.training_file)
-			net_output = get_outputs(args.training_file, starting_points)
-			if args.embed:
-				net_input2 = embedder.embed(net_input)
+			if i % 10 == 0:
+				# Get new training data
+				net_input, net_input2, starting_points = get_inputs(args.training_file)
+				net_output = get_outputs(args.training_file, starting_points)
+				if args.embed:
+					net_input2 = embedder.embed(net_input)
 
 			# Train
 			history = self.fit(
@@ -95,7 +96,8 @@ class MelodyNet(Model):
 			positions = [k % 12 for k in range(args.num_bars * args.steps_per_bar)]
 			while True:
 				primer = [encode_melody(whole[-args.num_bars * args.steps_per_bar:])]
-				input2 = [(k+count) % 12 for k in range(args.num_bars * args.steps_per_bar)]
+				input2 = array([to_onehot([(k+count) % 12 for k in range(args.num_bars * args.steps_per_bar)],
+				                         args.steps_per_bar)])
 				if args.embed:
 					input2 = embedder.embed(primer)
 				output_note = self.generate(primer, input2, 'generated/bar_' + str(count))
@@ -111,12 +113,12 @@ class MelodyNet(Model):
 		plot_training_loss(self.name, all_history)
 
 
-	def generate(self, primer_notesequence, embeded, name):
+	def generate(self, primer_notesequence, input2, name):
 		input_sequence = array(primer_notesequence)
 		# input_sequence = pad_sequences(input_sequence, maxlen=args.num_bars * args.steps_per_bar, dtype='float32')
 		self.load_weights('weights/' + self._model_name + '.hdf5')
 		# output = self.predict([input_sequence, array([to_onehot(positions, args.steps_per_bar)])], verbose=0)[0]
-		output = self.predict([input_sequence, embeded], verbose=0)
+		output = self.predict([input_sequence, input2], verbose=0)
 		output = list(argmax(output, axis=1))
 		return output[0] - 2
 
