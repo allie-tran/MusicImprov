@@ -11,7 +11,7 @@ def fro_norm(w):
     return K.sqrt(K.sum(K.square(K.abs(w))))
 
 def cust_reg(w):
-	print 'Weight matrix size: ', K.int_shape(w)
+	# print 'Weight matrix size: ', K.int_shape(w)
 	m = K.dot(K.transpose(w), w) - K.eye(K.int_shape(w)[-1])
 	return fro_norm(m)
 
