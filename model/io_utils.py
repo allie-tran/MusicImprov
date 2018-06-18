@@ -195,7 +195,7 @@ def get_inputs(file, test=False):
 	return inputs1, inputs2, start_points
 
 
-def get_outputs(file, start_points):
+def get_outputs(file, start_points, test=False):
 	with open(file) as f:
 		melodies = json.load(f)
 
@@ -215,8 +215,9 @@ def get_outputs(file, start_points):
 				k += 1
 
 	outputs = array(outputs)
-	print('Output shapes:')
-	print(shape(outputs))
+	if not test:
+		print('Output shapes:')
+		print(shape(outputs))
 	return outputs
 
 

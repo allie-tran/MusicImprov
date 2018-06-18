@@ -50,8 +50,8 @@ def run():
 	testscore = transformer.transform(testscore)
 
 	if args.train:
-		inputs1, inputs2, starting_points = get_inputs(args.training_file)
 		if args.train_embedder:
+			inputs1, inputs2, starting_points = get_inputs(args.training_file)
 			embedder.train(inputs1, inputs2)
 		embedder.load()
 		melody_model.train(embedder, testscore)
