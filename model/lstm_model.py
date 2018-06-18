@@ -33,13 +33,14 @@ def run():
 
 	input_shape1, input_shape2 = get_input_shapes()
 	output_shape = get_output_shapes()
-	if args.embed:
-		input_shape2 = [input_shape1[0], args.num_units]
+
 
 	# with open('starting_points.json', 'w') as f:
 	# 	json.dump(starting_points, f)
 
 	embedder = Embedder(input_shape1, input_shape2, 'Encoder')
+	if args.embed:
+		input_shape2 = [input_shape1[0], args.num_units]
 
 	melody_model = MelodyNet(input_shape1, input_shape2, output_shape, 'MelodyModel'
 	                               + str(args.num_bars) + '_'

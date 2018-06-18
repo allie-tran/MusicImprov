@@ -95,10 +95,12 @@ class MelodyNet(Model):
 			positions = [k % 12 for k in range(args.num_bars * args.steps_per_bar)]
 			while True:
 				primer = [encode_melody(whole[-args.num_bars * args.steps_per_bar:])]
-				output_note = self.generate(primer, embedder.embed(primer), 'generated/bar_' + str(count))
+				input2 = [(k+count) % 12 for k in range(args.num_bars * args.steps_per_bar)]
+				if args.embed:
+					input2 = embedder.embed(primer)
+				output_note = self.generate(primer, input2, 'generated/bar_' + str(count))
 				whole += [output_note]
 				count += 1
-				# positions = [(k+count) % 12 for k in range(args.num_bars * args.steps_per_bar)]
 				if count > 128:
 					MelodySequence(whole).to_midi('generated/whole_' + str(i), save=True)
 					print 'Generated: ', whole[-128:]
