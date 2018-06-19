@@ -64,7 +64,7 @@ def get_class_weights(y_train):
 	# weights = [multiply/count for count in added_counts]
 
 	weights = [1.0] * len(classes)
-	weights[1] /= 1
+	weights[1] /= 10
 
 	normalizer = sum(weights)
 	class_weights = [weight*1.0/normalizer for weight in weights]

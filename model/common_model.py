@@ -22,7 +22,8 @@ class MelodyNet(Model):
 		concatenate = Concatenate()([X1, embedded_X1])
 
 		# The decoded layer is the embedded input of X1
-		main_lstm = LSTM(args.num_units, dropout=args.dropout, name="MainLSTM", recurrent_regularizer=cust_reg)(concatenate)
+		main_lstm = LSTM(args.num_units, return_sequences=True,
+		                 dropout=args.dropout, name="MainLSTM", recurrent_regularizer=cust_reg)(concatenate)
 
 		logprob = Dense(output_shape[1], name="Log_probability")(main_lstm)
 		temp_logprob = Lambda(lambda x: x / args.temperature, name="Apply_temperature")(logprob)
@@ -60,7 +61,7 @@ class MelodyNet(Model):
 		for i in range(args.epochs):
 			print('='*80)
 			print("EPOCH " + str(i))
-			if i % 10 == 0:
+			if i % 5 == 0:
 				# Get new training data
 				net_input, net_input2, starting_points = get_inputs(args.training_file)
 				net_output = get_outputs(args.training_file, starting_points)
@@ -74,6 +75,7 @@ class MelodyNet(Model):
 				class_weight = get_class_weights(net_output),
 				epochs=1,
 				batch_size=32,
+				shuffle=False,
 				callbacks=callbacks_list,
 				validation_split=0.2,
 				verbose=2

@@ -160,7 +160,7 @@ def get_input_shapes():
 	return input_shape, input_shape2
 
 def get_output_shapes():
-	output_shape = (1, 82)
+	output_shape = (args.num_bars * args.steps_per_bar, 82)
 	return output_shape
 
 def get_inputs(file, test=False):
@@ -208,7 +208,7 @@ def get_outputs(file, start_points, test=False):
 			for n in range(args.num_samples):
 				j = start_points[k]
 				while j < len(melody) - sequence_length - 1:
-					next_bar = melody[j + sequence_length:j + sequence_length + 1]
+					next_bar = melody[j + 1:j + sequence_length + 1]
 					next_bar = [n + 2 for n in next_bar]
 					outputs.append(to_onehot(next_bar, output_shape[1])[0])
 					j += sequence_length

@@ -26,7 +26,7 @@ def melody_generate(model, embedder, testscore):
 		whole += [output_note]
 		count += 1
 		if count > 128:
-			MelodySequence(whole).to_midi('generated/whole_' + str(i), save=True)
+			MelodySequence(whole).to_midi('generated/whole_', save=True)
 			print 'Generated: ', whole[-128:]
 			break
 
