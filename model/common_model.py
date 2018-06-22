@@ -19,7 +19,12 @@ class MelodyNet(Model):
 		X1 = Input(shape=input_shape1, name="X1")
 		embedded_X1 = Input(shape=input_shape2, name="embedded_X1")
 
-		concatenate = Concatenate()([X1, embedded_X1])
+		note_lstm =  LSTM(args.num_units, return_sequences=True,
+		                 dropout=args.dropout, name="MainLSTM", recurrent_regularizer=cust_reg)(X1)
+		rhythm_lstm = LSTM(args.num_units, return_sequences=True,
+		                 dropout=args.dropout, name="RhythmLSTM", recurrent_regularizer=cust_reg)(embedded_X1)
+
+		concatenate = Concatenate()([note_lstm, rhythm_lstm])
 
 		# The decoded layer is the embedded input of X1
 		main_lstm = LSTM(args.num_units, return_sequences=True,
