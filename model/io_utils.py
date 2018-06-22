@@ -188,10 +188,10 @@ def get_inputs(file, test=False):
 
 	inputs1 = array(inputs1)
 	inputs2 = array(inputs2)
-	# if not test:
-	# 	print('Input shapes:')
-	# 	print(shape(inputs1))
-	# 	print(shape(inputs2))
+	if not test:
+		print('Input shapes:')
+		print(shape(inputs1))
+		print(shape(inputs2))
 	return inputs1, inputs2, start_points
 
 
@@ -208,16 +208,16 @@ def get_outputs(file, start_points, test=False):
 			for n in range(args.num_samples):
 				j = start_points[k]
 				while j < len(melody) - sequence_length - 1:
-					next_bar = melody[j + 1:j + sequence_length + 1]
+					next_bar = melody[j + 1: j + sequence_length + 1]
 					next_bar = [n + 2 for n in next_bar]
-					outputs.append(to_onehot(next_bar, output_shape[1])[0])
+					outputs.append(to_onehot(next_bar, output_shape[1]))
 					j += sequence_length
 				k += 1
 
 	outputs = array(outputs)
-	# if not test:
-	# 	print('Output shapes:')
-	# 	print(shape(outputs))
+	if not test:
+		print('Output shapes:')
+		print(shape(outputs))
 	return outputs
 
 
