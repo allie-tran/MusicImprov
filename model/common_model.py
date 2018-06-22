@@ -20,7 +20,7 @@ class MelodyNet(Model):
 		embedded_X1 = Input(shape=input_shape2, name="embedded_X1")
 
 		note_lstm =  LSTM(args.num_units, return_sequences=True,
-		                 dropout=args.dropout, name="MainLSTM", recurrent_regularizer=cust_reg)(X1)
+		                 dropout=args.dropout, name="NoteLSTM", recurrent_regularizer=cust_reg)(X1)
 		rhythm_lstm = LSTM(args.num_units, return_sequences=True,
 		                 dropout=args.dropout, name="RhythmLSTM", recurrent_regularizer=cust_reg)(embedded_X1)
 
