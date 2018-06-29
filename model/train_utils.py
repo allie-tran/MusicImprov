@@ -4,8 +4,8 @@ matplotlib.use('agg')
 import matplotlib.pyplot as plt
 import numpy as np
 from keras import backend as K
-from sklearn.utils import class_weight
-
+from scripts import args
+from sklearn.metrics import f1_score, precision_score, recall_score, confusion_matrix
 
 def fro_norm(w):
     return K.sqrt(K.sum(K.square(K.abs(w))))
@@ -15,23 +15,6 @@ def cust_reg(w):
 	m = K.dot(K.transpose(w), w) - K.eye(K.int_shape(w)[-1])
 	return fro_norm(m)
 
-def as_keras_metric(method):
-    import functools
-    from keras import backend as K
-    import tensorflow as tf
-    @functools.wraps(method)
-    def wrapper(self, args, **kwargs):
-        """ Wrapper for turning tensorflow metrics into keras metrics """
-        value, update_op = method(self, args, **kwargs)
-        K.get_session().run(tf.local_variables_initializer())
-        with tf.control_dependencies([update_op]):
-            value = tf.identity(value)
-        return value
-    return wrapper
-
-
-precision = as_keras_metric(tf.metrics.precision)
-recall = as_keras_metric(tf.metrics.recall)
 
 def plot_training_loss(name, history):
 	plt.plot(history['loss'])
@@ -77,3 +60,22 @@ def get_class_weights(y_train):
 	# print 'Class weights'
 	# print ["{0:0.4f}".format(i) for i in class_weights]
 	return dict(enumerate(class_weights))
+
+def print_gradients(model):
+	# J = tf.gradients(model.output, model.trainable_weights)
+	# jacobian = K.function([model.input, K.learning_phase()], [J])
+	#
+	# print jacobian
+	pass
+
+def get_weights(length):
+	weighted_losses = [0] * (args.steps_per_bar * 2) + [1] * (args.steps_per_bar * (args.num_bars  - 2))
+	return np.array([weighted_losses] * length)
+
+def micro_f1_score(y_pred, y_true):
+	y_pred = np.argmax(y_pred, axis=-1).flatten()
+	y_true = np.argmax(y_true, axis=-1).flatten()
+	print confusion_matrix(y_true, y_pred, labels=list(range(0, 82)))
+	return precision_score(y_pred, y_true, average='micro'),\
+	       recall_score(y_pred, y_true, average='micro'), \
+	       f1_score(y_pred, y_true, average='micro')

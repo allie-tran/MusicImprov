@@ -43,6 +43,7 @@ class MelodySequence(list):
 		mid = mido.MidiFile()
 		mid.ticks_per_beat = self._steps_per_bar / 4  # because 1 bar = 4 beat only TODO!
 		melody = mid.add_track('Melody')
+		melody.append(mido.MetaMessage(type='set_tempo', tempo=800000))
 		previous_note = -1
 		for n in self:
 			if n == -2:

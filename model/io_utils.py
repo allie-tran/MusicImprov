@@ -188,10 +188,10 @@ def get_inputs(file, test=False):
 
 	inputs1 = array(inputs1)
 	inputs2 = array(inputs2)
-	if not test:
-		print('Input shapes:')
-		print(shape(inputs1))
-		print(shape(inputs2))
+	# if not test:
+	# 	print('Input shapes:')
+	# 	print(shape(inputs1))
+	# 	print(shape(inputs2))
 	return inputs1, inputs2, start_points
 
 
@@ -215,9 +215,9 @@ def get_outputs(file, start_points, test=False):
 				k += 1
 
 	outputs = array(outputs)
-	if not test:
-		print('Output shapes:')
-		print(shape(outputs))
+	# if not test:
+	# 	print('Output shapes:')
+	# 	print(shape(outputs))
 	return outputs
 
 
