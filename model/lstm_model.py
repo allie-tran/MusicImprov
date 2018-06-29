@@ -13,8 +13,8 @@ from collections import Counter
 
 
 def melody_generate(model, testscore):
-	whole = testscore[:args.num_input_bars * args.steps_per_bar]
 	count = 0
+	whole = testscore[:args.num_input_bars * args.steps_per_bar]
 	while True:
 		primer = [encode_melody(whole[-args.num_input_bars * args.steps_per_bar:],
 		                        [(k + count) % 12 for k in range(args.num_input_bars * args.steps_per_bar)])]
@@ -23,9 +23,10 @@ def melody_generate(model, testscore):
 		whole += output
 		count += 1
 		if count > 8:
-			MelodySequence(whole).to_midi('generated/whole_', save=True)
+			MelodySequence(whole).to_midi('generated/whole_' + str(i), save=True)
 			print 'Generated: ', whole[-8 * args.steps_per_bar:]
 			break
+
 
 def run():
 	if args.savedata:

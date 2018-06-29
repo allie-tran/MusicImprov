@@ -79,7 +79,7 @@ class MelodyNet(Model):
 			print("EPOCH " + str(i))
 			if i % 5 == 0:
 				# Get new training data
-				inputs, reversed_inputs, reversed_inputs_feed = get_inputs(args.training_file)
+				inputs, reversed_inputs= get_inputs(args.training_file)
 				outputs = get_outputs(args.training_file)
 
 			# Train
