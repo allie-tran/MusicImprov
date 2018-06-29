@@ -4,14 +4,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--train",
                     help="To train or just generate?",
                     action="store_true")
-parser.add_argument("-e", "--embed",
-                    help="To embed or just raw input?",
-                    action="store_true")
-parser.add_argument("--train_embedder",
-                    help="To train embedder.",
-                    action="store_true")
 parser.add_argument("-s", "--savedata",
-                    help="To grab new data? Save file name",
+                    help="To grab new data?",
                     action="store_true")
 parser.add_argument("--training_file",
                     help="Training file",
@@ -24,11 +18,6 @@ parser.add_argument("--epochs",
                     nargs='?',
                     default=100,
                     help="The number of epochs.")
-parser.add_argument("--embedder_epochs",
-                    type=int,
-                    nargs='?',
-                    default=20,
-                    help="The number of epochs for the embedder.")
 parser.add_argument("--num_samples",
                     type=int,
                     nargs='?',
@@ -49,11 +38,16 @@ parser.add_argument("--num_units",
                     nargs='?',
                     default=256,
                     help="Number of units in the decoder and encoder.")
-parser.add_argument("--num_bars",
+parser.add_argument("--num_input_bars",
                     type=int,
                     nargs='?',
                     default=4,
-                    help="The number of bars in one phrase.")
+                    help="The number of bars in one input phrase.")
+parser.add_argument("--num_output_bars",
+                    type=int,
+                    nargs='?',
+                    default=1,
+                    help="The number of bars in one output prediction.")
 parser.add_argument("--steps_per_bar",
                     type=int,
                     nargs='?',

@@ -12,43 +12,34 @@ from scripts import *
 from collections import Counter
 
 
-def melody_generate(model, embedder, testscore):
-	whole = testscore[:args.num_bars * args.steps_per_bar]
+def melody_generate(model, testscore):
+	whole = testscore[:args.num_input_bars * args.steps_per_bar]
 	count = 0
-	positions = [k % 12 for k in range(args.num_bars * args.steps_per_bar)]
 	while True:
-		primer = [encode_melody(whole[-args.num_bars * args.steps_per_bar:])]
-		input2 = array([to_onehot([(k + count) % 12 for k in range(args.num_bars * args.steps_per_bar)],
-		                          args.steps_per_bar)])
-		if args.embed:
-			input2 = embedder.embed(primer)
-		output_note = model.generate(primer, input2, 'generated/bar_' + str(count))
-		whole += [output_note]
-		count += 1
-		if count > 128:
-			MelodySequence(whole).to_midi('generated/whole_', save=True)
-			print 'Generated: ', whole[-128:]
-			break
+		primer = [encode_melody(whole[-args.num_input_bars * args.steps_per_bar:],
+		                        [(k + count) % 12 for k in range(args.num_input_bars * args.steps_per_bar)])]
 
+		output = model.generate(primer, 'generated/bar_' + str(count))
+		whole += output
+		count += 1
+		if count > 8:
+			MelodySequence(whole).to_midi('generated/whole_', save=True)
+			print 'Generated: ', whole[-8 * args.steps_per_bar:]
+			break
 
 def run():
 	if args.savedata:
 		create_dataset(args.dataset)
 
-	input_shape1, input_shape2 = get_input_shapes()
+	input_shape, reversed_input_shape= get_input_shapes()
 	output_shape = get_output_shapes()
 
 
 	# with open('starting_points.json', 'w') as f:
 	# 	json.dump(starting_points, f)
 
-	embedder = Embedder(input_shape1, input_shape2, 'Encoder')
-	if args.embed:
-		input_shape2 = [input_shape1[0], args.num_units]
-
-	melody_model = MelodyNet(input_shape1, input_shape2, output_shape, 'MelodyModel'
-	                               + str(args.num_bars) + '_'
-	                               + str(args.steps_per_bar) + '_' + args.note)
+	melody_model = MelodyNet(input_shape, reversed_input_shape,
+	                         output_shape, 'MelodyModel' + args.note)
 
 	# plot_model(melody_model, to_file='model.png')
 	testscore = MusicXML()
@@ -57,15 +48,11 @@ def run():
 	testscore = transformer.transform(testscore)
 
 	if args.train:
-		if args.train_embedder:
-			inputs1, inputs2, starting_points = get_inputs(args.training_file)
-			embedder.train(inputs1, inputs2)
-		embedder.load()
-		melody_model.train(embedder, testscore)
+		melody_model.train(testscore)
 
 
 	# Generation from prime melody
-	melody_generate(melody_model, embedder, testscore)
+	melody_generate(melody_model, testscore)
 
 if __name__ == '__main__':
 	run()

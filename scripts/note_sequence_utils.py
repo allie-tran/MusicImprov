@@ -22,7 +22,7 @@ class MelodySequence(list):
 		"""
 		super(MelodySequence, self).__init__(note_sequence)
 		self._steps_per_bar = args.steps_per_bar
-		self._num_bars = args.num_bars
+		self._num_bars = len(note_sequence) / args.steps_per_bar
 		self._lowest = 48
 		self._highest = 83
 
@@ -60,117 +60,6 @@ class MelodySequence(list):
 			melody.append(mido.Message('control_change', time=2, channel=1))
 		if save:
 			mid.save(name + '_melody.mid')
-		return mid
-
-
-def encode_chord(c, chord_collection, test):
-	"""
-	Assign chord to a number. If new chord, add to the collection
-	:param c: a chord.Chord object
-	:return: a number which was assigned to the chord
-	"""
-	if not c.isChord:
-		return 0
-
-	c.simplifyEnharmonics(inPlace=True)
-	c.removeRedundantPitchClasses(inPlace=True)
-	c.sortAscending(inPlace=True)
-
-	string_chord = harmony.chordSymbolFigureFromChord(c)
-	if string_chord == 'Chord Symbol Cannot Be Identified':
-		string_chord = ''
-		for p in c.pitches:
-			string_chord += p.name + '.'
-	if test:
-		if string_chord not in chord_collection.keys():
-			return -1
-		else:
-			return string_chord
-	chord_collection[string_chord] += 1
-	return string_chord
-
-def decode_chord_from_num(num, chord_collection):
-	"""
-	Given the number, find the encoded chord from the chord_collection
-	:param string_chord: the string_chord
-	:return: list of the pitches the original chord consists of
-	"""
-	if num < 0:
-		return ''
-	string_chord = ''
-	for c, n in chord_collection.items():
-		if n == num:
-			string_chord = c
-			break
-	return string_chord
-
-def decode_chord_from_string(string_chord):
-	if string_chord == '':
-		return None
-	# Split the name of the chords into pitches
-	notes = []
-	if string_chord.endswith('.'):
-		for p in string_chord.split('.'):
-			if p == '':
-				continue
-			notes.append(pitch.Pitch(p))
-	else:
-		notes = harmony.ChordSymbol(string_chord).pitches
-	return notes
-
-def find_chord_duration(i, chord_sequence):
-	chord = chord_sequence[i]
-	duration = 1
-	i += 1
-	while i < len(chord_sequence) and (chord_sequence[i] == '' or chord_sequence[i] == chord):
-		duration += 1
-		i += 1
-	return duration, i
-
-class ChordSequence(list):
-	"""
-	A list of chord for one phrase.
-	"""
-
-	def __init__(self, chord_sequence, chord_collection, test, encode=False):
-		"""
-		Constructs a chord sequence
-		:param chord_sequence: a list of chord.Chord objects
-		"""
-		if encode:
-			encoded_chords = [decode_chord_from_num(num_chord, chord_collection) for num_chord in chord_sequence]
-		else:
-			encoded_chords = []
-			for c in chord_sequence:
-				encoded_chords.append(encode_chord(c, chord_collection, test=test))
-		assert len(encoded_chords) == args.steps_per_bar * args.num_bars
-		super(ChordSequence, self).__init__(encoded_chords)
-		self._num_bars = args.num_bars
-
-	def to_midi(self, melody_sequence, name):
-		"""
-		Construct a midi object for the chord + melody
-		:param melody_sequence: a melody of the phrase the chord was constructed from
-		:param name: file name for the midi
-		:return: a mido.MidiFile object
-		"""
-		mid = melody_sequence.to_midi(name)
-		track = mid.add_track('Chord')
-		i = 0
-		while i < len(self):
-			c = decode_chord_from_string(self[i])
-			if c is None:
-				track.append(mido.Message('control_change', time=1))
-				i += 1
-				continue
-			duration, i = find_chord_duration(i, self)
-			notes = [n.midi for n in c]
-			for n in notes:
-				track.append(mido.Message('note_on', note=int(n), velocity=60, time=0, channel=2))
-			track.append(mido.Message('control_change', time=duration))
-			for n in notes:
-				track.append(mido.Message('note_off', note=int(n), velocity=60, time=0, channel=2))
-		mid.save(name + '.mid')
 		return mid
 
 
