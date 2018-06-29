@@ -27,16 +27,17 @@ class MelodyNet(Model):
 		concatenate = Concatenate()([note_lstm, rhythm_lstm])
 
 		# The decoded layer is the embedded input of X1
-		main_lstm = LSTM(args.num_units, return_sequences=True,
-		                 dropout=args.dropout, name="MainLSTM", recurrent_regularizer=cust_reg)(concatenate)
+		# main_lstm = LSTM(args.num_units, return_sequences=True,
+		#                  dropout=args.dropout, name="MainLSTM", recurrent_regularizer=cust_reg)(concatenate)
 
-		logprob = Dense(output_shape[1], name="Log_probability")(main_lstm)
+		logprob = Dense(output_shape[1], name="Log_probability")(concatenate)
 		temp_logprob = Lambda(lambda x: x / args.temperature, name="Apply_temperature")(logprob)
 		activate = Activation('softmax', name="Softmax_activation")(temp_logprob)
 
 		super(MelodyNet, self).__init__([X1, embedded_X1], activate)
 
-		self.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy', precision, recall])
+		self.compile(optimizer='adam', loss='categorical_crossentropy', sample_weight_mode="temporal",
+		             metrics=['accuracy'])
 
 		print_summary(self)
 
@@ -77,8 +78,8 @@ class MelodyNet(Model):
 			history = self.fit(
 				[net_input, net_input2],
 				net_output,
-				class_weight = get_class_weights(net_output),
 				epochs=1,
+				sample_weight=get_weights(net_input.shape[0]),
 				batch_size=32,
 				shuffle=False,
 				callbacks=callbacks_list,
@@ -89,6 +90,8 @@ class MelodyNet(Model):
 			all_history['val_loss'] += history.history['val_loss']
 			all_history['acc'] += history.history['acc']
 			all_history['val_acc'] += history.history['val_acc']
+			# Print gradients
+			print_gradients(self)
 
 			# Evaluation
 			inputs1, inputs2, starting_points = get_inputs(args.testing_file, test=True)
@@ -125,14 +128,16 @@ class MelodyNet(Model):
 		# input_sequence = pad_sequences(input_sequence, maxlen=args.num_bars * args.steps_per_bar, dtype='float32')
 		self.load_weights('weights/' + self._model_name + '.hdf5')
 		# output = self.predict([input_sequence, array([to_onehot(positions, args.steps_per_bar)])], verbose=0)[0]
-		output = self.predict([input_sequence, input2], verbose=0)
+		output = self.predict([input_sequence, input2], verbose=0)[0]
 		output = list(argmax(output, axis=1))
-		return output[0] - 2
+		return output[-1] - 2
 
 	def load(self):
 		self.load_weights(self._file_path)
 
 	def get_score(self, inputs, outputs):
+		y_pred = self.predict(x=inputs)
+		print 'Micro F1_score: ', micro_f1_score(y_pred, outputs)
 		return self.evaluate(x=inputs, y=outputs, verbose=2)
 
 
