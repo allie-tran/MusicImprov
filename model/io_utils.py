@@ -185,6 +185,7 @@ def get_outputs(file, test=False):
 				next_bar = melody[j+input_length:j+input_length+output_length]
 				next_bar = [n + 2 for n in next_bar]
 				outputs.append(to_onehot(next_bar, output_shape[1]))
+				j+=input_length
 
 	outputs = array(outputs)
 	# if not test:
