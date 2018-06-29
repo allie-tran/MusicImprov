@@ -13,13 +13,12 @@ try:
 except IOError:
 	score_list = []
 
-def encode_melody(melody):
+def encode_melody(melody, position):
 	"""
 	Encode a melody sequence into the net's input
 	:param melody:
 	:return:
 	"""
-	# return [name_to_spiral(midi_to_name(n)) for n in melody]
 
 	melody = [n + 2 for n in melody]
 	input_sequence = []
@@ -34,37 +33,31 @@ def encode_melody(melody):
 		i += 1
 
 	for k, n in enumerate(melody):
-		feature = zeros(32)
+		feature = zeros(30 + args.steps_per_bar)
+
 		pitchclass = zeros(13)
 		if n >= 2:
 			interval = n - prev
 			prev = n
 			silent = 0
-			interval_from_first_note = n - first_note
 			pitchclass[int((n + 22) % 12)] = 1
-			interval_from_last_note = n
 		else: # silence
 			silent += 1
 			interval = 0
-			interval_from_first_note = 0
 			pitchclass[12] = 1
 
-		position = n
-		position_in_bar = k
-		feature[0] = position
+		feature[0] = n
 		feature[1:14] = pitchclass
 		feature[15] = interval
 		feature[16:28] = context
 		feature[29] = silent
-		feature[30] = interval_from_first_note
-		feature[31] = position_in_bar
+		feature[position[k] + 30] = 1
 		input_sequence.append(feature)
 
 		if n >= 2:
 			context[int((n + 22) % 12)] += 1
 
 	return input_sequence
-
 
 
 def create_dataset(folder):
@@ -139,80 +132,59 @@ def create_dataset(folder):
 		with open(args.phrase_file + '.json', 'w') as f:
 			json.dump(data, f)
 
-def get_start_points(test):
-	# if test:
-	# 	return range(args.steps_per_bar * args.num_bars)
-	start_points = set()
-	while len(start_points) < args.num_samples:
-		new_choice = random.choice(range(args.steps_per_bar * args.num_bars))
-		if new_choice % 2 != 0:
-			if random.random() < 0.9:
-				continue
-		if new_choice % 4 != 0:
-			if random.random() < 0.5:
-				continue
-		start_points.add(new_choice)
-	return start_points
-
 def get_input_shapes():
-	input_shape = (args.num_bars * args.steps_per_bar, 32)
-	input_shape2 = (args.num_bars * args.steps_per_bar, args.steps_per_bar)
-	return input_shape, input_shape2
+	input_shape1 = (args.num_input_bars * args.steps_per_bar, 30 + args.steps_per_bar)
+	reversed_input_shape = (args.num_input_bars * args.steps_per_bar, 82)
+	return input_shape1, reversed_input_shape
 
 def get_output_shapes():
-	output_shape = (args.num_bars * args.steps_per_bar, 82)
+	output_shape = (args.num_output_bars * args.steps_per_bar, 82)
 	return output_shape
 
 def get_inputs(file, test=False):
 	with open(file) as f:
 		melodies = json.load(f)
 
-	inputs1 = []
-	inputs2 = []
+	inputs = []
+	reversed_inputs = []
+	reversed_inputs_feed = []
 
-	start_points = []
 	if args.train:
 		for i, melody in enumerate(melodies):
-			sequence_length = args.num_bars * args.steps_per_bar
-			for start_point in get_start_points(test):
-				start_points.append(start_point)
-				j = start_point
-				while j < len(melody) - sequence_length - 1:
-					inputs1.append(encode_melody(melody[j: j+sequence_length]))
-					position_input = [k % args.steps_per_bar for k in range(j, j + sequence_length)]
-					inputs2.append(to_onehot(position_input, args.steps_per_bar))
-					j += sequence_length
+			input_length = args.num_input_bars * args.steps_per_bar
+			output_length = args.num_output_bars * args.steps_per_bar
+			j = 0
+			while j < len(melody) - (input_length + output_length) - 1:
+				position_input = [k % args.steps_per_bar for k in range(j, j + input_length)]
+				input_phrase = melody[j: j+input_length]
+				inputs.append(encode_melody(input_phrase, position_input))
+				reversed_input = input_phrase[::-1]
+				reversed_input = [n+2 for n in reversed_input]
+				reversed_inputs.append(to_onehot(reversed_input, 82))
+				j += input_length
 
-	# inputs1 = pad_sequences(inputs1, maxlen=args.num_bars * args.steps_per_bar, dtype='float32')
-	# inputs2 = pad_sequences(inputs2, maxlen=args.num_bars * args.steps_per_bar, dtype='float32')
-
-	inputs1 = array(inputs1)
-	inputs2 = array(inputs2)
-	# if not test:
-	# 	print('Input shapes:')
-	# 	print(shape(inputs1))
-	# 	print(shape(inputs2))
-	return inputs1, inputs2, start_points
+	inputs = array(inputs)
+	reversed_inputs = array(reversed_inputs)
+	return inputs, reversed_inputs
 
 
-def get_outputs(file, start_points, test=False):
+def get_outputs(file, test=False):
 	with open(file) as f:
 		melodies = json.load(f)
 
 	outputs = []
+	outputs_feed = []
 	k = 0
 	output_shape = get_output_shapes()
 	if args.train:
 		for i, melody in enumerate(melodies):
-			sequence_length = args.num_bars * args.steps_per_bar
-			for n in range(args.num_samples):
-				j = start_points[k]
-				while j < len(melody) - sequence_length - 1:
-					next_bar = melody[j + 1: j + sequence_length + 1]
-					next_bar = [n + 2 for n in next_bar]
-					outputs.append(to_onehot(next_bar, output_shape[1]))
-					j += sequence_length
-				k += 1
+			input_length = args.num_input_bars * args.steps_per_bar
+			output_length = args.num_output_bars * args.steps_per_bar
+			j = 0
+			while j < len(melody) - (input_length + output_length) - 1:
+				next_bar = melody[j+input_length:j+input_length+output_length]
+				next_bar = [n + 2 for n in next_bar]
+				outputs.append(to_onehot(next_bar, output_shape[1]))
 
 	outputs = array(outputs)
 	# if not test:
@@ -231,30 +203,6 @@ def midi_to_name(midi):
 	note_index = int(midi % 12)
 	return names[note_index]
 
-def name_to_spiral(name):
-	if name == "R":
-		return [0, 0, 0]
-	r = 4
-	h = 1
-	spiral = ["C", "G", "D", "A", "E", "B", "F#", "C#", "G#", "D#", "A#", "F"]
-	k = spiral.index(name)
-	# print([int(r*sin(k*pi/2)), int(r*cos(k*pi/2)), k*h])
-	return [int(r*sin(k*pi/2)), int(r*cos(k*pi/2)), k*h]
-
-def dist(p1, p2):
-	dist = 0
-	for i in range(len(p1)):
-		dist += (p1[i] - p2[i]) ** 2
-	return sqrt(dist)
-
-
-def spiral_to_name(position):
-	r = 4
-	h = 1
-	spiral = ["R", "C", "G", "D", "A", "E", "B", "F#", "C#", "G#", "D#", "A#", "F"]
-	positions = [[0, 0, 0]] + [[int(r*sin(k*pi/2)), int(r*cos(k*pi/2)), k*h] for k in range(len(spiral))]
-	distances = array([dist(position, p) for p in positions])
-	return spiral[distances.argmin()]
 
 def name_to_midi(name):
 	if name == "R":

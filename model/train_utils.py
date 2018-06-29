@@ -61,17 +61,6 @@ def get_class_weights(y_train):
 	# print ["{0:0.4f}".format(i) for i in class_weights]
 	return dict(enumerate(class_weights))
 
-def print_gradients(model):
-	# J = tf.gradients(model.output, model.trainable_weights)
-	# jacobian = K.function([model.input, K.learning_phase()], [J])
-	#
-	# print jacobian
-	pass
-
-def get_weights(length):
-	weighted_losses = [0] * (args.steps_per_bar * 2) + [1] * (args.steps_per_bar * (args.num_bars  - 2))
-	return np.array([weighted_losses] * length)
-
 def micro_f1_score(y_pred, y_true):
 	y_pred = np.argmax(y_pred, axis=-1).flatten()
 	y_true = np.argmax(y_true, axis=-1).flatten()

@@ -88,7 +88,7 @@ class XMLtoNoteSequence(Transformer):
 		"""
 		Construct a transformer which transform MusicXML object to a pair of MelodySequence-ChordSequence
 		"""
-		super(XMLtoNoteSequence, self).__init__(MusicXML, (MelodySequence, ChordSequence))
+		super(XMLtoNoteSequence, self).__init__(MusicXML, MelodySequence)
 
 	def transform(self, input):
 		"""
