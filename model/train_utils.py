@@ -65,9 +65,9 @@ def micro_f1_score(y_pred, y_true):
 	y_pred = y_pred.argmax(axis=-1).flatten()
 	y_true = np.argmax(y_true, axis=-1).flatten()
 	display_confusion_matrix(confusion_matrix(y_true, y_pred, labels=list(range(0, 82))))
-	return precision_score(y_pred, y_true, average='micro', labels=list(range(0, 82))),\
-	       recall_score(y_pred, y_true, average='micro', labels=list(range(0, 82))), \
-	       f1_score(y_pred, y_true, average='micro', labels=list(range(0, 82)))
+	return precision_score(y_pred, y_true, average='macro'),\
+	       recall_score(y_pred, y_true, average='macro'), \
+	       f1_score(y_pred, y_true, average='macro')
 
 def display_confusion_matrix(matrix):
 	print('Confusion matrix')

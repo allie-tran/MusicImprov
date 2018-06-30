@@ -147,7 +147,6 @@ def get_inputs(file, test=False):
 
 	inputs = []
 	reversed_inputs = []
-	reversed_inputs_feed = []
 
 	if args.train:
 		for i, melody in enumerate(melodies):
@@ -158,6 +157,7 @@ def get_inputs(file, test=False):
 				position_input = [k % args.steps_per_bar for k in range(j, j + input_length)]
 				input_phrase = melody[j: j+input_length]
 				inputs.append(encode_melody(input_phrase, position_input))
+
 				reversed_input = input_phrase[::-1]
 				reversed_input = [n+2 for n in reversed_input]
 				reversed_inputs.append(to_onehot(reversed_input, 82))
@@ -173,8 +173,6 @@ def get_outputs(file, test=False):
 		melodies = json.load(f)
 
 	outputs = []
-	outputs_feed = []
-	k = 0
 	output_shape = get_output_shapes()
 	if args.train:
 		for i, melody in enumerate(melodies):
@@ -193,6 +191,33 @@ def get_outputs(file, test=False):
 	# 	print(shape(outputs))
 	return outputs
 
+
+def get_rhythm_inputs_outputs(file, test=False):
+	with open(file) as f:
+		melodies = json.load(f)
+	input_rhythms = []
+	output_rhythms = []
+	for i, melody in enumerate(melodies):
+		input_length = args.num_input_bars * args.steps_per_bar
+		output_length = args.num_output_bars * args.steps_per_bar
+		j = 0
+		while j < len(melody) - (input_length + output_length) - 1:
+			input_phrase = melody[j: j + input_length]
+			rhythm = [[0] if n == -1 else [1] for n in input_phrase]
+			input_rhythms.append(rhythm)
+
+			next_bar = melody[j+input_length:j+input_length+output_length]
+			rhythm = [[0] if n == -1 else [1] for n in next_bar]
+			output_rhythms.append(rhythm)
+			j += args.steps_per_bar
+
+	input_rhythms = array(input_rhythms)
+	output_rhythms = array(output_rhythms)
+
+	print 'Input shape: ', input_rhythms.shape
+	print 'Output shape: ', output_rhythms.shape
+
+	return input_rhythms, output_rhythms
 
 def midi_to_name(midi):
 	if midi < 0:

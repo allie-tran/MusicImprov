@@ -5,11 +5,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from model import *
 from keras.utils import plot_model
 
-from scripts.configure import args
 from scripts import *
 
-
-from collections import Counter
 
 
 def melody_generate(model, testscore):
@@ -34,10 +31,6 @@ def run():
 
 	input_shape, reversed_input_shape= get_input_shapes()
 	output_shape = get_output_shapes()
-
-
-	# with open('starting_points.json', 'w') as f:
-	# 	json.dump(starting_points, f)
 
 	melody_model = MelodyNet(input_shape, reversed_input_shape,
 	                         output_shape, 'MelodyModel' + args.note)
