@@ -27,7 +27,7 @@ class RhythmNet(Model):
 
 		super(RhythmNet, self).__init__(X, Y)
 
-		self.compile(optimizer='rmsprop', loss='binary_crossentropy', metrics=['accuracy'])
+		self.compile(optimizer='rmsprop', loss='binary_crossentropy', metrics=['accuracy', precision, recall])
 
 	def train(self, inputs, outputs):
 		try:
