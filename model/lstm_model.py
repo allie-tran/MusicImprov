@@ -134,7 +134,8 @@ class MelodyNet(Model):
 
 	def get_score(self, inputs, outputs):
 		y_pred = self.predict(x=inputs)[1]
-		print 'Micro F1_score: ', micro_f1_score(y_pred, outputs[1])
+		score = micro_f1_score(y_pred, outputs[1])
+		print 'Micro F1_score: ', score
 		return self.evaluate(x=inputs, y=outputs, verbose=2)
 
 

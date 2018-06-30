@@ -161,7 +161,7 @@ def get_inputs(file, test=False):
 				reversed_input = input_phrase[::-1]
 				reversed_input = [n+2 for n in reversed_input]
 				reversed_inputs.append(to_onehot(reversed_input, 82))
-				j += input_length
+				j += args.steps_per_bar
 
 	inputs = array(inputs)
 	reversed_inputs = array(reversed_inputs)
@@ -185,7 +185,7 @@ def get_outputs(file, test=False):
 				next_bar = melody[j+input_length:j+input_length+output_length]
 				next_bar = [n + 2 for n in next_bar]
 				outputs.append(to_onehot(next_bar, output_shape[1]))
-				j+=input_length
+				j += args.steps_per_bar
 
 	outputs = array(outputs)
 	# if not test:

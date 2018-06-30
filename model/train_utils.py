@@ -64,7 +64,13 @@ def get_class_weights(y_train):
 def micro_f1_score(y_pred, y_true):
 	y_pred = y_pred.argmax(axis=-1).flatten()
 	y_true = np.argmax(y_true, axis=-1).flatten()
-	print confusion_matrix(y_true, y_pred, labels=list(range(0, 82)))
-	return precision_score(y_pred, y_true, average='micro'),\
-	       recall_score(y_pred, y_true, average='micro'), \
-	       f1_score(y_pred, y_true, average='micro')
+	display_confusion_matrix(confusion_matrix(y_true, y_pred, labels=list(range(0, 82))))
+	return precision_score(y_pred, y_true, average='micro', labels=list(range(0, 82))),\
+	       recall_score(y_pred, y_true, average='micro', labels=list(range(0, 82))), \
+	       f1_score(y_pred, y_true, average='micro', labels=list(range(0, 82)))
+
+def display_confusion_matrix(matrix):
+	print('Confusion matrix')
+	formatter = '%-2i%-6i' + '%-3i' * 15 + '%-3i' * 10 + '%-3i' * 3
+	for i in range(0, 30):
+		print formatter % tuple(matrix[i][:30])
