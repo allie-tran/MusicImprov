@@ -9,7 +9,7 @@ from music21 import chord, key
 
 import xml.etree.ElementTree as ET
 
-logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
+logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.ERROR)
 environment.UserSettings()['warnings'] = 0
 
 

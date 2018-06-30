@@ -25,6 +25,7 @@ class MelodySequence(list):
 		self._num_bars = len(note_sequence) / args.steps_per_bar
 		self._lowest = 48
 		self._highest = 83
+		self._rhythm = [[0] if n == -1 else [1] for n in note_sequence]
 
 	@property
 	def steps_per_bar(self):
@@ -33,6 +34,10 @@ class MelodySequence(list):
 	@property
 	def num_bars(self):
 		return self._num_bars
+
+	@property
+	def rhythm(self):
+		return self._rhythm
 
 	def to_midi(self, name, save=False):
 		"""
@@ -61,6 +66,7 @@ class MelodySequence(list):
 		if save:
 			mid.save(name + '_melody.mid')
 		return mid
+
 
 
 def to_onehot(data, num_classes):
