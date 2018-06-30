@@ -71,6 +71,6 @@ def micro_f1_score(y_pred, y_true):
 
 def display_confusion_matrix(matrix):
 	print('Confusion matrix')
-	formatter = '%-2i%-6i' + '%-3i' * 15 + '%-3i' * 10 + '%-3i' * 3
 	for i in range(0, 30):
+		formatter = '%-5i' * i + '*%-4i' + '%-5i' * (30-i-1)
 		print formatter % tuple(matrix[i][:30])
