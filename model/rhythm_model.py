@@ -50,7 +50,7 @@ class RhythmNet(Model):
 		self.fit(
 			inputs,
 			outputs,
-			epochs=100,
+			epochs=1,
 			batch_size=32,
 			callbacks=callbacks_list,
 			validation_split=0.2,
@@ -69,26 +69,38 @@ if __name__ == "__main__":
 	output_shape = (args.num_output_bars * args.steps_per_bar, 1)
 
 	rhythm_model = RhythmNet(input_shape, output_shape, 'RhythmModel' + args.note)
-
-	inputs, outputs = get_rhythm_inputs_outputs('training.json')
-
-	rhythm_model.train(inputs, outputs)
-
 	# plot_model(melody_model, to_file='model.png')
 	testscore = MusicXML()
 	testscore.from_file(args.test)
 	transformer = XMLtoNoteSequence()
 	testscore = transformer.transform(testscore).rhythm
 
-	count = 0
-	whole = testscore[:args.num_input_bars * args.steps_per_bar]
-	while True:
-		primer = [encode_melody(whole[-args.num_input_bars * args.steps_per_bar:],
-		                        [k % 12 for k in range(args.num_input_bars * args.steps_per_bar)])]
+	inputs, outputs = get_rhythm_inputs_outputs('training.json')
 
-		output = rhythm_model.get_next_rhythm(primer)
-		whole += output
-		count += 1
-		if count > 8:
-			print 'Generated: ', whole[-8 * args.steps_per_bar:]
-			break
+	for i in range(20):
+		print('=' * 80)
+		print("EPOCH " + str(i))
+
+		# Train
+		rhythm_model.train(inputs, outputs)
+
+
+		# Generation
+		count = 0
+		whole = testscore[:args.num_input_bars * args.steps_per_bar]
+		while True:
+			primer = [encode_melody(whole[-args.num_input_bars * args.steps_per_bar:],
+			                        [k % 12 for k in range(args.num_input_bars * args.steps_per_bar)])]
+
+			output = rhythm_model.get_next_rhythm(primer)
+			whole += output
+			count += 1
+			if count > 8:
+				print 'Generated: ', whole[-8 * args.steps_per_bar:]
+				break
+
+
+
+
+
+
