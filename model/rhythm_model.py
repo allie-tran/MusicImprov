@@ -27,7 +27,7 @@ class RhythmNet(Model):
 
 		super(RhythmNet, self).__init__(X, Y)
 
-		self.compile(optimizer='rmsprop', loss='binary_crossentropy', metrics=['accuracy', precision, recall])
+		self.compile(optimizer='rmsprop', loss='binary_crossentropy', metrics=['accuracy'])
 
 	def train(self, inputs, outputs):
 		try:
@@ -61,7 +61,15 @@ class RhythmNet(Model):
 		self.load_weights(self._file_path)
 
 	def get_next_rhythm(self, X):
-		return self.predict(x=X, verbose=2)[0]
+		return self.predict(x=X, verbose=2)[0].round()
+
+	def get_score(self, inputs, outputs):
+		y_pred = self.predict(x=inputs).round().flatten()
+		f1 = f1_score(y_pred, outputs.flatten(), average='binary')
+		pre = precision_score(y_pred, outputs.flatten(), average='binary')
+		rec = recall_score(y_pred, outputs.flatten(), average='binary')
+		print 'F1_score: ', pre, rec, f1
+		return self.evaluate(x=inputs, y=outputs, verbose=2)
 
 if __name__ == "__main__":
 
@@ -76,6 +84,7 @@ if __name__ == "__main__":
 	testscore = transformer.transform(testscore).rhythm
 
 	inputs, outputs = get_rhythm_inputs_outputs('training.json')
+	test_inputs, test_outputs = get_rhythm_inputs_outputs('testing.json')
 
 	for i in range(20):
 		print('=' * 80)
@@ -84,16 +93,17 @@ if __name__ == "__main__":
 		# Train
 		rhythm_model.train(inputs, outputs)
 
+		# Evaluation
+		print '###Test Score: ', rhythm_model.get_score(test_inputs, test_outputs)
 
 		# Generation
 		count = 0
 		whole = testscore[:args.num_input_bars * args.steps_per_bar]
 		while True:
-			primer = [encode_melody(whole[-args.num_input_bars * args.steps_per_bar:],
-			                        [k % 12 for k in range(args.num_input_bars * args.steps_per_bar)])]
+			primer = array([whole[-args.num_input_bars * args.steps_per_bar:]])
 
 			output = rhythm_model.get_next_rhythm(primer)
-			whole += output
+			np.concatenate([whole, np.reshape(output, (16, 1))], axis=0)
 			count += 1
 			if count > 8:
 				print 'Generated: ', whole[-8 * args.steps_per_bar:]
