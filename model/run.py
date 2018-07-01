@@ -8,15 +8,15 @@ from keras.utils import plot_model
 from scripts import *
 
 
-
 def melody_generate(model, rhythm_model, testscore):
 	count = 0
 	whole = testscore[:args.num_input_bars * args.steps_per_bar]
 	while True:
 		primer = [encode_melody(whole[-args.num_input_bars * args.steps_per_bar:],
 		                        [k % 12 for k in range(args.num_input_bars * args.steps_per_bar)])]
+		rhythm = [[0] if n==-1 else [1] for n in whole[-args.num_input_bars * args.steps_per_bar:]]
 
-		output = model.generate([primer, rhythm_model.predict(primer)], 'generated/bar_' + str(count))
+		output = model.generate([primer, rhythm_model.predict(rhythm)], 'generated/bar_' + str(count))
 		whole += output
 		count += 1
 		if count > 8:
@@ -32,9 +32,12 @@ def run():
 	input_shape, reversed_input_shape= get_input_shapes()
 	output_shape = get_output_shapes()
 
-	rhythm_model = RhythmNet(input_shape, output_shape, 'RhythmModel' + args.note)
+	rhythm_input_shape = (args.num_input_bars * args.steps_per_bar, 1)
+	rhythm_output_shape = (args.num_output_bars * args.steps_per_bar, 1)
 
-	melody_model = MelodyNet(input_shape, reversed_input_shape, (args.num_output_bars * args.steps_per_bar, 1),
+	rhythm_model = RhythmNet(rhythm_input_shape, rhythm_output_shape, 'RhythmModel' + args.note)
+
+	melody_model = MelodyNet(input_shape, reversed_input_shape, rhythm_output_shape,
 	                         output_shape, 'MelodyModel' + args.note)
 
 	# plot_model(melody_model, to_file='model.png')

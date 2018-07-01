@@ -21,13 +21,13 @@ class MelodyNet(Model):
 		X = Input(shape=input_shape, name="Input")
 
 		encoded =  LSTM(args.num_units,
-		                 dropout=args.dropout, name="Encoded", recurrent_regularizer=cust_reg)(X)
+		                 dropout=args.dropout, name="Encoder", recurrent_regularizer=cust_reg)(X)
 		dense = Dense(output_shape[1], name="ChangeDimension")(encoded)
 
 		repeat1 = RepeatVector(reversed_input_shape[0])(dense)
 
 		decoded = LSTM(args.num_units, return_sequences=True,
-		                 dropout=args.dropout, name="RhythmLSTM", recurrent_regularizer=cust_reg)(repeat1)
+		                 dropout=args.dropout, name="Decoder", recurrent_regularizer=cust_reg)(repeat1)
 
 		dense_decoded = Dense(output_shape[1], name="DenseDecoded")(decoded)
 		activate_decoded = Activation('softmax', name="ActivateDecoded")(dense_decoded)
@@ -72,13 +72,13 @@ class MelodyNet(Model):
 		               'acc': [],
 		               'val_acc': []}
 
-		test_inputs, test_reversed_inputs = get_inputs(args.testing_file, test=True)
-		test_rhythms = rhythm_model.predict(test_inputs).round()
-		test_outputs = get_outputs(args.testing_file)
-
 		inputs, reversed_inputs = get_inputs(args.training_file)
-		rhythms = rhythm_model.predict(inputs).round()
+		rhythms, _ = get_rhythm_inputs_outputs(args.training_file)
 		outputs = get_outputs(args.training_file)
+
+		test_inputs, test_reversed_inputs = get_inputs(args.testing_file, test=True)
+		test_rhythms, _ = get_rhythm_inputs_outputs(args.testing_file)
+		test_outputs = get_outputs(args.testing_file)
 
 		for i in range(args.epochs):
 			print('='*80)
@@ -110,8 +110,10 @@ class MelodyNet(Model):
 			while True:
 				primer = [encode_melody(whole[-args.num_input_bars * args.steps_per_bar:],
 				                        [k % 12 for k in range(args.num_input_bars * args.steps_per_bar)])]
+				rhythm = [[0] if n == -1 else [1] for n in whole[-args.num_input_bars * args.steps_per_bar:]]
 
-				output = self.generate([primer, rhythm_model.predict(primer)], 'generated/bar_' + str(count))
+				output = self.generate([primer, rhythm_model.predict(rhythm)], 'generated/bar_' + str(count))
+
 				whole += output
 				count += 1
 				if count > 8:
