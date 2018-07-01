@@ -13,7 +13,7 @@ class MelodyNet(Model):
 	"""
 		Create a general structure of the neural network
 		"""
-	def __init__(self, input_shape, reversed_input_shape,
+	def __init__(self, input_shape, reversed_input_shape, rhythm_shape,
 	             output_shape, model_name):
 		self._model_name = model_name
 		self._file_path = "weights/{}.hdf5".format(self._model_name)
@@ -33,15 +33,16 @@ class MelodyNet(Model):
 		activate_decoded = Activation('softmax', name="ActivateDecoded")(dense_decoded)
 
 		repeat2 = RepeatVector(output_shape[0])(dense)
-
+		rhythm = Input(shape=rhythm_shape)
+		concatenate = Concatenate()([repeat2, rhythm])
 		predict = LSTM(args.num_units, return_sequences=True,
-		                 dropout=args.dropout, name="PredictLSTM", recurrent_regularizer=cust_reg)(repeat2)
+		                 dropout=args.dropout, name="PredictLSTM", recurrent_regularizer=cust_reg)(concatenate)
 
 		logprob = Dense(output_shape[1], name="LogProbability")(predict)
 		temp_logprob = Lambda(lambda x: x / args.temperature, name="Apply_temperature")(logprob)
 		activate = Activation('softmax', name="SoftmaxActivation")(temp_logprob)
 
-		super(MelodyNet, self).__init__(X, [activate_decoded, activate])
+		super(MelodyNet, self).__init__([X, rhythm], [activate_decoded, activate])
 
 		self.compile(optimizer='adam', loss='categorical_crossentropy', sample_weight_mode="temporal",
 		             metrics=['accuracy'])
@@ -49,7 +50,7 @@ class MelodyNet(Model):
 		print_summary(self)
 
 
-	def train(self, testscore):
+	def train(self, rhythm_model, testscore):
 		try:
 			self.load()
 		except IOError:
@@ -72,19 +73,20 @@ class MelodyNet(Model):
 		               'val_acc': []}
 
 		test_inputs, test_reversed_inputs = get_inputs(args.testing_file, test=True)
+		test_rhythms = rhythm_model.predict(test_inputs).round()
 		test_outputs = get_outputs(args.testing_file)
+
+		inputs, reversed_inputs = get_inputs(args.training_file)
+		rhythms = rhythm_model.predict(inputs).round()
+		outputs = get_outputs(args.training_file)
 
 		for i in range(args.epochs):
 			print('='*80)
 			print("EPOCH " + str(i))
-			if i % 5 == 0:
-				# Get new training data
-				inputs, reversed_inputs= get_inputs(args.training_file)
-				outputs = get_outputs(args.training_file)
 
 			# Train
 			history = self.fit(
-				inputs,
+				[inputs, rhythms],
 				[reversed_inputs, outputs],
 				epochs=1,
 				batch_size=32,
@@ -99,7 +101,7 @@ class MelodyNet(Model):
 			# all_history['val_acc'] += history.history['val_acc']
 
 			# Evaluation
-			print '###Test Score: ', self.get_score(test_inputs,
+			print '###Test Score: ', self.get_score([test_inputs, test_rhythms],
 			                                        [test_reversed_inputs, test_outputs])
 
 			# Generation
@@ -109,7 +111,7 @@ class MelodyNet(Model):
 				primer = [encode_melody(whole[-args.num_input_bars * args.steps_per_bar:],
 				                        [k % 12 for k in range(args.num_input_bars * args.steps_per_bar)])]
 
-				output = self.generate(primer, 'generated/bar_' + str(count))
+				output = self.generate([primer, rhythm_model.predict(primer)], 'generated/bar_' + str(count))
 				whole += output
 				count += 1
 				if count > 8:
