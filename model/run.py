@@ -9,14 +9,14 @@ from scripts import *
 
 
 
-def melody_generate(model, testscore):
+def melody_generate(model, rhythm_model, testscore):
 	count = 0
 	whole = testscore[:args.num_input_bars * args.steps_per_bar]
 	while True:
 		primer = [encode_melody(whole[-args.num_input_bars * args.steps_per_bar:],
 		                        [k % 12 for k in range(args.num_input_bars * args.steps_per_bar)])]
 
-		output = model.generate(primer, 'generated/bar_' + str(count))
+		output = model.generate([primer, rhythm_model.predict(primer)], 'generated/bar_' + str(count))
 		whole += output
 		count += 1
 		if count > 8:
@@ -32,7 +32,9 @@ def run():
 	input_shape, reversed_input_shape= get_input_shapes()
 	output_shape = get_output_shapes()
 
-	melody_model = MelodyNet(input_shape, reversed_input_shape,
+	rhythm_model = RhythmNet(input_shape, output_shape, 'RhythmModel' + args.note)
+
+	melody_model = MelodyNet(input_shape, reversed_input_shape, (args.num_output_bars * args.steps_per_bar, 1),
 	                         output_shape, 'MelodyModel' + args.note)
 
 	# plot_model(melody_model, to_file='model.png')
@@ -42,11 +44,11 @@ def run():
 	testscore = transformer.transform(testscore)
 
 	if args.train:
-		melody_model.train(testscore)
+		melody_model.train(rhythm_model, testscore)
 
 
 	# Generation from prime melody
-	melody_generate(melody_model, testscore)
+	melody_generate(melody_model, rhythm_model, testscore)
 
 if __name__ == '__main__':
 	run()
