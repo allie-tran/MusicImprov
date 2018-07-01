@@ -74,10 +74,12 @@ class MelodyNet(Model):
 
 		inputs, reversed_inputs = get_inputs(args.training_file)
 		rhythms, _ = get_rhythm_inputs_outputs(args.training_file)
+		predicted_rhythms = rhythm_model.predict(rhythms)
 		outputs = get_outputs(args.training_file)
 
 		test_inputs, test_reversed_inputs = get_inputs(args.testing_file, test=True)
 		test_rhythms, _ = get_rhythm_inputs_outputs(args.testing_file)
+		predicted_test_rhythms = rhythm_model.predict(test_rhythms)
 		test_outputs = get_outputs(args.testing_file)
 
 		for i in range(args.epochs):
@@ -86,7 +88,7 @@ class MelodyNet(Model):
 
 			# Train
 			history = self.fit(
-				[inputs, rhythms],
+				[inputs, predicted_rhythms],
 				[reversed_inputs, outputs],
 				epochs=1,
 				batch_size=32,
@@ -101,7 +103,7 @@ class MelodyNet(Model):
 			# all_history['val_acc'] += history.history['val_acc']
 
 			# Evaluation
-			print '###Test Score: ', self.get_score([test_inputs, test_rhythms],
+			print '###Test Score: ', self.get_score([test_inputs, predicted_test_rhythms],
 			                                        [test_reversed_inputs, test_outputs])
 
 			# Generation
