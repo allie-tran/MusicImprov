@@ -65,11 +65,13 @@ class RhythmNet(Model):
 
 	def get_score(self, inputs, outputs):
 		y_pred = self.predict(x=inputs).round().flatten()
-		f1 = f1_score(y_pred, outputs.flatten(), average='binary')
-		pre = precision_score(y_pred, outputs.flatten(), average='binary')
-		rec = recall_score(y_pred, outputs.flatten(), average='binary')
+		f1 = f1_score(outputs.flatten(), y_pred, average='binary')
+		pre = precision_score(outputs.flatten(), y_pred, average='binary')
+		rec = recall_score(outputs.flatten(), y_pred, average='binary')
+		acc = accuracy_score(outputs.flatten(), y_pred)
 		print 'F1_score: ', pre, rec, f1
-		return self.evaluate(x=inputs, y=outputs, verbose=2)
+		print 'Accuracy ', acc
+		print self.evaluate(x=inputs, y=outputs, verbose=2)
 
 if __name__ == "__main__":
 
@@ -94,7 +96,8 @@ if __name__ == "__main__":
 		rhythm_model.train(inputs, outputs)
 
 		# Evaluation
-		print '###Test Score: ', rhythm_model.get_score(test_inputs, test_outputs)
+		print '###Test Score: '
+		rhythm_model.get_score(test_inputs, test_outputs)
 
 		# Generation
 		count = 0
