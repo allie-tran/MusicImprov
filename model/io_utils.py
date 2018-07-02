@@ -2,7 +2,7 @@ import json
 import os
 import music21
 import random
-from numpy import array, zeros, shape, sin, cos, pi, sqrt
+from numpy import array, zeros, shape, sin, cos, pi, sqrt, argmax
 from scripts import args, to_onehot, MusicXML, XMLtoNoteSequence, Midi
 from xml.etree import cElementTree
 from keras.preprocessing.sequence import pad_sequences
@@ -134,11 +134,10 @@ def create_dataset(folder):
 
 def get_input_shapes():
 	input_shape1 = (args.num_input_bars * args.steps_per_bar, 30 + args.steps_per_bar)
-	reversed_input_shape = (args.num_input_bars * args.steps_per_bar, 82)
-	return input_shape1, reversed_input_shape
+	return input_shape1
 
 def get_output_shapes():
-	output_shape = (args.num_output_bars * args.steps_per_bar, 82)
+	output_shape = (args.num_output_bars * args.steps_per_bar, 83)
 	return output_shape
 
 def get_inputs(file, test=False):
@@ -146,7 +145,6 @@ def get_inputs(file, test=False):
 		melodies = json.load(f)
 
 	inputs = []
-	reversed_inputs = []
 
 	if args.train:
 		for i, melody in enumerate(melodies):
@@ -158,14 +156,10 @@ def get_inputs(file, test=False):
 				input_phrase = melody[j: j+input_length]
 				inputs.append(encode_melody(input_phrase, position_input))
 
-				reversed_input = input_phrase[::-1]
-				reversed_input = [n+2 for n in reversed_input]
-				reversed_inputs.append(to_onehot(reversed_input, 82))
 				j += args.steps_per_bar
 
 	inputs = array(inputs)
-	reversed_inputs = array(reversed_inputs)
-	return inputs, reversed_inputs
+	return inputs
 
 
 def get_outputs(file, test=False):
@@ -173,6 +167,7 @@ def get_outputs(file, test=False):
 		melodies = json.load(f)
 
 	outputs = []
+	outputs_feed = []
 	output_shape = get_output_shapes()
 	if args.train:
 		for i, melody in enumerate(melodies):
@@ -181,43 +176,19 @@ def get_outputs(file, test=False):
 			j = 0
 			while j < len(melody) - (input_length + output_length) - 1:
 				next_bar = melody[j+input_length:j+input_length+output_length]
-				next_bar = [n + 2 for n in next_bar]
+				next_bar = [n + 3 for n in next_bar]
 				outputs.append(to_onehot(next_bar, output_shape[1]))
+
+				next_bar_feed = [0] + next_bar[:-1]
+				outputs_feed.append(to_onehot(next_bar_feed, output_shape[1]))
 				j += args.steps_per_bar
 
 	outputs = array(outputs)
+	outputs_feed = array(outputs_feed)
 	# if not test:
 	# 	print('Output shapes:')
 	# 	print(shape(outputs))
-	return outputs
-
-
-def get_rhythm_inputs_outputs(file, test=False):
-	with open(file) as f:
-		melodies = json.load(f)
-	input_rhythms = []
-	output_rhythms = []
-	for i, melody in enumerate(melodies):
-		input_length = args.num_input_bars * args.steps_per_bar
-		output_length = args.num_output_bars * args.steps_per_bar
-		j = 0
-		while j < len(melody) - (input_length + output_length) - 1:
-			input_phrase = melody[j: j + input_length]
-			rhythm = [[0] if n == -1 else [1] for n in input_phrase]
-			input_rhythms.append(rhythm)
-
-			next_bar = melody[j+input_length:j+input_length+output_length]
-			rhythm = [[0] if n == -1 else [1] for n in next_bar]
-			output_rhythms.append(rhythm)
-			j += args.steps_per_bar
-
-	input_rhythms = array(input_rhythms)
-	output_rhythms = array(output_rhythms)
-
-	print 'Input shape: ', input_rhythms.shape
-	print 'Output shape: ', output_rhythms.shape
-
-	return input_rhythms, output_rhythms
+	return outputs, outputs_feed
 
 def midi_to_name(midi):
 	if midi < 0:
@@ -236,4 +207,7 @@ def name_to_midi(name):
 	names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 	return 60 + names.index(name)
 
+# decode a one hot encoded string
+def one_hot_decode(encoded_seq):
+	return [argmax(vector) for vector in encoded_seq]
 

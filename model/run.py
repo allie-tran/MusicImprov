@@ -29,16 +29,10 @@ def run():
 	if args.savedata:
 		create_dataset(args.dataset)
 
-	input_shape, reversed_input_shape= get_input_shapes()
+	input_shape = get_input_shapes()
 	output_shape = get_output_shapes()
 
-	rhythm_input_shape = (args.num_input_bars * args.steps_per_bar, 1)
-	rhythm_output_shape = (args.num_output_bars * args.steps_per_bar, 1)
-
-	rhythm_model = RhythmNet(rhythm_input_shape, rhythm_output_shape, 'RhythmModel' + args.note)
-
-	melody_model = MelodyNet(input_shape, reversed_input_shape, rhythm_output_shape,
-	                         output_shape, 'MelodyModel' + args.note)
+	melody_model = MelodyNet(input_shape, output_shape, 'MelodyModel' + args.note)
 
 	# plot_model(melody_model, to_file='model.png')
 	testscore = MusicXML()
@@ -47,11 +41,11 @@ def run():
 	testscore = transformer.transform(testscore)
 
 	if args.train:
-		melody_model.train(rhythm_model, testscore)
+		melody_model.train(testscore)
 
 
-	# Generation from prime melody
-	melody_generate(melody_model, rhythm_model, testscore)
+	# # Generation from prime melody
+	# melody_generate(melody_model, rhythm_model, testscore)
 
 if __name__ == '__main__':
 	run()
