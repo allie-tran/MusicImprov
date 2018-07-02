@@ -13,45 +13,39 @@ class MelodyNet(Model):
 	"""
 		Create a general structure of the neural network
 		"""
-	def __init__(self, input_shape, reversed_input_shape, rhythm_shape,
-	             output_shape, model_name):
+	def __init__(self,input_shape, output_shape , model_name):
 		self._model_name = model_name
 		self._file_path = "weights/{}.hdf5".format(self._model_name)
+		self._input_shape = input_shape
+		self._output_shape = output_shape
 
-		X = Input(shape=input_shape, name="Input")
+	def define_models(self, ):
+		# define training encoder
+		encoder_inputs = Input(shape=self._input_shape)
+		encoder = LSTM(args.num_units, return_state=True)
+		encoder_outputs, state_h, state_c = encoder(encoder_inputs)
+		encoder_states = [state_h, state_c]
+		# define training decoder
+		decoder_inputs = Input(shape=self._output_shape)
+		decoder_lstm = LSTM(args.num_units, return_sequences=True, return_state=True)
+		decoder_outputs, _, _ = decoder_lstm(decoder_inputs, initial_state=encoder_states)
+		decoder_dense = Dense(self._output_shape[1], activation='softmax')
+		decoder_outputs = decoder_dense(decoder_outputs)
+		self.model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
+		# define inference encoder
+		self.encoder_model = Model(encoder_inputs, encoder_states)
+		# define inference decoder
+		decoder_state_input_h = Input(shape=(args.num_units,))
+		decoder_state_input_c = Input(shape=(args.num_units,))
+		decoder_states_inputs = [decoder_state_input_h, decoder_state_input_c]
+		decoder_outputs, state_h, state_c = decoder_lstm(decoder_inputs, initial_state=decoder_states_inputs)
+		decoder_states = [state_h, state_c]
+		decoder_outputs = decoder_dense(decoder_outputs)
+		self.decoder_model = Model([decoder_inputs] + decoder_states_inputs, [decoder_outputs] + decoder_states)
 
-		encoded =  LSTM(args.num_units,
-		                 dropout=args.dropout, name="Encoder", recurrent_regularizer=cust_reg)(X)
-		dense = Dense(output_shape[1], name="ChangeDimension")(encoded)
+		self.model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['acc'])
 
-		repeat1 = RepeatVector(reversed_input_shape[0])(dense)
-
-		decoded = LSTM(args.num_units, return_sequences=True,
-		                 dropout=args.dropout, name="Decoder", recurrent_regularizer=cust_reg)(repeat1)
-
-		dense_decoded = Dense(output_shape[1], name="DenseDecoded")(decoded)
-		activate_decoded = Activation('softmax', name="ActivateDecoded")(dense_decoded)
-
-		repeat2 = RepeatVector(output_shape[0])(dense)
-		rhythm = Input(shape=rhythm_shape)
-		concatenate = Concatenate()([rhythm, repeat2])
-		predict = LSTM(args.num_units, return_sequences=True,
-		                 dropout=args.dropout, name="PredictLSTM", recurrent_regularizer=cust_reg)(concatenate)
-
-		concatenate2 = Concatenate()([rhythm, predict])
-		logprob = Dense(output_shape[1], name="LogProbability")(concatenate2)
-		temp_logprob = Lambda(lambda x: x / args.temperature, name="Apply_temperature")(logprob)
-		activate = Activation('softmax', name="SoftmaxActivation")(temp_logprob)
-
-		super(MelodyNet, self).__init__([X, rhythm], [activate_decoded, activate])
-
-		self.compile(optimizer='adam', loss='categorical_crossentropy', sample_weight_mode="temporal",
-		             metrics=['accuracy'])
-
-		print_summary(self)
-
-
-	def train(self, rhythm_model, testscore):
+	def train(self, testscore):
 		try:
 			self.load()
 		except IOError:
@@ -73,24 +67,20 @@ class MelodyNet(Model):
 		               'acc': [],
 		               'val_acc': []}
 
-		inputs, reversed_inputs = get_inputs(args.training_file)
-		rhythms, _ = get_rhythm_inputs_outputs(args.training_file)
-		predicted_rhythms = rhythm_model.predict(rhythms)
-		outputs = get_outputs(args.training_file)
+		inputs = get_inputs(args.training_file)
+		outputs, outputs_feed = get_outputs(args.training_file)
 
-		test_inputs, test_reversed_inputs = get_inputs(args.testing_file, test=True)
-		test_rhythms, _ = get_rhythm_inputs_outputs(args.testing_file)
-		predicted_test_rhythms = rhythm_model.predict(test_rhythms)
-		test_outputs = get_outputs(args.testing_file)
+		test_inputs = get_inputs(args.testing_file, test=True)
+		test_outputs, _ = get_outputs(args.testing_file)
 
 		for i in range(args.epochs):
 			print('='*80)
 			print("EPOCH " + str(i))
 
 			# Train
-			history = self.fit(
-				[inputs, predicted_rhythms],
-				[reversed_inputs, outputs],
+			history = self.model.fit(
+				[inputs, outputs_feed],
+				outputs,
 				epochs=1,
 				batch_size=32,
 				shuffle=False,
@@ -104,45 +94,69 @@ class MelodyNet(Model):
 			# all_history['val_acc'] += history.history['val_acc']
 
 			# Evaluation
-			print '###Test Score: ', self.get_score([test_inputs, predicted_test_rhythms],
-			                                        [test_reversed_inputs, test_outputs])
+			print '###Test Score: ', self.get_score(test_inputs, test_outputs)
 
-			# Generation
-			count = 0
-			whole = testscore[:args.num_input_bars * args.steps_per_bar]
-			while True:
-				primer = array([encode_melody(whole[-args.num_input_bars * args.steps_per_bar:],
-				                        [k % 12 for k in range(args.num_input_bars * args.steps_per_bar)])])
-				rhythm = array([[[0] if n == -1 else [1] for n in whole[-args.num_input_bars * args.steps_per_bar:]]])
-
-				output = self.generate([primer, rhythm_model.predict(rhythm)], 'generated/bar_' + str(count))
-
-				whole += output
-				count += 1
-				if count > 8:
-					MelodySequence(whole).to_midi('generated/whole_' + str(i), save=True)
-					print 'Generated: ', whole[-8 * args.steps_per_bar:]
-					break
-
-
+			# # Generation
+			# count = 0
+			# whole = testscore[:args.num_input_bars * args.steps_per_bar]
+			# while True:
+			# 	primer = array([encode_melody(whole[-args.num_input_bars * args.steps_per_bar:],
+			# 	                        [k % 12 for k in range(args.num_input_bars * args.steps_per_bar)])])
+			# 	rhythm = array([[[0] if n == -1 else [1] for n in whole[-args.num_input_bars * args.steps_per_bar:]]])
+			#
+			# 	output = self.generate([primer, rhythm_model.predict(rhythm)], 'generated/bar_' + str(count))
+			#
+			# 	whole += output
+			# 	count += 1
+			# 	if count > 8:
+			# 		MelodySequence(whole).to_midi('generated/whole_' + str(i), save=True)
+			# 		print 'Generated: ', whole[-8 * args.steps_per_bar:]
+			# 		break
 
 		plot_training_loss(self.name, all_history)
 
 
-	def generate(self, inputs, name):
-		self.load_weights('weights/' + self._model_name + '.hdf5')
-		output = self.predict(inputs, verbose=0)[1][0]
-		output = list(argmax(output, axis=1))
-		return [n-2 for n in output]
+	def generate(self, inputs):
+
+		self.load()
+		# encode
+		state = self.encoder_model.predict(inputs)
+		# start of sequence input
+		output_feed = array([0.0 for _ in range(self._output_shape[1])]).reshape(1, 1, self._output_shape[1])
+		# collect predictions
+		output = list()
+		for t in range(self._output_shape[0]):
+			# predict next char
+			yhat, h, c = self.decoder_model.predict([output_feed] + state)
+			# store prediction
+			output.append(yhat[0, 0, :])
+			# update state
+			state = [h, c]
+			# update target sequence
+			output_feed = yhat
+		print np.shape(output)
+		return array(output)
 
 	def load(self):
 		self.load_weights(self._file_path)
 
 	def get_score(self, inputs, outputs):
-		y_pred = self.predict(x=inputs)[1]
-		score = micro_f1_score(y_pred, outputs[1])
-		print 'Micro F1_score: ', score
-		return self.evaluate(x=inputs, y=outputs, verbose=2)
+		# y_pred = self.predict(x=inputs)[1]
+		# score = micro_f1_score(y_pred, outputs[1])
+		# print 'Micro F1_score: ', score
+		# return self.evaluate(x=inputs, y=outputs, verbose=2)
+		y_pred = []
+		y_true = []
+		correct = 0
+		for i in range(len(inputs)):
+			prediction = self.generate(inputs[i])
+			print 'X=%s y=%s, yhat=%s' % (one_hot_decode(inputs[i]), one_hot_decode(outputs[i]), one_hot_decode(prediction))
+			if np.array_equal(one_hot_decode(outputs[i]), one_hot_decode(prediction)):
+				correct += 1
+			y_pred.append(prediction)
+			y_true.append(outputs[i])
+		print('acc: %.2f%%, f1 score' % (float(correct) / float(len(inputs)) * 100.0), micro_f1_score(y_pred, y_true))
+
 
 
 
