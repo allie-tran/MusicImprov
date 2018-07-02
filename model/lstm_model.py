@@ -34,11 +34,12 @@ class MelodyNet(Model):
 
 		repeat2 = RepeatVector(output_shape[0])(dense)
 		rhythm = Input(shape=rhythm_shape)
-		concatenate = Concatenate()([repeat2, rhythm])
+		concatenate = Concatenate()([rhythm, repeat2])
 		predict = LSTM(args.num_units, return_sequences=True,
 		                 dropout=args.dropout, name="PredictLSTM", recurrent_regularizer=cust_reg)(concatenate)
 
-		logprob = Dense(output_shape[1], name="LogProbability")(predict)
+		concatenate2 = Concatenate()([rhythm, predict])
+		logprob = Dense(output_shape[1], name="LogProbability")(concatenate2)
 		temp_logprob = Lambda(lambda x: x / args.temperature, name="Apply_temperature")(logprob)
 		activate = Activation('softmax', name="SoftmaxActivation")(temp_logprob)
 
@@ -110,9 +111,9 @@ class MelodyNet(Model):
 			count = 0
 			whole = testscore[:args.num_input_bars * args.steps_per_bar]
 			while True:
-				primer = [encode_melody(whole[-args.num_input_bars * args.steps_per_bar:],
-				                        [k % 12 for k in range(args.num_input_bars * args.steps_per_bar)])]
-				rhythm = [[0] if n == -1 else [1] for n in whole[-args.num_input_bars * args.steps_per_bar:]]
+				primer = array([encode_melody(whole[-args.num_input_bars * args.steps_per_bar:],
+				                        [k % 12 for k in range(args.num_input_bars * args.steps_per_bar)])])
+				rhythm = array([[[0] if n == -1 else [1] for n in whole[-args.num_input_bars * args.steps_per_bar:]]])
 
 				output = self.generate([primer, rhythm_model.predict(rhythm)], 'generated/bar_' + str(count))
 
@@ -128,10 +129,9 @@ class MelodyNet(Model):
 		plot_training_loss(self.name, all_history)
 
 
-	def generate(self, primer_notesequence, name):
-		input_sequence = array(primer_notesequence)
+	def generate(self, inputs, name):
 		self.load_weights('weights/' + self._model_name + '.hdf5')
-		output = self.predict(input_sequence, verbose=0)[1][0]
+		output = self.predict(inputs, verbose=0)[1][0]
 		output = list(argmax(output, axis=1))
 		return [n-2 for n in output]
 
