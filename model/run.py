@@ -36,7 +36,7 @@ def run():
 		latent_model.load()
 		encoded_inputs = latent_model.encoder_model.predict(inputs)
 		test_encoded_inputs = latent_model.encoder_model.predict(test_inputs)
-		predictor_model.train(Data(encoded_inputs, outputs, inputs_feed), Data(test_encoded_inputs, test_outputs, None), testscore)
+		predictor_model.train(Data(encoded_inputs, outputs, outputs_feed), Data(test_encoded_inputs, test_outputs, None), testscore)
 
 
 	# # Generation from prime melody

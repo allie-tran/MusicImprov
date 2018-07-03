@@ -42,14 +42,14 @@ parser.add_argument("--num_units",
                     default=256,
                     help="Number of units in the decoder and encoder.")
 parser.add_argument("--num_input_bars",
-                    type=int,
+                    type=float,
                     nargs='?',
-                    default=2,
+                    default=2.0,
                     help="The number of bars in one input phrase.")
 parser.add_argument("--num_output_bars",
-                    type=int,
+                    type=float,
                     nargs='?',
-                    default=1,
+                    default=1.0,
                     help="The number of bars in one output prediction.")
 parser.add_argument("--steps_per_bar",
                     type=int,

@@ -136,11 +136,11 @@ def create_dataset(folder):
 			json.dump(data, f)
 
 def get_input_shapes():
-	input_shape = (args.num_input_bars * args.steps_per_bar, 83)
+	input_shape = (int(args.num_input_bars * args.steps_per_bar), 83)
 	return input_shape
 
 def get_output_shapes():
-	output_shape = (args.num_output_bars * args.steps_per_bar, 83)
+	output_shape = (int(args.num_output_bars * args.steps_per_bar), 83)
 	return output_shape
 
 def get_inputs(file, test=False):
@@ -150,11 +150,12 @@ def get_inputs(file, test=False):
 	inputs = []
 	inputs_feed = []
 	input_shape = get_input_shapes()
+	output_shape = get_output_shapes()
+	input_length = input_shape[0]
+	output_length = output_shape[0]
 
 	if args.train:
 		for i, melody in enumerate(melodies):
-			input_length = args.num_input_bars * args.steps_per_bar
-			output_length = args.num_output_bars * args.steps_per_bar
 			j = 0
 			while j < len(melody) - (input_length + output_length) - 1:
 				input_phrase = melody[j: j+input_length]
@@ -177,11 +178,13 @@ def get_outputs(file, test=False):
 
 	outputs = []
 	outputs_feed = []
+	input_shape = get_input_shapes()
 	output_shape = get_output_shapes()
+	input_length = input_shape[0]
+	output_length = output_shape[0]
+
 	if args.train:
 		for i, melody in enumerate(melodies):
-			input_length = args.num_input_bars * args.steps_per_bar
-			output_length = args.num_output_bars * args.steps_per_bar
 			j = 0
 			while j < len(melody) - (input_length + output_length) - 1:
 				next_bar = melody[j+input_length:j+input_length+output_length]
