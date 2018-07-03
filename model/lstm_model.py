@@ -210,6 +210,8 @@ class Predictor(object):
 		               'acc': [],
 		               'val_acc': []}
 
+		print data.outputs.shape
+		print data.feeds.shape
 
 		for i in range(args.epochs):
 			print('=' * 80)
