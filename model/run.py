@@ -32,7 +32,15 @@ def run():
 	input_shape = get_input_shapes()
 	output_shape = get_output_shapes()
 
-	melody_model = MelodyNet(input_shape, output_shape, 'MelodyModel' + args.note)
+	latent_model = Seq2Seq(input_shape, input_shape, 'LatentModel' + args.note)
+	predictor_model = Predictor(input_shape, output_shape, 'PredictModel' + args.note)
+
+	inputs, inputs_feed = get_inputs(args.training_file)
+	outputs, outputs_feed = get_outputs(args.training_file)
+
+	test_inputs, _ = get_inputs(args.testing_file)
+	test_outputs, _ = get_outputs(args.testing_file)
+
 
 	# plot_model(melody_model, to_file='model.png')
 	testscore = MusicXML()
@@ -41,7 +49,12 @@ def run():
 	testscore = transformer.transform(testscore)
 
 	if args.train:
-		melody_model.train(testscore)
+		# latent_model.train(Data(inputs, inputs, inputs_feed), Data(test_inputs, test_outputs, None), testscore)
+		latent_model.load()
+		encoded_inputs = latent_model.encoder_model.predict(inputs)
+		print shape(encoded_inputs)
+		test_encoded_inputs = latent_model.encoder_model.predict(test_inputs)
+		predictor_model.train(Data(encoded_inputs, outputs, inputs_feed), Data(test_encoded_inputs, test_outputs, None), testscore)
 
 
 	# # Generation from prime melody

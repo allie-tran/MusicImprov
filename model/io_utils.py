@@ -7,6 +7,9 @@ from scripts import args, to_onehot, MusicXML, XMLtoNoteSequence, Midi
 from xml.etree import cElementTree
 from keras.preprocessing.sequence import pad_sequences
 
+from collections import namedtuple
+Data = namedtuple('Data', ['inputs', 'outputs', 'feeds'])
+
 try:
 	with open('score_list.json', 'r') as f:
 		score_list = json.load(f)
@@ -133,8 +136,8 @@ def create_dataset(folder):
 			json.dump(data, f)
 
 def get_input_shapes():
-	input_shape1 = (args.num_input_bars * args.steps_per_bar, 30 + args.steps_per_bar)
-	return input_shape1
+	input_shape = (args.num_input_bars * args.steps_per_bar, 83)
+	return input_shape
 
 def get_output_shapes():
 	output_shape = (args.num_output_bars * args.steps_per_bar, 83)
@@ -145,6 +148,8 @@ def get_inputs(file, test=False):
 		melodies = json.load(f)
 
 	inputs = []
+	inputs_feed = []
+	input_shape = get_input_shapes()
 
 	if args.train:
 		for i, melody in enumerate(melodies):
@@ -152,14 +157,18 @@ def get_inputs(file, test=False):
 			output_length = args.num_output_bars * args.steps_per_bar
 			j = 0
 			while j < len(melody) - (input_length + output_length) - 1:
-				position_input = [k % args.steps_per_bar for k in range(j, j + input_length)]
 				input_phrase = melody[j: j+input_length]
-				inputs.append(encode_melody(input_phrase, position_input))
+				input_phrase = [n+ 3 for n in input_phrase]
+				inputs.append(to_onehot(input_phrase, input_shape[1]))
+
+				input_feed = [0] + input_phrase[:-1]
+				inputs_feed.append(to_onehot(input_feed, input_shape[1]))
 
 				j += args.steps_per_bar
 
 	inputs = array(inputs)
-	return inputs
+	inputs_feed = array(inputs_feed)
+	return inputs, inputs_feed
 
 
 def get_outputs(file, test=False):
