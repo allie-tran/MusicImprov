@@ -185,7 +185,6 @@ class Predictor(object):
 
 		self.model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['acc'])
 
-		print self.decoder_model.summary()
 
 	def train(self, data, test_data, testscore):
 		try:
@@ -247,7 +246,7 @@ class Predictor(object):
 			# 		print 'Generated: ', whole[-8 * args.steps_per_bar:]
 			# 		break
 
-		plot_training_loss(self._model_name, all_history)
+		# plot_training_loss(self._model_name, all_history)
 
 
 	def generate(self, inputs):
@@ -270,7 +269,10 @@ class Predictor(object):
 		return array(output)
 
 	def load(self):
-		self.model.load_weights(self._file_path)
+		try:
+			self.model.load_weights(self._file_path)
+		except IOError:
+			pass
 
 	def get_score(self, inputs, outputs):
 		y_pred = []
