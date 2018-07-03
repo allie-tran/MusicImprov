@@ -134,7 +134,10 @@ class Seq2Seq(object):
 		return array(output)
 
 	def load(self):
-		self.model.load_weights(self._file_path)
+		try:
+			self.model.load_weights(self._file_path)
+		except IOError:
+			pass
 
 	def get_score(self, inputs, outputs):
 		y_pred = []
