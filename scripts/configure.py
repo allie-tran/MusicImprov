@@ -7,6 +7,11 @@ parser.add_argument("-t", "--train",
 parser.add_argument("--train_latent",
                     help="To train latent model",
                     action="store_true")
+parser.add_argument("--latent_dim",
+                    type=int,
+                    nargs='?',
+                    default=512,
+                    help="The dimension of latent space.")
 parser.add_argument("-s", "--savedata",
                     help="To grab new data?",
                     action="store_true")
