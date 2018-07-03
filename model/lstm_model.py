@@ -21,7 +21,7 @@ class Seq2Seq(object):
 		self._output_shape = output_shape
 		self.define_models()
 
-	def define_models(self, ):
+	def define_models(self):
 		# define training encoder
 		encoder_inputs = Input(shape=(None, self._input_shape[1]))
 		encoder = LSTM(args.num_units, return_state=True)
@@ -165,7 +165,7 @@ class Predictor(object):
 		self._output_shape = output_shape
 		self.define_models()
 
-	def define_models(self, ):
+	def define_models(self):
 		# define training encoder
 		state_h = Input(shape=(args.num_units,))
 		state_c = Input(shape=(args.num_units,))
