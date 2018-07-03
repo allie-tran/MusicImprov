@@ -83,7 +83,7 @@ class Seq2Seq(object):
 				data.outputs,
 				callbacks=callbacks_list,
 				validation_split=0.2,
-				epochs=1,
+				epochs=10,
 				shuffle=True,
 				batch_size=64
 			)
@@ -221,7 +221,7 @@ class Predictor(object):
 				data.outputs,
 				callbacks=callbacks_list,
 				validation_split=0.2,
-				epochs=1,
+				epochs=10,
 				shuffle=True,
 				batch_size=64
 			)
