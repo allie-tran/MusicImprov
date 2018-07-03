@@ -159,10 +159,9 @@ class Predictor(object):
 	"""
 		Create a general structure of the neural network
 		"""
-	def __init__(self, input_shape, output_shape , model_name):
+	def __init__(self, output_shape, model_name):
 		self._model_name = model_name
 		self._file_path = "weights/{}.hdf5".format(self._model_name)
-		self._input_shape = input_shape
 		self._output_shape = output_shape
 		self.define_models()
 
@@ -173,10 +172,10 @@ class Predictor(object):
 		states = [state_h, state_c]
 
 		# define training decoder
-		decoder_inputs = Input(shape=(None, self._input_shape[1]))
+		decoder_inputs = Input(shape=(None, self._output_shape[1]))
 		decoder_lstm = LSTM(args.num_units, return_sequences=True, return_state=True)
 		decoder_outputs, _, _ = decoder_lstm(decoder_inputs, initial_state=states)
-		decoder_dense = Dense(self._input_shape[1], activation='softmax')
+		decoder_dense = Dense(self._output_shape[1], activation='softmax')
 		decoder_outputs = decoder_dense(decoder_outputs)
 		self.model = Model([decoder_inputs] + states, decoder_outputs)
 
