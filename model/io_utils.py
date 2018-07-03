@@ -158,7 +158,7 @@ def get_inputs(file, test=False):
 			j = 0
 			while j < len(melody) - (input_length + output_length) - 1:
 				input_phrase = melody[j: j+input_length]
-				input_phrase = [n+ 3 for n in input_phrase]
+				input_phrase = [n + 3 for n in input_phrase]
 				inputs.append(to_onehot(input_phrase, input_shape[1]))
 
 				input_feed = [0] + input_phrase[:-1]

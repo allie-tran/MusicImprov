@@ -31,7 +31,8 @@ def run():
 	testscore = transformer.transform(testscore)
 
 	if args.train:
-		latent_model.train(Data(inputs, inputs, inputs_feed), Data(test_inputs, test_inputs, None), testscore)
+		if args.train_latent:
+			latent_model.train(Data(inputs, inputs, inputs_feed), Data(test_inputs, test_inputs, None), testscore)
 		latent_model.load()
 		encoded_inputs = latent_model.encoder_model.predict(inputs)
 		test_encoded_inputs = latent_model.encoder_model.predict(test_inputs)

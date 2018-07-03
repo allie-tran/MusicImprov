@@ -2,7 +2,10 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--train",
-                    help="To train or just generate?",
+                    help="To train",
+                    action="store_true")
+parser.add_argument("--train_latent",
+                    help="To train latent model",
                     action="store_true")
 parser.add_argument("-s", "--savedata",
                     help="To grab new data?",
