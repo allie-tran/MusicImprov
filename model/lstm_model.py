@@ -261,7 +261,8 @@ class Predictor(object):
 		output = list()
 		for t in range(self._output_shape[0]):
 			# predict next char
-			yhat, h, c = self.decoder_model.predict([output_feed, state[0].reshape((1, 128)), state[1].reshape((1, 128))])
+			yhat, h, c = self.decoder_model.predict([output_feed, state[0].reshape((1, args.num_units)),
+			                                         state[1].reshape((1, args.num_units))])
 			# store prediction
 			output.append(yhat[0, 0, :])
 			# update state
