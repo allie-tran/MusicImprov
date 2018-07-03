@@ -1,13 +1,36 @@
 import abc
 
 from keras.callbacks import ModelCheckpoint, EarlyStopping
-from keras.layers import Activation
-from keras.layers import Dense, Input, Lambda, LSTM, Concatenate, RepeatVector
+from keras.layers import Activation, GaussianNoise
+from keras.layers import Dense, Input, Lambda, LSTM, Concatenate, RepeatVector, Bidirectional, Layer, Multiply, Add
 from keras.models import Model
-from keras.utils import print_summary
-
+from keras.utils import plot_model
 from scripts.note_sequence_utils import *
 from model import *
+
+epsilon_std = 1.0
+
+class KLDivergenceLayer(Layer):
+
+    """ Identity transform layer that adds KL divergence
+    to the final model loss.
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.is_placeholder = True
+        super(KLDivergenceLayer, self).__init__(*args, **kwargs)
+
+    def call(self, inputs):
+
+        mu, log_var = inputs
+
+        kl_batch = - .5 * K.sum(1 + log_var -
+                                K.square(mu) -
+                                K.exp(log_var), axis=-1)
+
+        self.add_loss(K.mean(kl_batch), inputs=inputs)
+
+        return inputs
 
 
 class Seq2Seq(object):
@@ -22,13 +45,30 @@ class Seq2Seq(object):
 		self.define_models()
 
 	def define_models(self):
+
 		# define training encoder
 		encoder_inputs = Input(shape=(None, self._input_shape[1]))
-		encoder = LSTM(args.num_units, return_state=True)
-		encoder_outputs, state_h, state_c = encoder(encoder_inputs)
-		encoder_states = [state_h, state_c]
+		encoder = Bidirectional(LSTM(args.num_units), merge_mode='concat')
+		encoder_outputs = encoder(encoder_inputs)
 
 		# define training decoder
+		z_mu = Dense(args.latent_dim)(encoder_outputs)
+		z_log_var = Dense(args.latent_dim)(encoder_outputs)
+		z_mu, z_log_var = KLDivergenceLayer()([z_mu, z_log_var])
+		z_sigma = Lambda(lambda t: K.exp(.5 * t))(z_log_var)
+
+		eps = GaussianNoise(stddev=epsilon_std, input_shape=(K.shape(encoder_inputs)[0], args.latent_dim))
+		# z_eps = Multiply()([z_sigma, eps])
+		z_eps = eps(z_sigma)
+		z = Add()([z_mu, z_eps])
+
+		get_state_h = Dense(args.num_units)
+		get_state_c = Dense(args.num_units)
+		state_h = get_state_h(z)
+		state_c = get_state_c(z)
+
+		encoder_states = [state_h, state_c]
+
 		decoder_inputs = Input(shape=(None, self._input_shape[1]))
 		decoder_lstm = LSTM(args.num_units, return_sequences=True, return_state=True)
 		decoder_outputs, _, _ = decoder_lstm(decoder_inputs, initial_state=encoder_states)
@@ -36,19 +76,21 @@ class Seq2Seq(object):
 		decoder_outputs = decoder_dense(decoder_outputs)
 		self.model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
 
-
 		# define inference encoder
-		self.encoder_model = Model(encoder_inputs, encoder_states)
+		self.encoder_model = Model(encoder_inputs, [z] + encoder_states)
 		# define inference decoder
 		decoder_state_input_h = Input(shape=(args.num_units,))
 		decoder_state_input_c = Input(shape=(args.num_units,))
 		decoder_states_inputs = [decoder_state_input_h, decoder_state_input_c]
-		decoder_outputs, state_h, state_c = decoder_lstm(decoder_inputs, initial_state=decoder_states_inputs)
-		decoder_states = [state_h, state_c]
+		decoder_outputs, decoder_state_h, decoder_state_c = decoder_lstm(decoder_inputs, initial_state=decoder_states_inputs)
+		decoder_states = [decoder_state_h, decoder_state_c]
 		decoder_outputs = decoder_dense(decoder_outputs)
 		self.decoder_model = Model([decoder_inputs] + decoder_states_inputs, [decoder_outputs] + decoder_states)
 
 		self.model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['acc'])
+		self.model.summary()
+		self.decoder_model.summary()
+		plot_model(self.model, to_file='model.png')
 
 	def train(self, data, test_data, testscore):
 		try:
@@ -61,6 +103,7 @@ class Seq2Seq(object):
 			monitor='val_loss',
 			verbose=0,
 			save_best_only=True,
+			save_weights_only=True,
 			mode='min'
 		)
 		early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=2, verbose=0, mode='min')
@@ -117,7 +160,8 @@ class Seq2Seq(object):
 
 		self.load()
 		# encode
-		state = self.encoder_model.predict(inputs)
+		latent, h, c = self.encoder_model.predict(inputs)
+		state = [h, c]
 		# start of sequence input
 		output_feed = array([0.0 for _ in range(self._output_shape[1])]).reshape(1, 1, self._output_shape[1])
 		# collect predictions
@@ -127,7 +171,7 @@ class Seq2Seq(object):
 			yhat, h, c = self.decoder_model.predict([output_feed] + state)
 			# store prediction
 			output.append(yhat[0, 0, :])
-			# update state
+			# update next input
 			state = [h, c]
 			# update target sequence
 			output_feed = yhat
