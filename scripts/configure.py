@@ -15,6 +15,9 @@ parser.add_argument("--latent_dim",
 parser.add_argument("-s", "--savedata",
                     help="To grab new data?",
                     action="store_true")
+parser.add_argument("--all_data",
+                    help="Training file",
+                    default='all_data.json')
 parser.add_argument("--training_file",
                     help="Training file",
                     default='training.json')
@@ -29,7 +32,7 @@ parser.add_argument("--epochs",
 parser.add_argument("--num_samples",
                     type=int,
                     nargs='?',
-                    default=1000,
+                    default=100,
                     help="The number of training sample from 1 song.")
 parser.add_argument("--dropout",
                     type=float,

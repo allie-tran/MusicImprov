@@ -3,5 +3,4 @@ Generating music from a motif provided by user.
 
 
 #### To run
---test yiruma\ -\ Love.mxl -t --epochs 100 --dropout 0.0 --temperature 1 --training_file small_train.json --testing_file small_test.json --num_units 256 --num_input_bars 1 --note test --num_output_bars 1
-
+python2 model/run.py --test yiruma\ -\ Love.mxl -t --epochs 1000 --dropout 0.0 --temperature 1 --training_file small_train_8.json --testing_file small_test_8.json --num_units 512 --num_input_bars 2 --num_output_bars 1 --steps_per_bar 8 --note 8

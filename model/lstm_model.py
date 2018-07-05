@@ -1,14 +1,10 @@
-import abc
-
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras.layers import Activation, GaussianNoise
 from keras.layers import Dense, Input, Lambda, LSTM, Concatenate, RepeatVector, Bidirectional, Layer, Multiply, Add
 from keras.models import Model
 from keras.utils import plot_model
-from scripts.note_sequence_utils import *
 from model import *
-
-epsilon_std = 1.0
+from scripts import args
 
 class KLDivergenceLayer(Layer):
 
@@ -18,15 +14,17 @@ class KLDivergenceLayer(Layer):
 
     def __init__(self, *args, **kwargs):
         self.is_placeholder = True
+        self.beta = 0.0
+        self.free_bits  = 0
         super(KLDivergenceLayer, self).__init__(*args, **kwargs)
 
     def call(self, inputs):
 
         mu, log_var = inputs
 
-        kl_batch = - .5 * K.sum(1 + log_var -
+        kl_batch = - K.max(self.beta * .5 * K.sum(1 + log_var -
                                 K.square(mu) -
-                                K.exp(log_var), axis=-1)
+                                K.exp(log_var), axis=-1), 0)
 
         self.add_loss(K.mean(kl_batch), inputs=inputs)
 
@@ -48,27 +46,11 @@ class Seq2Seq(object):
 
 		# define training encoder
 		encoder_inputs = Input(shape=(None, self._input_shape[1]))
-		encoder = Bidirectional(LSTM(args.num_units), merge_mode='concat')
-		encoder_outputs = encoder(encoder_inputs)
-
-		# define training decoder
-		z_mu = Dense(args.latent_dim)(encoder_outputs)
-		z_log_var = Dense(args.latent_dim)(encoder_outputs)
-		z_mu, z_log_var = KLDivergenceLayer()([z_mu, z_log_var])
-		z_sigma = Lambda(lambda t: K.exp(.5 * t))(z_log_var)
-
-		eps = GaussianNoise(stddev=epsilon_std, input_shape=(K.shape(encoder_inputs)[0], args.latent_dim))
-		# z_eps = Multiply()([z_sigma, eps])
-		z_eps = eps(z_sigma)
-		z = Add()([z_mu, z_eps])
-
-		get_state_h = Dense(args.num_units)
-		get_state_c = Dense(args.num_units)
-		state_h = get_state_h(z)
-		state_c = get_state_c(z)
-
+		encoder = LSTM(args.num_units, return_state=True)
+		encoder_outputs, state_h, state_c = encoder(encoder_inputs)
 		encoder_states = [state_h, state_c]
 
+		# define training decoder
 		decoder_inputs = Input(shape=(None, self._input_shape[1]))
 		decoder_lstm = LSTM(args.num_units, return_sequences=True, return_state=True)
 		decoder_outputs, _, _ = decoder_lstm(decoder_inputs, initial_state=encoder_states)
@@ -77,19 +59,19 @@ class Seq2Seq(object):
 		self.model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
 
 		# define inference encoder
-		self.encoder_model = Model(encoder_inputs, [z] + encoder_states)
+		self.encoder_model = Model(encoder_inputs, encoder_states)
 		# define inference decoder
 		decoder_state_input_h = Input(shape=(args.num_units,))
 		decoder_state_input_c = Input(shape=(args.num_units,))
 		decoder_states_inputs = [decoder_state_input_h, decoder_state_input_c]
-		decoder_outputs, decoder_state_h, decoder_state_c = decoder_lstm(decoder_inputs, initial_state=decoder_states_inputs)
-		decoder_states = [decoder_state_h, decoder_state_c]
+		decoder_outputs, state_h, state_c = decoder_lstm(decoder_inputs, initial_state=decoder_states_inputs)
+		decoder_states = [state_h, state_c]
 		decoder_outputs = decoder_dense(decoder_outputs)
 		self.decoder_model = Model([decoder_inputs] + decoder_states_inputs, [decoder_outputs] + decoder_states)
 
-		self.model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['acc'])
-		self.model.summary()
-		self.decoder_model.summary()
+		self.optimizer = Adam(clipnorm=1., clipvalue=0.5)
+		self.model.compile(optimizer=self.optimizer, loss='categorical_crossentropy', metrics=['acc'])
+
 		plot_model(self.model, to_file='model.png')
 
 	def train(self, data, test_data, testscore):
@@ -115,10 +97,14 @@ class Seq2Seq(object):
 		               'acc': [],
 		               'val_acc': []}
 
+		starting_lrate = 1e-3
+		ending_lrate = 1e-5
 
 		for i in range(args.epochs):
 			print('=' * 80)
 			print("EPOCH " + str(i))
+			lrate = starting_lrate - (starting_lrate - ending_lrate) / args.epochs * i
+			K.set_value(self.optimizer.lr, lrate)
 
 			# Train
 			history = self.model.fit(
@@ -126,7 +112,7 @@ class Seq2Seq(object):
 				data.outputs,
 				callbacks=callbacks_list,
 				validation_split=0.2,
-				epochs=10,
+				epochs=1,
 				shuffle=True,
 				batch_size=64
 			)
@@ -134,7 +120,8 @@ class Seq2Seq(object):
 			# all_history['val_acc'] += history.history['val_acc']
 
 			# Evaluation
-			print '###Test Score: ', self.get_score(test_data.inputs, test_data.outputs)
+			if i % 20 == 0:
+				print '###Test Score: ', self.get_score(test_data.inputs, test_data.outputs)
 
 			# # Generation
 			# count = 0
@@ -155,13 +142,9 @@ class Seq2Seq(object):
 
 		plot_training_loss(self._model_name, all_history)
 
-
 	def generate(self, inputs):
-
-		self.load()
 		# encode
-		latent, h, c = self.encoder_model.predict(inputs)
-		state = [h, c]
+		state = self.encoder_model.predict(inputs)
 		# start of sequence input
 		output_feed = array([0.0 for _ in range(self._output_shape[1])]).reshape(1, 1, self._output_shape[1])
 		# collect predictions
@@ -171,7 +154,7 @@ class Seq2Seq(object):
 			yhat, h, c = self.decoder_model.predict([output_feed] + state)
 			# store prediction
 			output.append(yhat[0, 0, :])
-			# update next input
+			# update state
 			state = [h, c]
 			# update target sequence
 			output_feed = yhat
@@ -189,14 +172,12 @@ class Seq2Seq(object):
 		correct = 0
 		for i in range(len(inputs)):
 			prediction = self.generate(array([inputs[i]]))
-			if i < 10:
+			if i % 50 == 0:
 				print 'y=%s, yhat=%s' % (one_hot_decode(outputs[i]), one_hot_decode(prediction))
 			y_pred.append(prediction)
 			y_true.append(outputs[i])
 
-
 		print('acc: %.2f%%, f1 score' % (float(correct) / float(len(inputs)) * 100.0), micro_f1_score(y_pred, y_true))
-
 
 
 class Predictor(object):
@@ -217,7 +198,7 @@ class Predictor(object):
 
 		# define training decoder
 		decoder_inputs = Input(shape=(None, self._output_shape[1]))
-		decoder_lstm = LSTM(args.num_units, return_sequences=True, return_state=True)
+		decoder_lstm = LSTM(args.num_units, return_sequences=True, return_state=True, recurrent_regularizer=None)
 		decoder_outputs, _, _ = decoder_lstm(decoder_inputs, initial_state=states)
 		decoder_dense = Dense(self._output_shape[1], activation='softmax')
 		decoder_outputs = decoder_dense(decoder_outputs)
@@ -230,7 +211,6 @@ class Predictor(object):
 		self.decoder_model = Model([decoder_inputs, state_h, state_c], [decoder_outputs] + decoder_states)
 
 		self.model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['acc'])
-
 
 	def train(self, data, test_data, testscore):
 		try:
@@ -296,10 +276,7 @@ class Predictor(object):
 
 		# plot_training_loss(self._model_name, all_history)
 
-
 	def generate(self, inputs):
-
-		self.load()
 		state = inputs
 		# start of sequence input
 		output_feed = array([0.0 for _ in range(self._output_shape[1])]).reshape(1, 1, self._output_shape[1])
@@ -333,7 +310,6 @@ class Predictor(object):
 				print 'y=%s, yhat=%s' % (one_hot_decode(outputs[i]), one_hot_decode(prediction))
 			y_pred.append(prediction)
 			y_true.append(outputs[i])
-
 
 		print('acc: %.2f%%, f1 score' % (float(correct) / float(len(inputs)) * 100.0), micro_f1_score(y_pred, y_true))
 
