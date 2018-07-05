@@ -69,13 +69,7 @@ def create_dataset(folder):
 	:param folder: the path to the folder
 	:return: a list of input-output, input args, output args
 	"""
-
-	try:
-		with open(args.phrase_file + '.json', 'r') as f:
-			data = json.load(f)
-	except IOError:
-		data = []
-
+	data = []
 	scores = os.listdir(folder)
 	if args.dataset.startswith('xml'):
 		for score in scores:
@@ -104,13 +98,9 @@ def create_dataset(folder):
 
 					print str(len(score_list)) + "(" +  str(len(data))+")/" + str(len(scores))
 
-				with open('score_list.json', 'w') as f:
-					json.dump(score_list, f)
-
-				with open(args.phrase_file + '.json', 'w') as f:
-					json.dump(data, f)
 			except:
 				continue
+
 	elif args.dataset.startswith('midi'):
 		for genre in os.listdir(args.dataset):
 			folders = os.listdir(args.dataset + '/' + genre)
@@ -132,7 +122,7 @@ def create_dataset(folder):
 				except:
 					continue
 
-		with open(args.phrase_file + '.json', 'w') as f:
+		with open(args.all_data, 'w') as f:
 			json.dump(data, f)
 
 def get_input_shapes():

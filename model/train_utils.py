@@ -4,16 +4,21 @@ matplotlib.use('agg')
 import matplotlib.pyplot as plt
 import numpy as np
 from keras import backend as K
+from keras.optimizers import Adam
+from keras.callbacks import LearningRateScheduler
 from scripts import args
 from sklearn.metrics import f1_score, precision_score, recall_score, confusion_matrix, accuracy_score
 
+
 def fro_norm(w):
     return K.sqrt(K.sum(K.square(K.abs(w))))
+
 
 def cust_reg(w):
 	# print 'Weight matrix size: ', K.int_shape(w)
 	m = K.dot(K.transpose(w), w) - K.eye(K.int_shape(w)[-1])
 	return fro_norm(m)
+
 
 
 def plot_training_loss(name, history):
@@ -35,6 +40,7 @@ def plot_training_loss(name, history):
 	plt.legend(['train', 'validation'], loc='upper left')
 	plt.savefig('acc_history.png')
 	plt.close()
+
 
 def get_class_weights(y_train):
 	y_ints = [y.argmax() for y in y_train]
@@ -61,17 +67,20 @@ def get_class_weights(y_train):
 	# print ["{0:0.4f}".format(i) for i in class_weights]
 	return dict(enumerate(class_weights))
 
+
 def micro_f1_score(y_pred, y_true):
 	y_pred = np.argmax(y_pred, axis=-1).flatten()
 	y_true = np.argmax(y_true, axis=-1).flatten()
-	display_confusion_matrix(confusion_matrix(y_true, y_pred, labels=list(range(0, 82))))
+	display_confusion_matrix(confusion_matrix(y_true, y_pred, labels=np.unique(y_true)))
 	return precision_score(y_pred, y_true, average='macro', labels=np.unique(y_true)),\
 	       recall_score(y_pred, y_true, average='macro', labels=np.unique(y_true)), \
 	       f1_score(y_pred, y_true, average='macro', labels=np.unique(y_true)), \
 		   accuracy_score(y_pred, y_true)
 
+
 def display_confusion_matrix(matrix):
 	print('Confusion matrix')
-	for i in range(0, 30):
-		formatter = '%-5i' * i + '*%-4i' + '%-5i' * (30-i-1)
-		print formatter % tuple(matrix[i][:30])
+	n = len(matrix)
+	for i in range(0, n):
+		formatter = '%-5i' * i + '*%-4i' + '%-5i' * (n - i - 1)
+		print formatter % tuple(matrix[i])
