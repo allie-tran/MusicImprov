@@ -15,6 +15,7 @@ def run():
 	output_shape = get_output_shapes()
 
 	latent_input_model = Seq2Seq(input_shape, input_shape, 'LatentInputModel' + args.note)
+	latent_output_model = Seq2Seq(output_shape, output_shape, 'LatentOutputModel' + args.note)
 	predictor_model = Predictor(output_shape, 'PredictModel' + args.note)
 
 	inputs, inputs_feed = get_inputs(args.training_file)
@@ -36,7 +37,7 @@ def run():
 		latent_input_model.load()
 		encoded_inputs = latent_input_model.encoder_model.predict(inputs)
 		test_encoded_inputs = latent_input_model.encoder_model.predict(test_inputs)
-		predictor_model.train(Data(encoded_inputs, outputs, outputs_feed),
+		predictor_model.train(latent_input_model, Data(encoded_inputs, outputs, outputs_feed),
 		                      Data(test_encoded_inputs, test_outputs, None), testscore)
 
 

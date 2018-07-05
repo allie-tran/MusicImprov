@@ -4,7 +4,7 @@ from keras.layers import Dense, Input, Lambda, LSTM, Concatenate, RepeatVector, 
 from keras.models import Model
 from keras.utils import plot_model
 from model import *
-from scripts import args
+from scripts import args, MelodySequence
 
 class KLDivergenceLayer(Layer):
 
@@ -123,23 +123,6 @@ class Seq2Seq(object):
 			if i % 20 == 0:
 				print '###Test Score: ', self.get_score(test_data.inputs, test_data.outputs)
 
-			# # Generation
-			# count = 0
-			# whole = testscore[:args.num_input_bars * args.steps_per_bar]
-			# while True:
-			# 	primer = array([encode_melody(whole[-args.num_input_bars * args.steps_per_bar:],
-			# 	                        [k % 12 for k in range(args.num_input_bars * args.steps_per_bar)])])
-			# 	rhythm = array([[[0] if n == -1 else [1] for n in whole[-args.num_input_bars * args.steps_per_bar:]]])
-			#
-			# 	output = self.generate([primer, rhythm_model.predict(rhythm)], 'generated/bar_' + str(count))
-			#
-			# 	whole += output
-			# 	count += 1
-			# 	if count > 8:
-			# 		MelodySequence(whole).to_midi('generated/whole_' + str(i), save=True)
-			# 		print 'Generated: ', whole[-8 * args.steps_per_bar:]
-			# 		break
-
 		plot_training_loss(self._model_name, all_history)
 
 	def generate(self, inputs):
@@ -181,9 +164,7 @@ class Seq2Seq(object):
 
 
 class Predictor(object):
-	"""
-		Create a general structure of the neural network
-		"""
+
 	def __init__(self, output_shape, model_name):
 		self._model_name = model_name
 		self._file_path = "weights/{}.hdf5".format(self._model_name)
@@ -209,10 +190,10 @@ class Predictor(object):
 		decoder_states = [decoder_state_h, decoder_state_c]
 		decoder_outputs = decoder_dense(decoder_outputs)
 		self.decoder_model = Model([decoder_inputs, state_h, state_c], [decoder_outputs] + decoder_states)
+		self.optimizer = Adam(clipnorm=1., clipvalue=0.5)
+		self.model.compile(optimizer=self.optimizer, loss='categorical_crossentropy', metrics=['acc'])
 
-		self.model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['acc'])
-
-	def train(self, data, test_data, testscore):
+	def train(self, latent_input_model, data, test_data, testscore):
 		try:
 			self.load()
 		except IOError:
@@ -234,12 +215,14 @@ class Predictor(object):
 		               'acc': [],
 		               'val_acc': []}
 
-		print data.outputs.shape
-		print data.feeds.shape
+		starting_lrate = 1e-3
+		ending_lrate = 1e-5
 
 		for i in range(args.epochs):
 			print('=' * 80)
 			print("EPOCH " + str(i))
+			lrate = starting_lrate - (starting_lrate - ending_lrate) / args.epochs * i
+			K.set_value(self.optimizer.lr, lrate)
 
 			# Train
 			history = self.model.fit(
@@ -247,7 +230,7 @@ class Predictor(object):
 				data.outputs,
 				callbacks=callbacks_list,
 				validation_split=0.2,
-				epochs=10,
+				epochs=1,
 				shuffle=True,
 				batch_size=64
 			)
@@ -255,24 +238,23 @@ class Predictor(object):
 			# all_history['val_acc'] += history.history['val_acc']
 
 			# Evaluation
-			print '###Test Score: ', self.get_score(test_data.inputs, test_data.outputs)
+			if i % 20 == 0:
+				print '###Test Score: ', self.get_score(test_data.inputs, test_data.outputs)
 
-			# # Generation
-			# count = 0
-			# whole = testscore[:args.num_input_bars * args.steps_per_bar]
-			# while True:
-			# 	primer = array([encode_melody(whole[-args.num_input_bars * args.steps_per_bar:],
-			# 	                        [k % 12 for k in range(args.num_input_bars * args.steps_per_bar)])])
-			# 	rhythm = array([[[0] if n == -1 else [1] for n in whole[-args.num_input_bars * args.steps_per_bar:]]])
-			#
-			# 	output = self.generate([primer, rhythm_model.predict(rhythm)], 'generated/bar_' + str(count))
-			#
-			# 	whole += output
-			# 	count += 1
-			# 	if count > 8:
-			# 		MelodySequence(whole).to_midi('generated/whole_' + str(i), save=True)
-			# 		print 'Generated: ', whole[-8 * args.steps_per_bar:]
-			# 		break
+				# Generation
+				count = 0
+				input_shape = get_input_shapes()
+				whole = testscore[:input_shape[0]]
+				while True:
+					primer = to_onehot(whole[-input_shape[0]:], input_shape[1])
+					encoded_primer = latent_input_model.encoder_model.predict(array([primer]))
+					output = self.generate([array(encoded_primer[0][0]), array(encoded_primer[1][0])])
+					whole += one_hot_decode(output)
+					count += 1
+					if count > 8:
+						MelodySequence(whole).to_midi('generated/whole_' + str(i), save=True)
+						print 'Generated: ', whole[-8 * args.steps_per_bar:]
+						break
 
 		# plot_training_loss(self._model_name, all_history)
 
@@ -312,5 +294,32 @@ class Predictor(object):
 			y_true.append(outputs[i])
 
 		print('acc: %.2f%%, f1 score' % (float(correct) / float(len(inputs)) * 100.0), micro_f1_score(y_pred, y_true))
+
+class LatentPredictor(object):
+
+	def __init__(self, input_dim, output_dim, model_name):
+		self._model_name = model_name
+		self._file_path = "weights/{}.hdf5".format(self._model_name)
+		self._input_dim = input_dim
+		self._output_dim = output_dim
+		self.define_models()
+
+	def define_models(self):
+		X = Input(shape=(1, self._input_dim))
+		input_state_h = Input(shape=(1, args.num_units))
+		input_state_c = Input(shape=(1, args.num_units))
+		input_states = [input_state_h, input_state_c]
+		dense = Dense(args.num_units)(X)
+		y = Dense(self._output_dim)(dense)
+		output_state_h = Dense(args.num_units)(input_state_h)
+		output_state_c = Dense(args.num_units)(input_state_c)
+		output_states = [output_state_h, output_state_c]
+
+		self.model = Model([X] + input_states, [y] + output_states)
+
+		self.model.compile(optimizer='sgd', loss='categorical_crossentropy', metrics=['acc'])
+
+	def predict(self, inputs):
+		return self.model.predict(inputs)
 
 
