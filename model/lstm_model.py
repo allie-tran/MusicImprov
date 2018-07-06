@@ -295,31 +295,4 @@ class Predictor(object):
 
 		print('acc: %.2f%%, f1 score' % (float(correct) / float(len(inputs)) * 100.0), micro_f1_score(y_pred, y_true))
 
-class LatentPredictor(object):
-
-	def __init__(self, input_dim, output_dim, model_name):
-		self._model_name = model_name
-		self._file_path = "weights/{}.hdf5".format(self._model_name)
-		self._input_dim = input_dim
-		self._output_dim = output_dim
-		self.define_models()
-
-	def define_models(self):
-		X = Input(shape=(1, self._input_dim))
-		input_state_h = Input(shape=(1, args.num_units))
-		input_state_c = Input(shape=(1, args.num_units))
-		input_states = [input_state_h, input_state_c]
-		dense = Dense(args.num_units)(X)
-		y = Dense(self._output_dim)(dense)
-		output_state_h = Dense(args.num_units)(input_state_h)
-		output_state_c = Dense(args.num_units)(input_state_c)
-		output_states = [output_state_h, output_state_c]
-
-		self.model = Model([X] + input_states, [y] + output_states)
-
-		self.model.compile(optimizer='sgd', loss='categorical_crossentropy', metrics=['acc'])
-
-	def predict(self, inputs):
-		return self.model.predict(inputs)
-
 
