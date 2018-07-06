@@ -46,7 +46,7 @@ class MelodySequence(list):
 		:return the mido.MidiFile with one track named Melody, with information about ticks_per_beat = step_per_bar/4
 		"""
 		mid = mido.MidiFile()
-		mid.ticks_per_beat = self._steps_per_bar / 4  # because 1 bar = 4 beat only TODO!
+		mid.ticks_per_beat = self._steps_per_bar   # because 1 bar = 4 beat only TODO!
 		melody = mid.add_track('Melody')
 		melody.append(mido.MetaMessage(type='set_tempo', tempo=1600000))
 		previous_note = -1

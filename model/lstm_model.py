@@ -217,7 +217,20 @@ class Predictor(object):
 
 		starting_lrate = 1e-3
 		ending_lrate = 1e-5
-
+		# Generation
+		count = 0
+		input_shape = get_input_shapes()
+		whole = testscore[:input_shape[0]]
+		while True:
+			primer = to_onehot(whole[-input_shape[0]:], input_shape[1])
+			encoded_primer = latent_input_model.encoder_model.predict(array([primer]))
+			output = self.generate([array(encoded_primer[0][0]), array(encoded_primer[1][0])])
+			whole += one_hot_decode(output)
+			count += 1
+			if count > 8:
+				MelodySequence(whole).to_midi('generated/whole_', save=True)
+				print 'Generated: ', whole[-8 * args.steps_per_bar:]
+				break
 		for i in range(args.epochs):
 			print('=' * 80)
 			print("EPOCH " + str(i))
