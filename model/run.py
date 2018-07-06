@@ -26,7 +26,7 @@ def run():
 
 	# plot_model(melody_model, to_file='model.png')
 	testscore = Midi()
-	testscore.from_file(args.test)
+	testscore.from_file(args.test, file=True)
 	transformer = XMLtoNoteSequence()
 	testscore = transformer.transform(testscore)
 
