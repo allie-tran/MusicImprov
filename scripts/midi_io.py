@@ -17,21 +17,24 @@ class Midi(GeneralMusic):
 		"""
 		super(Midi, self).__init__(name, melody, accompaniment, time, current_key)
 
-	def from_file(self, folder):
+	def from_file(self, name, file=False):
 		mid = midi.MidiFile()
-		mid.open(filename=folder + '/melody.mid')
+		if file:
+			mid.open(filename=name)
+		else:
+			mid.open(filename=name + '/melody.mid')
+			with open(name + '/song_metadata.json') as f:
+				metadata = json.load(f)
+
+				this_key = metadata['Key'].split()
+				# print(this_key)
+				if len(this_key[0]) == 2 and this_key[0][-1] == 'b':
+					this_key[0] = this_key[0][0] + '-'
+				self._key = key.Key(this_key[0], this_key[1].lower())
+				self._time_signature = meter.TimeSignature(metadata['Time'])
 		mid.read()
 		mid.close()
 
-		with open(folder + '/song_metadata.json') as f:
-			metadata = json.load(f)
-
-			this_key = metadata['Key'].split()
-			# print(this_key)
-			if len(this_key[0]) == 2 and this_key[0][-1] == 'b':
-				this_key[0]= this_key[0][0] + '-'
-			self._key = key.Key(this_key[0], this_key[1].lower())
-			self._time_signature = meter.TimeSignature(metadata['Time'])
 		# eventList = midi.translate.keySignatureToMidiEvents(self._key) + \
 		# 	midi.translate.timeSignatureToMidiEvents(self._time_signature)
 		# mid.tracks[0].events = [eventList] + mid.tracks[0].events

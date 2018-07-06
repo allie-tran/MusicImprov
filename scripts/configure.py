@@ -72,7 +72,7 @@ parser.add_argument("--steps_per_bar",
 parser.add_argument("--test",
                     type=str,
                     nargs='?',
-                    default='narnia.mxl',
+                    default='twinkle_twinkle.mid',
                     help='The file used for testing.')
 parser.add_argument("-d", "--dataset",
                     type=str,
