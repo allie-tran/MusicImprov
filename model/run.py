@@ -15,7 +15,6 @@ def run():
 	output_shape = get_output_shapes()
 
 	latent_input_model = Seq2Seq(input_shape, input_shape, 'LatentInputModel' + args.note)
-	latent_output_model = Seq2Seq(output_shape, output_shape, 'LatentOutputModel' + args.note)
 	predictor_model = Predictor(output_shape, 'PredictModel' + args.note)
 
 	inputs, inputs_feed = get_inputs(args.training_file)
@@ -26,7 +25,7 @@ def run():
 
 
 	# plot_model(melody_model, to_file='model.png')
-	testscore = MusicXML()
+	testscore = Midi()
 	testscore.from_file(args.test)
 	transformer = XMLtoNoteSequence()
 	testscore = transformer.transform(testscore)
