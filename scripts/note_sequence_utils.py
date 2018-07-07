@@ -23,8 +23,6 @@ class MelodySequence(list):
 		super(MelodySequence, self).__init__(note_sequence)
 		self._steps_per_bar = args.steps_per_bar
 		self._num_bars = len(note_sequence) / args.steps_per_bar
-		self._lowest = 48
-		self._highest = 83
 		self._rhythm = [[0] if n == -1 else [1] for n in note_sequence]
 
 	@property
@@ -46,7 +44,7 @@ class MelodySequence(list):
 		:return the mido.MidiFile with one track named Melody, with information about ticks_per_beat = step_per_bar/4
 		"""
 		mid = mido.MidiFile()
-		mid.ticks_per_beat = self._steps_per_bar   # because 1 bar = 4 beat only TODO!
+		mid.ticks_per_beat = self._steps_per_bar * 2  # because 1 bar = 4 beat only TODO!
 		melody = mid.add_track('Melody')
 		melody.append(mido.MetaMessage(type='set_tempo', tempo=1600000))
 		previous_note = -1
@@ -54,13 +52,13 @@ class MelodySequence(list):
 			if n == -2:
 				if previous_note >= 0:
 					melody.append(
-						mido.Message(type='note_off', note=int(previous_note+48), velocity=30, time=0, channel=1))
+						mido.Message(type='note_off', note=int(previous_note), velocity=30, time=0, channel=1))
 					previous_note = -1
 			elif n >= 0:
 				if previous_note >= 0:
 					melody.append(
-						mido.Message(type='note_off', note=int(previous_note+48), velocity=30, time=0, channel=1))
-				melody.append(mido.Message(type='note_on', note=int(n + 48), velocity=60, time=0, channel=1))
+						mido.Message(type='note_off', note=int(previous_note), velocity=30, time=0, channel=1))
+				melody.append(mido.Message(type='note_on', note=int(n), velocity=60, time=0, channel=1))
 				previous_note = n
 			melody.append(mido.Message('control_change', time=2, channel=1))
 		if save:

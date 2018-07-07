@@ -126,11 +126,11 @@ def create_dataset(folder):
 			json.dump(data, f)
 
 def get_input_shapes():
-	input_shape = (int(args.num_input_bars * args.steps_per_bar), 83)
+	input_shape = (int(args.num_input_bars * args.steps_per_bar), 128 + 3)
 	return input_shape
 
 def get_output_shapes():
-	output_shape = (int(args.num_output_bars * args.steps_per_bar), 83)
+	output_shape = (int(args.num_output_bars * args.steps_per_bar), 128 + 3)
 	return output_shape
 
 def get_inputs(file, test=False):
