@@ -244,20 +244,20 @@ class Predictor(object):
 			if i % 20 == 0:
 				print '###Test Score: ', self.get_score(test_data.inputs, test_data.outputs)
 
-				# Generation
-				count = 0
-				input_shape = get_input_shapes()
-				whole = testscore[:input_shape[0]]
-				while True:
-					primer = to_onehot(whole[-input_shape[0]:], input_shape[1])
-					encoded_primer = latent_input_model.encoder_model.predict(array([primer]))
-					output = self.generate([array(encoded_primer[0][0]), array(encoded_primer[1][0])])
-					whole += one_hot_decode(output)
-					count += 1
-					if count > 8:
-						MelodySequence(whole).to_midi('generated/whole_' + str(i), save=True)
-						print 'Generated: ', whole[-8 * args.steps_per_bar:]
-						break
+			# Generation
+			count = 0
+			input_shape = get_input_shapes()
+			whole = [n + 3 for n in testscore[:input_shape[0]]]
+			while True:
+				primer = to_onehot(whole[-input_shape[0]:], input_shape[1])
+				encoded_primer = latent_input_model.encoder_model.predict(array([primer]))
+				output = self.generate([array(encoded_primer[0][0]), array(encoded_primer[1][0])])
+				whole += one_hot_decode(output)
+				count += 1
+				if count > 8:
+					MelodySequence([n - 3 for n in whole]).to_midi('generated/whole_' + str(i), save=True)
+					print 'Generated: ', [n - 3 for n in whole]
+					break
 
 		# plot_training_loss(self._model_name, all_history)
 
