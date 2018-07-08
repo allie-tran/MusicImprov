@@ -122,8 +122,11 @@ def create_dataset(folder):
 				except:
 					continue
 
-		with open(args.all_data, 'w') as f:
-			json.dump(data, f)
+		with open(args.training_file, 'w') as f:
+			json.dump(data[:-50], f)
+		with open(args.testing_file, 'w') as f:
+			json.dump(data[-50:], f)
+
 
 def get_input_shapes():
 	input_shape = (int(args.num_input_bars * args.steps_per_bar), 128 + 3)
