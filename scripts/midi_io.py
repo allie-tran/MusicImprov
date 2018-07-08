@@ -40,20 +40,24 @@ class Midi(GeneralMusic):
 		# mid.tracks[0].events = [eventList] + mid.tracks[0].events
 		# print(mid.tracks[0].events)
 		# print(eventList)
-		score = midi.translate.midiFileToStream(mid)
+		self._score = midi.translate.midiFileToStream(mid)
+		self._melody = []
 
-		voice = score.parts[0]
-		try:
-			full_melody = voice.flat.measures(1, None, collect=['TimeSignature'],
-			                                      gatherSpanners=False).expandRepeats().sorted
-		except repeat.ExpanderException:
-			full_melody = voice.flat.measures(1, None, collect=['TimeSignature'], gatherSpanners=False)
-		self._melody = full_melody
-		# self._melody.show('txt')
+		i = interval.Interval(self._key.tonic, pitch.Pitch('C'))
+		self._score.transpose(i, inPlace=True)
+		self._key = 'C'
+
+		for i, voice in enumerate(self._score.parts):
+			try:
+				self._melody.append(voice.flat.measures(1, None, collect=['TimeSignature', 'Instrument'],
+				                                      gatherSpanners=False).expandRepeats().sorted)
+			except repeat.ExpanderException:
+				self._melody.append(voice.flat.measures(1, None, collect=['TimeSignature', 'Instrument'], gatherSpanners=False))
 
 	@property
 	def num_bars(self):
-		return len(self._melody)
+		return max([len(part) for part in self._melody])
+
 
 if __name__ == "__main__":
 	mid = Midi()

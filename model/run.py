@@ -47,7 +47,6 @@ def run():
 	for score in scores:
 		testscore = Midi()
 		testscore.from_file('test/'+score, file=True)
-		testscore.melody.show()
 		transformer = XMLtoNoteSequence()
 		testscore = transformer.transform(testscore)
 		predictor_model.generate_from_primer(testscore, latent_input_model, save_name = 'generated_' + score)
