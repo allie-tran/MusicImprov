@@ -74,7 +74,7 @@ class Seq2Seq(object):
 
 		plot_model(self.model, to_file='model.png')
 
-	def train(self, data, test_data, testscore):
+	def train(self, data, test_data):
 		try:
 			self.load()
 		except IOError:
