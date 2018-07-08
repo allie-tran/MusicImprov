@@ -30,18 +30,27 @@ def run():
 	transformer = XMLtoNoteSequence()
 	testscore = transformer.transform(testscore)
 
+	if args.train_latent:
+		latent_input_model.train(Data(inputs, inputs, inputs_feed), Data(test_inputs, test_inputs, None), testscore)
+	latent_input_model.load()
+
 	if args.train:
-		if args.train_latent:
-			latent_input_model.train(Data(inputs, inputs, inputs_feed), Data(test_inputs, test_inputs, None), testscore)
-		latent_input_model.load()
 		encoded_inputs = latent_input_model.encoder_model.predict(inputs)
 		test_encoded_inputs = latent_input_model.encoder_model.predict(test_inputs)
 		predictor_model.train(latent_input_model, Data(encoded_inputs, outputs, outputs_feed),
 		                      Data(test_encoded_inputs, test_outputs, None), testscore)
 
+	predictor_model.load()
 
-	# # Generation from prime melody
-	# melody_generate(melody_model, rhythm_model, testscore)
+	# # Generation
+	scores = os.listdir('test')
+	for score in scores:
+		testscore = Midi()
+		testscore.from_file('test/'+score, file=True)
+		transformer = XMLtoNoteSequence()
+		testscore = transformer.transform(testscore)
+		predictor_model.generate_from_primer(testscore, latent_input_model, save_name = 'generated_' + score)
+
 
 if __name__ == '__main__':
 	run()
