@@ -23,10 +23,10 @@ parser.add_argument("--all_data",
                     default='all_data.json')
 parser.add_argument("--training_file",
                     help="Training file",
-                    default='training.json')
+                    default='train.json')
 parser.add_argument("--testing_file",
                     help="Testing file",
-                    default='testing.json')
+                    default='test.json')
 parser.add_argument("--epochs",
                     type=int,
                     nargs='?',

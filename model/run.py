@@ -17,12 +17,12 @@ def run():
 	latent_input_model = Seq2Seq(input_shape, input_shape, 'LatentInputModel' + args.note)
 	predictor_model = Predictor(output_shape, 'PredictModel' + args.note)
 
-	inputs, inputs_feed = get_inputs(args.training_file)
-	outputs, outputs_feed = get_outputs(args.training_file)
+	if args.train or args.train_latent:
+		inputs, inputs_feed = get_inputs(args.training_file)
+		outputs, outputs_feed = get_outputs(args.training_file)
 
-	test_inputs, _ = get_inputs(args.testing_file)
-	test_outputs, _ = get_outputs(args.testing_file)
-
+		test_inputs, _ = get_inputs(args.testing_file)
+		test_outputs, _ = get_outputs(args.testing_file)
 
 	# plot_model(melody_model, to_file='model.png')
 	if args.train_latent:
@@ -47,6 +47,7 @@ def run():
 	for score in scores:
 		testscore = Midi()
 		testscore.from_file('test/'+score, file=True)
+		testscore.melody.show()
 		transformer = XMLtoNoteSequence()
 		testscore = transformer.transform(testscore)
 		predictor_model.generate_from_primer(testscore, latent_input_model, save_name = 'generated_' + score)
