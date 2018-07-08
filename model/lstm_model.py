@@ -200,7 +200,7 @@ class Predictor(object):
 			pass
 
 		checkpoint = ModelCheckpoint(
-			self._file_path,
+			self._file_path.format(self._model_name),
 			monitor='val_loss',
 			verbose=0,
 			save_best_only=True,
