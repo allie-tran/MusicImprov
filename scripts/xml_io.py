@@ -98,19 +98,20 @@ class XMLtoNoteSequence(Transformer):
 
 		# For melody: taking only the highest note (monophonic)
 		note_sequence = ones(args.steps_per_bar * input.num_bars) * -1
-		for n in input.melody.flat.getElementsByClass(note.Note):
-			note_sequence[int(n.offset * args.steps_per_bar / 4)] = \
-				max(n.midi, note_sequence[int(n.offset * args.steps_per_bar / 4)])
-		for c in input.melody.flat.getElementsByClass(chord.Chord):
-			n = max([p.midi for p in c.pitches])
-			note_sequence[int(c.offset * args.steps_per_bar / 4)] = \
-				max(n, note_sequence[int(c.offset * args.steps_per_bar / 4)])
+		for part in input.melody:
+			for n in part.flat.getElementsByClass(note.Note):
+				note_sequence[int(n.offset * args.steps_per_bar / 4)] = \
+					max(n.midi, note_sequence[int(n.offset * args.steps_per_bar / 4)])
+			for c in part.flat.getElementsByClass(chord.Chord):
+				n = max([p.midi for p in c.pitches])
+				note_sequence[int(c.offset * args.steps_per_bar / 4)] = \
+					max(n, note_sequence[int(c.offset * args.steps_per_bar / 4)])
 
-		for n in input.melody.flat.getElementsByClass(note.Rest):
-			note_sequence[int(n.offset * args.steps_per_bar / 4)] = -2
+			for n in part.flat.getElementsByClass(note.Rest):
+				if note_sequence[int(n.offset * args.steps_per_bar / 4)] == -1:
+					note_sequence[int(n.offset * args.steps_per_bar / 4)] = -2
 
 		# print(note_sequence)
-
 
 		return MelodySequence(note_sequence)
 
