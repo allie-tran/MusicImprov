@@ -114,7 +114,8 @@ class Seq2Seq(object):
 				validation_split=0.2,
 				epochs=1,
 				shuffle=True,
-				batch_size=64
+				batch_size=64,
+				verbose=2
 			)
 
 			# all_history['val_acc'] += history.history['val_acc']
@@ -235,7 +236,8 @@ class Predictor(object):
 				validation_split=0.2,
 				epochs=1,
 				shuffle=True,
-				batch_size=64
+				batch_size=64,
+				verbose=2
 			)
 
 			# all_history['val_acc'] += history.history['val_acc']
