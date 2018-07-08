@@ -74,7 +74,7 @@ class Seq2Seq(object):
 
 		plot_model(self.model, to_file='model.png')
 
-	def train(self, data, test_data, testscore):
+	def train(self, data, test_data):
 		try:
 			self.load()
 		except IOError:
@@ -200,7 +200,7 @@ class Predictor(object):
 			pass
 
 		checkpoint = ModelCheckpoint(
-			self._file_path,
+			self._file_path.format(self._model_name),
 			monitor='val_loss',
 			verbose=0,
 			save_best_only=True,

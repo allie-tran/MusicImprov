@@ -4,7 +4,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--train",
                     help="To train",
                     action="store_true")
-parser.add_argument("f", "--final_weights",
+parser.add_argument("-f", "--final_weights",
                     help="To choose the final weights or the best weights according to val_loss",
                     action="store_true")
 parser.add_argument("--train_latent",
