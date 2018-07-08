@@ -50,7 +50,7 @@ parser.add_argument("--temperature",
 parser.add_argument("--num_units",
                     type=int,
                     nargs='?',
-                    default=256,
+                    default=1024,
                     help="Number of units in the decoder and encoder.")
 parser.add_argument("--num_input_bars",
                     type=float,
