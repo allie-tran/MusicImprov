@@ -262,7 +262,7 @@ class Predictor(object):
 			output = self.generate([array(encoded_primer[0][0]), array(encoded_primer[1][0])])
 			whole += one_hot_decode(output)
 			count += 1
-			if count > length:
+			if count >= length:
 				MelodySequence([int(n - 3) for n in whole]).to_midi('generated/' + save_name, save=True)
 				print 'Generated: ', [int(n - 3) for n in whole]
 				break
