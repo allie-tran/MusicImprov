@@ -158,7 +158,7 @@ def get_inputs(file, test=False):
 				input_feed = [0] + input_phrase[:-1]
 				inputs_feed.append(to_onehot(input_feed, input_shape[1]))
 
-				j += args.steps_per_bar
+				j += output_length
 
 	inputs = array(inputs)
 	inputs_feed = array(inputs_feed)
@@ -186,7 +186,7 @@ def get_outputs(file, test=False):
 
 				next_bar_feed = [0] + next_bar[:-1]
 				outputs_feed.append(to_onehot(next_bar_feed, output_shape[1]))
-				j += args.steps_per_bar
+				j += output_length
 
 	outputs = array(outputs)
 	outputs_feed = array(outputs_feed)

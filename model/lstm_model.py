@@ -157,7 +157,7 @@ class Seq2Seq(object):
 		for i in range(len(inputs)):
 			prediction = self.generate(array([inputs[i]]))
 			if i % 50 == 0:
-				print 'y=%s, yhat=%s' % (one_hot_decode(outputs[i]), one_hot_decode(prediction))
+				print 'y=%s, yhat=%s' % ([n - 3 for n in one_hot_decode(outputs[i])], [n - 3 for n in one_hot_decode(prediction)])
 			y_pred.append(prediction)
 			y_true.append(outputs[i])
 
@@ -301,7 +301,7 @@ class Predictor(object):
 		for i in range(len(inputs[0])):
 			prediction = self.generate([array(inputs[0][i]), array(inputs[1][i])])
 			if i < 10:
-				print 'y=%s, yhat=%s' % (one_hot_decode(outputs[i]), one_hot_decode(prediction))
+				print 'y=%s, yhat=%s' % ([n - 3 for n in one_hot_decode(outputs[i])], [n - 3 for n in one_hot_decode(prediction)])
 			y_pred.append(prediction)
 			y_true.append(outputs[i])
 
