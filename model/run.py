@@ -1,5 +1,6 @@
 import os
 import sys
+import shutil
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from model import *
@@ -16,6 +17,13 @@ def run():
 
 	latent_input_model = Seq2Seq(input_shape, input_shape, 'LatentInputModel' + args.note)
 	predictor_model = Predictor(output_shape, 'PredictModel' + args.note)
+
+	if os.path.isdir('generated'):
+		shutil.rmtree('generated')
+	os.mkdir('generated')
+
+	if not os.path.isdir('weights'):
+		os.mkdir('weights')
 
 	if args.train or args.train_latent:
 		inputs, inputs_feed = get_inputs(args.training_file)
@@ -49,7 +57,7 @@ def run():
 		testscore.from_file('test/'+score, file=True)
 		transformer = XMLtoNoteSequence()
 		testscore = transformer.transform(testscore)
-		predictor_model.generate_from_primer(testscore, latent_input_model, save_name = 'generated_' + score)
+		predictor_model.generate_from_primer(testscore, latent_input_model, save_name='generated_' + score[:-4])
 
 
 if __name__ == '__main__':
