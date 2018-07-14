@@ -366,12 +366,14 @@ class NoteRNN(object):
 			K.set_value(self.optimizer.lr, lrate)
 
 			# Train
-			history = self.model.fit_generator(train_generator(data.inputs, data.outputs),
-				callbacks=callbacks_list,
-				epochs=1,
-			    steps_per_epoch=len(data.inputs),
-				verbose=1
-			)
+			if input('Train?(y/n)') == 'y':
+				history = self.model.fit_generator(train_generator(data.inputs, data.outputs),
+					callbacks=callbacks_list,
+					epochs=1,
+				    steps_per_epoch=len(data.inputs),
+					verbose=1
+				)
+				self.model.save(self._file_path.format(self._model_name))
 
 			# all_history['val_acc'] += history.history['val_acc']
 
@@ -380,7 +382,6 @@ class NoteRNN(object):
 				print '###Test Score: ', self.get_score(test_data.inputs, test_data.outputs)
 
 			self.generate_from_primer(testscore, save_name='melody' + str(i))
-			self.model.save(self._file_path.format(self._model_name + 'final'))
 
 		plot_training_loss(self._model_name, all_history)
 
@@ -401,10 +402,12 @@ class NoteRNN(object):
 			prediction = self.generate(array([inputs[i]]))
 			if i %  5 == 0:
 				print 'y=%s, yhat=%s' % ([n - 3 for n in one_hot_decode(outputs[i])], [n - 3 for n in one_hot_decode(prediction)])
-			y_pred.append(prediction)
-			y_true.append(outputs[i])
+			y_pred += prediction
+			y_true += outputs[i]
+		print np.shape(y_pred)
+		print np.shape(y_true)
 
-		print('acc: %.2f%%, f1 score' % (float(correct) / float(len(inputs)) * 100.0), micro_f1_score(y_pred, y_true))
+		print 'f1 score', micro_f1_score(y_pred, y_true)
 
 	def generate_from_primer(self, testscore, length=args.num_output_bars * args.steps_per_bar, save_name='untitled'):
 		# Generation
