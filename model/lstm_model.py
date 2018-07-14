@@ -366,7 +366,8 @@ class NoteRNN(object):
 			K.set_value(self.optimizer.lr, lrate)
 
 			# Train
-			if input('Train?(y/n)') == 'y':
+			train = input('Train?(y/n)')
+			if train == 'y':
 				history = self.model.fit_generator(train_generator(data.inputs, data.outputs),
 					callbacks=callbacks_list,
 					epochs=1,
