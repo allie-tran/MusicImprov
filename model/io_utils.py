@@ -141,28 +141,16 @@ def get_inputs(file, test=False):
 		melodies = json.load(f)
 
 	inputs = []
-	inputs_feed = []
 	input_shape = get_input_shapes()
-	output_shape = get_output_shapes()
-	input_length = input_shape[0]
-	output_length = output_shape[0]
 
 	if args.train:
 		for i, melody in enumerate(melodies):
-			j = 0
-			while j < len(melody) - (input_length + output_length) - 1:
-				input_phrase = melody[j: j+input_length]
-				input_phrase = [n + 3 for n in input_phrase]
-				inputs.append(to_onehot(input_phrase, input_shape[1]))
-
-				input_feed = [0] + input_phrase[:-1]
-				inputs_feed.append(to_onehot(input_feed, input_shape[1]))
-
-				j += output_length
-
+			input_phrase = melody[:-1]
+			input_phrase = [0] + [n + 3 for n in input_phrase]
+			inputs.append(to_onehot(input_phrase, input_shape[1]))
 	inputs = array(inputs)
-	inputs_feed = array(inputs_feed)
-	return inputs, inputs_feed
+	print inputs.shape
+	return inputs
 
 
 def get_outputs(file, test=False):
@@ -170,30 +158,19 @@ def get_outputs(file, test=False):
 		melodies = json.load(f)
 
 	outputs = []
-	outputs_feed = []
-	input_shape = get_input_shapes()
 	output_shape = get_output_shapes()
-	input_length = input_shape[0]
-	output_length = output_shape[0]
 
 	if args.train:
 		for i, melody in enumerate(melodies):
-			j = 0
-			while j < len(melody) - (input_length + output_length) - 1:
-				next_bar = melody[j+input_length:j+input_length+output_length]
-				next_bar = [n + 3 for n in next_bar]
-				outputs.append(to_onehot(next_bar, output_shape[1]))
-
-				next_bar_feed = [0] + next_bar[:-1]
-				outputs_feed.append(to_onehot(next_bar_feed, output_shape[1]))
-				j += output_length
+			output_phrase = melody[1:]
+			output_phrase = [n + 3 for n in output_phrase] + [0]
+			outputs.append(to_onehot(output_phrase, output_shape[1]))
 
 	outputs = array(outputs)
-	outputs_feed = array(outputs_feed)
 	# if not test:
 	# 	print('Output shapes:')
 	# 	print(shape(outputs))
-	return outputs, outputs_feed
+	return outputs
 
 def midi_to_name(midi):
 	if midi < 0:
