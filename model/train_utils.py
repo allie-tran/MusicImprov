@@ -69,8 +69,6 @@ def get_class_weights(y_train):
 
 
 def micro_f1_score(y_pred, y_true):
-	y_pred = np.argmax(y_pred, axis=-1).flatten()
-	y_true = np.argmax(y_true, axis=-1).flatten()
 	display_confusion_matrix(confusion_matrix(y_true, y_pred, labels=np.unique(y_true)))
 	return precision_score(y_pred, y_true, average='macro', labels=np.unique(y_true)),\
 	       recall_score(y_pred, y_true, average='macro', labels=np.unique(y_true)), \
