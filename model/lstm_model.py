@@ -370,7 +370,7 @@ class NoteRNN(object):
 				callbacks=callbacks_list,
 				epochs=1,
 			    steps_per_epoch=len(data.inputs),
-				verbose=2
+				verbose=1
 			)
 
 			# all_history['val_acc'] += history.history['val_acc']
