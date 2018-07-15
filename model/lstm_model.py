@@ -107,15 +107,26 @@ class NoteRNN(object):
 
 	def generate_from_primer(self, testscore, length=args.num_output_bars * args.steps_per_bar, save_name='untitled'):
 		# Generation
-		count = 0
 		input_shape = get_input_shapes()
-		whole = [0] + [n + 3 for n in testscore[:input_shape[0]]]
+		original = [0] + [n + 3 for n in testscore[:input_shape[0]]]
+		primer = [n for n in original]
+		silence = 0
 		while True:
-			primer = to_onehot(whole, input_shape[1])
-			output = self.generate(array([primer]))
-			whole.append(one_hot_decode(output)[-1])
-			count += 1
-			if count >= length:
-				MelodySequence([int(n - 3) for n in whole]).to_midi('generated/' + save_name, save=True)
-				print 'Generated: ', [int(n - 3) for n in whole]
+			output = self.generate(array([to_onehot(primer, input_shape[1])]))
+			output = one_hot_decode(output)[-1]
+			if output < 3:
+				silence += 1
+			else:
+				silence = 0
+			if silence >= args.steps_per_bar:
+				original = original[:-silence]
+				primer = primer[1:-silence]
+				print 'Cut'
+				silence = 0
+				continue
+			original.append(output)
+			primer.append(output)
+			if len(original) > length + args.num_input_bars * args.steps_per_bar:
+				MelodySequence([int(n - 3) for n in original[1:]]).to_midi('generated/' + save_name, save=True)
+				print 'Generated: ', [int(n - 3) for n in original[1:]]
 				break

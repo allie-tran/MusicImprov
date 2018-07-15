@@ -44,9 +44,9 @@ class MelodySequence(list):
 		:return the mido.MidiFile with one track named Melody, with information about ticks_per_beat = step_per_bar/4
 		"""
 		mid = mido.MidiFile()
-		mid.ticks_per_beat = self._steps_per_bar * 2  # because 1 bar = 4 beat only TODO!
+		mid.ticks_per_beat = self._steps_per_bar / 4  # because 1 bar = 4 beats
 		melody = mid.add_track('Melody')
-		melody.append(mido.MetaMessage(type='set_tempo', tempo=1600000))
+		melody.append(mido.MetaMessage(type='set_tempo', tempo=350000))
 		previous_note = -1
 		for n in self:
 			if n == -2:
@@ -60,11 +60,10 @@ class MelodySequence(list):
 						mido.Message(type='note_off', note=int(previous_note), velocity=30, time=0, channel=1))
 				melody.append(mido.Message(type='note_on', note=int(n), velocity=60, time=0, channel=1))
 				previous_note = n
-			melody.append(mido.Message('control_change', time=2, channel=1))
+			melody.append(mido.Message('control_change', time=1, channel=1))
 		if save:
-			mid.save(name + '_melody.mid')
+			mid.save(name + '.mid')
 		return mid
-
 
 
 def to_onehot(data, num_classes):
