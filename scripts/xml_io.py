@@ -113,6 +113,6 @@ class XMLtoNoteSequence(Transformer):
 
 		# print(note_sequence)
 
-		return MelodySequence(note_sequence)
+		return MelodySequence([int(n) for n in note_sequence])
 
 

@@ -1,10 +1,12 @@
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import logging
 
-from scripts import args, GeneralMusic
+from scripts import args, GeneralMusic, XMLtoNoteSequence
 from scripts.note_sequence_utils import *
-from scripts.transformer import *
 from music21 import key, midi
-
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 environment.UserSettings()['warnings'] = 0
@@ -60,5 +62,12 @@ class Midi(GeneralMusic):
 
 
 if __name__ == "__main__":
-	mid = Midi()
-	mid.from_file('archive/new_songs/1')
+	scores = os.listdir('generated')
+	for score in scores:
+		mid = Midi()
+		mid.from_file('generated/' + score, file=True)
+		transformer = XMLtoNoteSequence()
+		print transformer.transform(mid)
+		mid._score.show()
+
+
