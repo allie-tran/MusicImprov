@@ -68,8 +68,9 @@ def get_class_weights(y_train):
 	return dict(enumerate(class_weights))
 
 
-def micro_f1_score(y_pred, y_true):
-	display_confusion_matrix(confusion_matrix(y_true, y_pred, labels=np.unique(y_true)))
+def micro_f1_score(y_pred, y_true, printing):
+	if printing:
+		display_confusion_matrix(confusion_matrix(y_true, y_pred, labels=np.unique(y_true)))
 	return precision_score(y_pred, y_true, average='macro', labels=np.unique(y_true)),\
 	       recall_score(y_pred, y_true, average='macro', labels=np.unique(y_true)), \
 	       f1_score(y_pred, y_true, average='macro', labels=np.unique(y_true)), \

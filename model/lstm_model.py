@@ -59,7 +59,7 @@ class NoteRNN(object):
 
 		for i in range(args.epochs):
 			print('=' * 80)
-			print("EPOCH " + str(i))
+			print("EPOCH " + str(i + 1))
 			lrate = starting_lrate - (starting_lrate - ending_lrate) / args.epochs * i
 			K.set_value(self.optimizer.lr, lrate)
 
@@ -75,8 +75,7 @@ class NoteRNN(object):
 			# all_history['val_acc'] += history.history['val_acc']
 
 			# Evaluation
-			if i % 20 == 0:
-				print '###Test Score: ', self.get_score(test_data.inputs, test_data.outputs)
+			print '###Test Score: ', self.get_score(test_data.inputs, test_data.outputs, printing=(i+1) % 10 == 0)
 
 			self.generate_from_primer(testscore, save_name='melody' + str(i))
 
@@ -91,21 +90,18 @@ class NoteRNN(object):
 		except IOError:
 			pass
 
-	def get_score(self, inputs, outputs):
+	def get_score(self, inputs, outputs, printing=False):
 		y_pred = []
 		y_true = []
 		for i in range(len(inputs)):
 			prediction = self.generate(array([inputs[i]]))
-			if i % 5 == 0:
+			if printing and i % 5 == 0:
 				print 'y=%s, yhat=%s' % ([n - 3 for n in one_hot_decode(outputs[i])], [n - 3 for n in one_hot_decode(prediction)])
 			y_pred += one_hot_decode(prediction)
 			y_true += one_hot_decode(outputs[i])
-		print np.shape(y_pred)
-		print np.shape(y_true)
+		print 'f1 score', micro_f1_score(y_pred, y_true, printing=printing)
 
-		print 'f1 score', micro_f1_score(y_pred, y_true)
-
-	def generate_from_primer(self, testscore, length=args.num_output_bars * args.steps_per_bar, save_name='untitled'):
+	def generate_from_primer(self, testscore, length=args.num_output_bars * args.steps_per_bar, save_name='untitled', cut=False):
 		# Generation
 		input_shape = get_input_shapes()
 		original = [0] + [n + 3 for n in testscore[:input_shape[0]]]
@@ -118,7 +114,7 @@ class NoteRNN(object):
 				silence += 1
 			else:
 				silence = 0
-			if silence >= args.steps_per_bar:
+			if cut and silence >= args.steps_per_bar:
 				original = original[:-silence]
 				primer = primer[1:-silence]
 				print 'Cut'

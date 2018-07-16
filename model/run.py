@@ -47,7 +47,7 @@ def run():
 		testscore.from_file('test/'+score, file=True)
 		transformer = XMLtoNoteSequence()
 		testscore = transformer.transform(testscore)
-		model.generate_from_primer(testscore, save_name=score[:-4], length=3*4*args.steps_per_bar)
+		model.generate_from_primer(testscore, save_name=score[:-4], length=3*4*args.steps_per_bar, cut=True)
 
 
 if __name__ == '__main__':
