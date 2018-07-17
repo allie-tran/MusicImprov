@@ -21,6 +21,8 @@ def run():
 	if os.path.isdir('generated'):
 		shutil.rmtree('generated')
 	os.mkdir('generated')
+	os.mkdir('generated/full')
+	os.mkdir('generated/single')
 
 	if not os.path.isdir('weights'):
 		os.mkdir('weights')

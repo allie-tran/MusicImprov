@@ -263,7 +263,8 @@ class Predictor(object):
 			whole += one_hot_decode(output)
 			count += 1
 			if count >= length:
-				MelodySequence([int(n - 3) for n in whole]).to_midi('generated/' + save_name, save=True)
+				MelodySequence([int(n - 3) for n in whole]).to_midi('generated/full/' + save_name, save=True)
+				MelodySequence([int(n - 3) for n in whole[input_shape[0]:]]).to_midi('generated/single/' + save_name, save=True)
 				print 'Generated: ', [int(n - 3) for n in whole]
 				break
 
