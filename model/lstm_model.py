@@ -45,16 +45,16 @@ class Seq2Seq(object):
 	def define_models(self):
 
 		# define training encoder
-		encoder_inputs = Input(shape=(None, self._input_shape[1]))
-		encoder = LSTM(args.num_units, return_state=True)
+		encoder_inputs = Input(shape=(None, self._input_shape[1]), name="input")
+		encoder = LSTM(args.num_units, return_state=True, name="encoder_lstm")
 		encoder_outputs, state_h, state_c = encoder(encoder_inputs)
 		encoder_states = [state_h, state_c]
 
 		# define training decoder
-		decoder_inputs = Input(shape=(None, self._input_shape[1]))
-		decoder_lstm = LSTM(args.num_units, return_sequences=True, return_state=True)
+		decoder_inputs = Input(shape=(None, self._input_shape[1]), name="shifted_input")
+		decoder_lstm = LSTM(args.num_units, return_sequences=True, return_state=True, name="decoder_lstm")
 		decoder_outputs, _, _ = decoder_lstm(decoder_inputs, initial_state=encoder_states)
-		decoder_dense = Dense(self._input_shape[1], activation='softmax')
+		decoder_dense = Dense(self._input_shape[1], activation='softmax', name="linear_layer")
 		decoder_outputs = decoder_dense(decoder_outputs)
 		self.model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
 
@@ -174,15 +174,15 @@ class Predictor(object):
 
 	def define_models(self):
 		# define training encoder
-		state_h = Input(shape=(args.num_units,))
-		state_c = Input(shape=(args.num_units,))
+		state_h = Input(shape=(args.num_units,), name="state_h")
+		state_c = Input(shape=(args.num_units,), name="state_c")
 		states = [state_h, state_c]
 
 		# define training decoder
-		decoder_inputs = Input(shape=(None, self._output_shape[1]))
-		decoder_lstm = LSTM(args.num_units, return_sequences=True, return_state=True, recurrent_regularizer=None)
+		decoder_inputs = Input(shape=(None, self._output_shape[1]), name="shifted_output")
+		decoder_lstm = LSTM(args.num_units, return_sequences=True, return_state=True, recurrent_regularizer=None, name="decoder_lstm")
 		decoder_outputs, _, _ = decoder_lstm(decoder_inputs, initial_state=states)
-		decoder_dense = Dense(self._output_shape[1], activation='softmax')
+		decoder_dense = Dense(self._output_shape[1], activation='softmax', name="linear_layer")
 		decoder_outputs = decoder_dense(decoder_outputs)
 		self.model = Model([decoder_inputs] + states, decoder_outputs)
 
@@ -193,6 +193,8 @@ class Predictor(object):
 		self.decoder_model = Model([decoder_inputs, state_h, state_c], [decoder_outputs] + decoder_states)
 		self.optimizer = Adam(clipnorm=1., clipvalue=0.5)
 		self.model.compile(optimizer=self.optimizer, loss='categorical_crossentropy', metrics=['acc'])
+
+		plot_model(self.model, to_file='predictor.png')
 
 	def train(self, latent_input_model, data, test_data, testscore):
 		try:
