@@ -1,11 +1,8 @@
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-import logging
-
-from scripts import args, GeneralMusic, XMLtoNoteSequence
-from scripts.note_sequence_utils import *
+from math import sqrt
+from scripts import *
 from music21 import key, midi
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
@@ -62,12 +59,82 @@ class Midi(GeneralMusic):
 
 
 if __name__ == "__main__":
-	scores = os.listdir('generated')
-	for score in scores:
+	entropy_all = 2.30369763993
+	#
+	# transformer = XMLtoNoteSequence()
+	# scores = os.listdir('generated/single')
+	# for score in scores:
+	# 	print score[:-4]
+	#
+	# 	mid = Midi()
+	# 	mid.from_file('generated/single/' + score, file=True)
+	# 	generated_melody = transformer.transform(mid)
+	#
+	# 	mid = Midi()
+	# 	mid.from_file('test/' + score, file=True)
+	# 	primer = transformer.transform(mid)
+	#
+	# 	ent = calculate_entropy(generated_melody)
+	# 	print 'Entropy: ', abs(ent - entropy_all), abs(ent - calculate_entropy(primer))
+
+	with open('train.json') as f:
+		training_data = json.load(f)
+	training_piece = []
+	entr = 0
+	for melody in training_data:
+		training_piece += melody
+
+	ent_all = 0
+	ent_ave = 0
+	mutual_train = 0
+	mutual = 0
+	edit = 0
+	note_distribution_train = 0
+	note_distribution_primer = 0
+	note_distribution = 0
+	dissonance_train = 0
+	dissonance = 0
+	large_interval = 0
+
+
+	with open('test.json') as f:
+		testing_data = json.load(f)
+	transformer = XMLtoNoteSequence()
+
+	dis_all, _ = intervals(training_piece)
+	for i, melody in enumerate(testing_data):
 		mid = Midi()
-		mid.from_file('generated/' + score, file=True)
-		transformer = XMLtoNoteSequence()
-		print transformer.transform(mid)
-		mid._score.show()
+		mid.from_file('generated/single/' + str(i) + '.mid', file=True)
+		generated_melody = transformer.transform(mid)
+		#
+		# primer = melody[:8*4]
+		# entr = calculate_entropy(generated_melody)
+		# ent_all += (entr - entropy_all) ** 2
+		# ent_ave += (entr - calculate_entropy(primer)) ** 2
+
+		# mutual_train += mutual_information(training_piece, generated_melody) ** 2
+		# mutual += mutual_information(primer, generated_melody) ** 2
+		#
+		# edit += (edit_distance(generated_melody, melody[8*4:8*4+len(generated_melody)]) *1.0 / len(generated_melody)) ** 2
+		# note_distribution_train += comparision_distribution(generated_melody, training_piece) ** 2
+		# note_distribution_primer += comparision_distribution(generated_melody, primer) ** 2
+		# note_distribution += comparision_distribution(generated_melody, melody) ** 2
+		#
+		dis, large = intervals(generated_melody)
+		# dis_primer, _ = intervals(primer)
+		# dissonance_train += (dis - dis_all) ** 2
+		# dissonance += (dis - dis_primer) ** 2
+
+		large_interval += large
+
+	# Entropy
+	# print 'Entropy: ', sqrt(ent_all/len(testing_data)), sqrt(ent_ave/len(testing_data))
+	# print 'Mutual Information: ', sqrt(mutual_train/len(testing_data)), sqrt(mutual/len(testing_data))
+	# print 'Edit distance: ', sqrt(edit/len(testing_data))
+	# print 'Dissonance: ', sqrt(dissonance_train/len(testing_data)), sqrt(dissonance/len(testing_data))
+	print 'Large intervals: ', large_interval * 1.0 / len(testing_data)
+	# print 'Note distribution: ', sqrt(note_distribution_train/len(testing_data)), sqrt(note_distribution_primer/len(testing_data)), sqrt(note_distribution/len(testing_data))
+	#
+
 
 

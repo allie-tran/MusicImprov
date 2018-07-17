@@ -53,13 +53,18 @@ def run():
 	predictor_model.load()
 
 	# # Generation
-	scores = os.listdir('test')
-	for score in scores:
-		testscore = Midi()
-		testscore.from_file('test/'+score, file=True)
-		transformer = XMLtoNoteSequence()
-		testscore = transformer.transform(testscore)
-		predictor_model.generate_from_primer(testscore, latent_input_model, save_name='generated_' + score[:-4])
+	# scores = os.listdir('test')
+	# for score in scores:
+	# 	testscore = Midi()
+	# 	testscore.from_file('test/'+score, file=True)
+	# 	transformer = XMLtoNoteSequence()
+	# 	testscore = transformer.transform(testscore)
+	# 	predictor_model.generate_from_primer(testscore, latent_input_model, save_name=score[:-4])
+	with open('test.json') as f:
+		testing_data = json.load(f)
+
+	for i, melody in enumerate(testing_data):
+		predictor_model.generate_from_primer(melody, latent_input_model, save_name=str(i))
 
 
 if __name__ == '__main__':
