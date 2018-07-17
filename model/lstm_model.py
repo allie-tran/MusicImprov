@@ -123,6 +123,7 @@ class NoteRNN(object):
 			original.append(output)
 			primer.append(output)
 			if len(original) > length + args.num_input_bars * args.steps_per_bar:
-				MelodySequence([int(n - 3) for n in original[1:]]).to_midi('generated/' + save_name, save=True)
+				MelodySequence([int(n - 3) for n in original[1:]]).to_midi('generated/full/' + save_name, save=True)
+				MelodySequence([int(n - 3) for n in original[1+input_shape[0]:]]).to_midi('generated/single/' + save_name, save=True)
 				print 'Generated: ', [int(n - 3) for n in original[1:]]
 				break

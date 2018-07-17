@@ -20,6 +20,8 @@ def run():
 	if os.path.isdir('generated'):
 		shutil.rmtree('generated')
 	os.mkdir('generated')
+	os.mkdir('generated/full')
+	os.mkdir('generated/single')
 
 	if not os.path.isdir('weights'):
 		os.mkdir('weights')
@@ -41,13 +43,22 @@ def run():
 	model.load()
 
 	# # Generation
-	scores = os.listdir('test')
-	for score in scores:
-		testscore = Midi()
-		testscore.from_file('test/'+score, file=True)
-		transformer = XMLtoNoteSequence()
-		testscore = transformer.transform(testscore)
-		model.generate_from_primer(testscore, save_name=score[:-4], length=3*4*args.steps_per_bar, cut=True)
+
+	#
+	# scores = os.listdir('test')
+	# for score in scores:
+	# 	testscore = Midi()
+	# 	testscore.from_file('test/'+score, file=True)
+	# 	transformer = XMLtoNoteSequence()
+	# 	testscore = transformer.transform(testscore)
+	# 	model.generate_from_primer(testscore, save_name=score[:-4], length=3*4*args.steps_per_bar, cut=True)
+
+	with open('test.json') as f:
+		testing_data = json.load(f)
+
+	for i, melody in enumerate(testing_data):
+		model.generate_from_primer(melody, save_name=str(i), length=3*4*args.steps_per_bar, cut=True)
+
 
 
 if __name__ == '__main__':
