@@ -31,8 +31,8 @@ def run():
 		inputs, inputs_feed = get_inputs(args.training_file)
 		outputs, outputs_feed = get_outputs(args.training_file)
 
-		test_inputs, _ = get_inputs(args.testing_file)
-		test_outputs, _ = get_outputs(args.testing_file)
+		test_inputs, _ = get_inputs(args.testing_file, filtered=False)
+		test_outputs, _ = get_outputs(args.testing_file, filtered=False)
 
 	# plot_model(melody_model, to_file='model.png')
 	if args.train_latent:

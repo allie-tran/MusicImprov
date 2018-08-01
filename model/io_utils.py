@@ -1,11 +1,9 @@
 import json
 import os
 import music21
-import random
-from numpy import array, zeros, shape, sin, cos, pi, sqrt, argmax
+from numpy import array, zeros, argmax
 from scripts import args, to_onehot, MusicXML, XMLtoNoteSequence, Midi
 from xml.etree import cElementTree
-from keras.preprocessing.sequence import pad_sequences
 
 from collections import namedtuple
 Data = namedtuple('Data', ['inputs', 'outputs', 'feeds'])
@@ -136,9 +134,14 @@ def get_output_shapes():
 	output_shape = (int(args.num_output_bars * args.steps_per_bar), 128 + 3)
 	return output_shape
 
-def get_inputs(file, test=False):
+def get_inputs(file, filtered=True, test=False):
 	with open(file) as f:
 		melodies = json.load(f)
+
+	filter = []
+	if filtered:
+		with open('filter.txt') as f:
+			filter = json.load(f)
 
 	inputs = []
 	inputs_feed = []
@@ -147,27 +150,34 @@ def get_inputs(file, test=False):
 	input_length = input_shape[0]
 	output_length = output_shape[0]
 
-	if args.train:
-		for i, melody in enumerate(melodies):
-			j = 0
-			while j < len(melody) - (input_length + output_length) - 1:
-				input_phrase = melody[j: j+input_length]
-				input_phrase = [n + 3 for n in input_phrase]
-				inputs.append(to_onehot(input_phrase, input_shape[1]))
+	for i, melody in enumerate(melodies):
+		j = 0
+		while j < len(melody) - (input_length + output_length) - 1:
+			input_phrase = melody[j: j+input_length]
+			input_phrase = [n + 3 for n in input_phrase]
+			inputs.append(to_onehot(input_phrase, input_shape[1]))
 
-				input_feed = [0] + input_phrase[:-1]
-				inputs_feed.append(to_onehot(input_feed, input_shape[1]))
+			input_feed = [0] + input_phrase[:-1]
+			inputs_feed.append(to_onehot(input_feed, input_shape[1]))
 
-				j += output_length
+			j += output_length
+
+	for i in sorted(filter, reverse=True):
+		del inputs[i]
 
 	inputs = array(inputs)
-	inputs_feed = array(inputs_feed)
+	# inputs_feed = array(inputs_feed)
 	return inputs, inputs_feed
 
 
-def get_outputs(file, test=False):
+def get_outputs(file, filtered=True, test=False):
 	with open(file) as f:
 		melodies = json.load(f)
+
+	filter = []
+	if filtered:
+		with open('filter.txt') as f:
+			filter = json.load(f)
 
 	outputs = []
 	outputs_feed = []
@@ -176,17 +186,19 @@ def get_outputs(file, test=False):
 	input_length = input_shape[0]
 	output_length = output_shape[0]
 
-	if args.train:
-		for i, melody in enumerate(melodies):
-			j = 0
-			while j < len(melody) - (input_length + output_length) - 1:
-				next_bar = melody[j+input_length:j+input_length+output_length]
-				next_bar = [n + 3 for n in next_bar]
-				outputs.append(to_onehot(next_bar, output_shape[1]))
+	for i, melody in enumerate(melodies):
+		j = 0
+		while j < len(melody) - (input_length + output_length) - 1:
+			next_bar = melody[j+input_length:j+input_length+output_length]
+			next_bar = [n + 3 for n in next_bar]
+			outputs.append(to_onehot(next_bar, output_shape[1]))
 
-				next_bar_feed = [0] + next_bar[:-1]
-				outputs_feed.append(to_onehot(next_bar_feed, output_shape[1]))
-				j += output_length
+			next_bar_feed = [0] + next_bar[:-1]
+			outputs_feed.append(to_onehot(next_bar_feed, output_shape[1]))
+			j += output_length
+
+	for i in sorted(filter, reverse=True):
+		del outputs[i]
 
 	outputs = array(outputs)
 	outputs_feed = array(outputs_feed)

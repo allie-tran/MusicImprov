@@ -1,10 +1,8 @@
 import logging
 
-from numpy import ones, floor
-
 from note_sequence_utils import *
 from transformer import *
-from music21 import chord, key
+from music21 import key
 
 
 import xml.etree.ElementTree as ET
