@@ -28,8 +28,8 @@ def run():
 		os.mkdir('weights')
 
 	if args.train or args.train_latent:
-		inputs, inputs_feed = get_inputs(args.training_file, clip=64)
-		outputs, outputs_feed = get_outputs(args.training_file, clip=64)
+		inputs, inputs_feed = get_inputs(args.training_file, clip=args.clip)
+		outputs, outputs_feed = get_outputs(args.training_file, clip=args.clip)
 
 		test_inputs, _ = get_inputs(args.testing_file, filtered=False)
 		test_outputs, _ = get_outputs(args.testing_file, filtered=False)
