@@ -28,11 +28,11 @@ def run():
 		os.mkdir('weights')
 
 	if args.train or args.train_latent:
-		inputs, inputs_feed = get_inputs(args.training_file, clip=args.clip)
-		outputs, outputs_feed = get_outputs(args.training_file, clip=args.clip)
+		inputs, inputs_feed = get_inputs(args.training_file, clip=args.train_clip)
+		outputs, outputs_feed = get_outputs(args.training_file, clip=args.train_clip)
 
-		test_inputs, _ = get_inputs(args.testing_file, filtered=False)
-		test_outputs, _ = get_outputs(args.testing_file, filtered=False)
+		test_inputs, _ = get_inputs(args.testing_file, clip=args.test_clip, filtered=False)
+		test_outputs, _ = get_outputs(args.testing_file, clip=args.test_clip, filtered=False)
 
 	# plot_model(melody_model, to_file='model.png')
 	if args.train_latent:

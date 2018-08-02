@@ -32,11 +32,16 @@ parser.add_argument("--epochs",
                     nargs='?',
                     default=20,
                     help="The number of epochs.")
-parser.add_argument("--clip",
+parser.add_argument("--train_clip",
                     type=int,
                     nargs='?',
                     default=0,
-                    help="Actual input size")
+                    help="Actual training input size")
+parser.add_argument("--test_clip",
+                    type=int,
+                    nargs='?',
+                    default=0,
+                    help="Actual testing input size")
 parser.add_argument("--dropout",
                     type=float,
                     nargs='?',
