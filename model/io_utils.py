@@ -164,6 +164,7 @@ def get_inputs(file, filtered=True, test=False):
 
 	for i in sorted(filter, reverse=True):
 		del inputs[i]
+		del inputs_feed[i]
 
 	inputs = array(inputs)
 	inputs_feed = array(inputs_feed)
