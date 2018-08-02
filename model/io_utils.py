@@ -134,7 +134,7 @@ def get_output_shapes():
 	output_shape = (int(args.num_output_bars * args.steps_per_bar), 128 + 3)
 	return output_shape
 
-def get_inputs(file, filtered=True, test=False):
+def get_inputs(file, filtered=True, clip=0, test=False):
 	with open(file) as f:
 		melodies = json.load(f)
 
@@ -166,12 +166,15 @@ def get_inputs(file, filtered=True, test=False):
 		del inputs[i]
 		del inputs_feed[i]
 
-	inputs = array(inputs)
-	inputs_feed = array(inputs_feed)
+	if clip == 0:
+		clip = len(inputs)
+
+	inputs = array(inputs[:clip])
+	inputs_feed = array(inputs_feed[:clip])
 	return inputs, inputs_feed
 
 
-def get_outputs(file, filtered=True, test=False):
+def get_outputs(file, filtered=True, clip=0, test=False):
 	with open(file) as f:
 		melodies = json.load(f)
 
@@ -200,9 +203,13 @@ def get_outputs(file, filtered=True, test=False):
 
 	for i in sorted(filter, reverse=True):
 		del outputs[i]
+		del outputs_feed[i]
 
-	outputs = array(outputs)
-	outputs_feed = array(outputs_feed)
+	if clip == 0:
+		clip = len(outputs)
+
+	outputs = array(outputs[:clip])
+	outputs_feed = array(outputs_feed[:clip])
 	# if not test:
 	# 	print('Output shapes:')
 	# 	print(shape(outputs))
