@@ -35,7 +35,6 @@ def run():
 		if args.train_latent:
 			latent_input_model.train(Data(inputs, inputs, inputs_feed), Data(test_inputs, test_inputs, None))
 
-
 		if args.train:
 			encoded_inputs = latent_input_model.encoder_model.predict(inputs)
 			test_encoded_inputs = latent_input_model.encoder_model.predict(test_inputs)

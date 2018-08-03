@@ -87,20 +87,9 @@ class ToSeqModel(GeneralModel):
 	def generate(self, inputs):
 		pass
 
+	@abc.abstractmethod
 	def get_score(self, inputs, outputs):
-		y_pred = []
-		y_true = []
-		for i in range(len(inputs)):
-			prediction = self.generate(array([inputs[i]]))
-			pred = one_hot_decode(prediction)
-			true = one_hot_decode(outputs[i])
-			if i < 10:
-				print 'y=%s, yhat=%s' % ([n - 3 for n in true], [n - 3 for n in pred])
-			y_pred += pred
-			y_true += true
-
-		print 'f1 score', micro_f1_score(y_pred, y_true)
-
+		pass
 
 
 
