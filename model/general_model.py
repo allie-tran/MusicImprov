@@ -71,7 +71,7 @@ class GeneralModel(object):
 			)
 
 			# If early stopping happened:
-			if history.history['acc']  < 5:
+			if history.history['acc'] < 5:
 				print 'Overfitted! Early stopping!'
 				break
 

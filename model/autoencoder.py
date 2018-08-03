@@ -61,9 +61,9 @@ class AutoEncoder(ToSeqModel):
 		return array(output)
 
 class Predictor(ToSeqModel):
-	def __init__(self, input_shape, output_shape, model_name):
+	def __init__(self, output_shape, model_name):
 		self.decoder_model = None
-		super(Predictor, self).__init__(input_shape, output_shape, model_name)
+		super(Predictor, self).__init__(None, output_shape, model_name)
 
 	def define_models(self):
 		# define training encoder
