@@ -42,6 +42,19 @@ class AutoEncoder(ToSeqModel):
 
 		plot_model(self.model, to_file='model.png')
 
+	def fit(self, data, callbacks_list):
+		history = self.model.fit(
+			[data.inputs, data.feeds],
+			data.outputs,
+			callbacks=callbacks_list,
+			validation_split=0.2,
+			epochs=5,
+			shuffle=True,
+			batch_size=64,
+			verbose=2
+		)
+		return history
+
 	def generate(self, inputs):
 		# encode
 		state = self.encoder_model.predict(inputs)
@@ -87,6 +100,20 @@ class Predictor(ToSeqModel):
 		self.model.compile(optimizer=self.optimizer, loss='categorical_crossentropy', metrics=['acc'])
 
 		plot_model(self.model, to_file='predictor.png')
+
+	def fit(self, data, callbacks_list):
+		# Train
+		history = self.model.fit(
+			[data.feeds] + data.inputs,
+			data.outputs,
+			callbacks=callbacks_list,
+			validation_split=0.2,
+			epochs=5,
+			shuffle=True,
+			batch_size=64,
+			verbose=2
+		)
+		return history
 
 	def generate(self, inputs):
 		state = inputs

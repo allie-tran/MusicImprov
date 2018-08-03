@@ -31,6 +31,10 @@ class GeneralModel(object):
 		except IOError:
 			pass
 
+	@abc.abstractmethod
+	def fit(self, data, callbacks_list):
+		pass
+
 	def train(self, data, test_data):
 		try:
 			self.load()
@@ -59,16 +63,7 @@ class GeneralModel(object):
 			K.set_value(self.optimizer.lr, lrate)
 
 			# Train
-			history = self.model.fit(
-				[data.inputs, data.feeds],
-				data.outputs,
-				callbacks=callbacks_list,
-				validation_split=0.2,
-				epochs=5,
-				shuffle=True,
-				batch_size=64,
-				verbose=2
-			)
+			history = self.fit(data, callbacks_list)
 
 			# If early stopping happened:
 			if history.history['acc'] < 5:
