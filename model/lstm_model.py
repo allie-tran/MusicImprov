@@ -1,3 +1,6 @@
+# To be deleted
+
+
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras.layers import Activation, GaussianNoise
 from keras.layers import Dense, Input, Lambda, LSTM, Concatenate, RepeatVector, Bidirectional, Layer, Multiply, Add
@@ -112,19 +115,20 @@ class Seq2Seq(object):
 				data.outputs,
 				callbacks=callbacks_list,
 				validation_split=0.2,
-				epochs=1,
+				epochs=5,
 				shuffle=True,
 				batch_size=64,
 				verbose=2
 			)
 
-			# all_history['val_acc'] += history.history['val_acc']
+			# If early stopping happened:
+			if history.history['acc']  < 5:
+				print 'Overfitted! Early stopping!'
+				break
 
 			# Evaluation
-			if i % 20 == 0:
-				print '###Test Score: ', self.get_score(test_data.inputs, test_data.outputs)
+			print '###Test Score: ', self.get_score(test_data.inputs, test_data.outputs)
 
-		plot_training_loss(self._model_name, all_history)
 
 	def generate(self, inputs):
 		# encode
@@ -198,7 +202,7 @@ class Predictor(object):
 
 		plot_model(self.model, to_file='predictor.png')
 
-	def train(self, latent_input_model, data, test_data, testscore):
+	def train(self, data, test_data):
 		try:
 			self.load()
 		except IOError:
@@ -215,16 +219,8 @@ class Predictor(object):
 
 		callbacks_list = [checkpoint, early_stopping]
 
-		all_history = {'loss': [],
-		               'val_loss': [],
-		               'acc': [],
-		               'val_acc': []}
-
 		starting_lrate = 1e-3
 		ending_lrate = 1e-5
-		# Generation
-		count = 0
-		input_shape = get_input_shapes()
 
 		for i in range(args.epochs):
 			print('=' * 80)
@@ -238,22 +234,20 @@ class Predictor(object):
 				data.outputs,
 				callbacks=callbacks_list,
 				validation_split=0.2,
-				epochs=1,
+				epochs=5,
 				shuffle=True,
 				batch_size=64,
 				verbose=2
 			)
 
-			# all_history['val_acc'] += history.history['val_acc']
+			# If early stopping happened:
+			if history.history['acc'] < 5:
+				print 'Overfitted! Early stopping!'
+				break
 
 			# Evaluation
-			if i % 20 == 0:
-				print '###Test Score: ', self.get_score(test_data.inputs, test_data.outputs)
+			print '###Test Score: ', self.get_score(test_data.inputs, test_data.outputs)
 
-			self.generate_from_primer(testscore, latent_input_model, save_name='melody' + str(i))
-			self.model.save(self._file_path.format(self._model_name + 'final'))
-
-		# plot_training_loss(self._model_name, all_history)
 
 	def generate_from_primer(self, testscore, latent_input_model, length=12 / args.num_output_bars, save_name='untilted'):
 		# Generation
