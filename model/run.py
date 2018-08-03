@@ -5,7 +5,6 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from model import *
 from scripts import *
 
-
 def run():
 	if args.savedata:
 		create_dataset(args.dataset)
