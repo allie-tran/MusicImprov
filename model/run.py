@@ -1,9 +1,16 @@
 import os
 import sys
-import shutil
+import warnings
+warning_log = open('warning.txt', 'w')
+def customwarn(message, category, filename, lineno, file=None, line=None):
+    warning_log.write(warnings.formatwarning(message, category, filename, lineno))
+
+warnings.showwarning = customwarn
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import shutil
 from model import *
 from scripts import *
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 def run():
 	if args.savedata:
@@ -63,3 +70,4 @@ def run():
 
 if __name__ == '__main__':
 	run()
+	warning_log.close()
