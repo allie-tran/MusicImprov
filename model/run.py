@@ -17,6 +17,7 @@ def run():
 
 	if os.path.isdir('generated'):
 		shutil.rmtree('generated')
+	os.mkdir('generated')
 	folders = ['test', 'test/full', 'test/single', 'examples', 'examples/full', 'examples/single']
 	for folder in folders:
 		os.mkdir('generated/'+folder)
