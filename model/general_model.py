@@ -3,6 +3,7 @@ from scripts import args
 import abc
 from keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoard
 from keras.optimizers import Adam
+from keras.models import load_model
 from time import time
 
 
@@ -26,10 +27,8 @@ class GeneralModel(object):
 
 	def load(self):
 		try:
-			if args.final_weights:
-				self.model.load_model(self._file_path.format(self._model_name + 'final'))
-			else:
-				self.model.load_model(self._file_path.format(self._model_name))
+			self.model = load_model(self._file_path.format(self._model_name),
+			                        custom_objects={"DropConnect": DropConnect})
 		except IOError:
 			pass
 
