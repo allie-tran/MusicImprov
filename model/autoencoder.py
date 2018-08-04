@@ -51,7 +51,7 @@ class AutoEncoder(ToSeqModel):
 			data.outputs,
 			callbacks=callbacks_list,
 			validation_split=0.2,
-			epochs=1,
+			epochs=args.epochs,
 			shuffle=True,
 			batch_size=64,
 			verbose=2
