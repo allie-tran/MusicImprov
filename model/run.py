@@ -17,9 +17,9 @@ def run():
 
 	if os.path.isdir('generated'):
 		shutil.rmtree('generated')
-	os.mkdir('generated')
-	os.mkdir('generated/full')
-	os.mkdir('generated/single')
+	folders = ['test', 'test/full', 'test/single', 'examples', 'examples/full', 'examples/single']
+	for folder in folders:
+		os.mkdir('generated/'+folder)
 
 	if not os.path.isdir('weights'):
 		os.mkdir('weights')
@@ -44,19 +44,20 @@ def run():
 	latent_input_model.load()
 	predictor_model.load()
 
-	# # Generation
-	# scores = os.listdir('test')
-	# for score in scores:
-	# 	testscore = Midi()
-	# 	testscore.from_file('test/'+score, file=True)
-	# 	transformer = XMLtoNoteSequence()
-	# 	testscore = transformer.transform(testscore)
-	# 	predictor_model.generate_from_primer(testscore, latent_input_model, save_name=score[:-4])
+	# Generation
+	scores = os.listdir('test')
+	for score in scores:
+		testscore = Midi()
+		testscore.from_file('test/'+score, file=True)
+		transformer = XMLtoNoteSequence()
+		testscore = transformer.transform(testscore)
+		predictor_model.generate_from_primer(testscore, latent_input_model, save_name='examples/' + score[:-4])
+
 	with open('test.json') as f:
 		testing_data = json.load(f)
 
 	for i, melody in enumerate(testing_data):
-		predictor_model.generate_from_primer(melody, latent_input_model, save_name=str(i))
+		predictor_model.generate_from_primer(melody, latent_input_model, save_name='test/' + str(i))
 
 
 if __name__ == '__main__':
