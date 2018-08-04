@@ -1,8 +1,10 @@
 from model import *
 from scripts import args
 import abc
-from keras.callbacks import ModelCheckpoint, EarlyStopping
+from keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoard
 from keras.optimizers import Adam
+from time import time
+
 
 class GeneralModel(object):
 	"""
@@ -25,9 +27,9 @@ class GeneralModel(object):
 	def load(self):
 		try:
 			if args.final_weights:
-				self.model.load_weights(self._file_path.format(self._model_name + 'final'))
+				self.model.load_model(self._file_path.format(self._model_name + 'final'))
 			else:
-				self.model.load_weights(self._file_path.format(self._model_name))
+				self.model.load_model(self._file_path.format(self._model_name))
 		except IOError:
 			pass
 
@@ -46,33 +48,18 @@ class GeneralModel(object):
 			monitor='val_loss',
 			verbose=0,
 			save_best_only=True,
-			save_weights_only=True,
 			mode='min'
 		)
 		early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=2, verbose=0, mode='min')
+		tensorboard = TensorBoard(log_dir="logs/{}".format(time()))
 
-		callbacks_list = [checkpoint, early_stopping]
+		callbacks_list = [checkpoint, early_stopping, tensorboard]
 
-		starting_lrate = 1e-3
-		ending_lrate = 1e-5
+		# Train
+		history = self.fit(data, callbacks_list)
 
-		for i in range(args.epochs):
-			print('=' * 80)
-			print("EPOCH " + str(i))
-			lrate = starting_lrate - (starting_lrate - ending_lrate) / args.epochs * i
-			K.set_value(self.optimizer.lr, lrate)
-
-			# Train
-			history = self.fit(data, callbacks_list)
-
-			# If early stopping happened:
-			if history.history['acc'] < 5:
-				print 'Overfitted! Early stopping!'
-				break
-
-			# Evaluation
-			print '###Test Score: ', self.get_score(test_data.inputs, test_data.outputs)
-			self.model.save(self._file_path.format(self._model_name + 'final'))
+		# Evaluation
+		print '###Test Score: ', self.get_score(test_data.inputs, test_data.outputs)
 
 	@abc.abstractmethod
 	def get_score(self, inputs, outputs):

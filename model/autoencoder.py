@@ -1,9 +1,10 @@
-from keras.layers import Dense, Input, LSTM
+from keras.layers import Input, LSTM
 from keras.models import Model
 from keras.utils import plot_model
 from model import *
 from scripts import args
 from model import ToSeqModel
+
 
 class AutoEncoder(ToSeqModel):
 	def __init__(self, input_shape, output_shape, model_name):
@@ -22,6 +23,8 @@ class AutoEncoder(ToSeqModel):
 		decoder_inputs = Input(shape=(None, self._input_shape[1]), name="shifted_input")
 		decoder_lstm = LSTM(args.num_units, return_sequences=True, return_state=True, name="decoder_lstm")
 		decoder_outputs, _, _ = decoder_lstm(decoder_inputs, initial_state=encoder_states)
+		drop_connect = DropConnect(Dense(64, activation='relu'), prob=0.3)
+		decoder_outputs = drop_connect(decoder_outputs)
 		decoder_dense = Dense(self._input_shape[1], activation='softmax', name="linear_layer")
 		decoder_outputs = decoder_dense(decoder_outputs)
 		self.model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
@@ -34,6 +37,7 @@ class AutoEncoder(ToSeqModel):
 		decoder_states_inputs = [decoder_state_input_h, decoder_state_input_c]
 		decoder_outputs, state_h, state_c = decoder_lstm(decoder_inputs, initial_state=decoder_states_inputs)
 		decoder_states = [state_h, state_c]
+		decoder_outputs = drop_connect(decoder_outputs)
 		decoder_outputs = decoder_dense(decoder_outputs)
 		self.decoder_model = Model([decoder_inputs] + decoder_states_inputs, [decoder_outputs] + decoder_states)
 
@@ -47,7 +51,7 @@ class AutoEncoder(ToSeqModel):
 			data.outputs,
 			callbacks=callbacks_list,
 			validation_split=0.2,
-			epochs=5,
+			epochs=1,
 			shuffle=True,
 			batch_size=64,
 			verbose=2

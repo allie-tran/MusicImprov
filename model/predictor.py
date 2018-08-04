@@ -22,13 +22,16 @@ class Predictor(ToSeqModel):
 		decoder_inputs = Input(shape=(None, self._output_shape[1]), name="shifted_output")
 		decoder_lstm = LSTM(args.num_units, return_sequences=True, return_state=True, recurrent_regularizer=None, name="decoder_lstm")
 		decoder_outputs, _, _ = decoder_lstm(decoder_inputs, initial_state=states)
-		decoder_dense = Dense(self._output_shape[1], activation='softmax', name="linear_layer")
+		drop_connect = DropConnect(Dense(64, activation='relu'), prob=0.3)
+		decoder_outputs = drop_connect(decoder_outputs)
+		decoder_dense = Dense(self._input_shape[1], activation='softmax', name="linear_layer")
 		decoder_outputs = decoder_dense(decoder_outputs)
 		self.model = Model([decoder_inputs] + states, decoder_outputs)
 
 		# define inference decoder
 		decoder_outputs, decoder_state_h, decoder_state_c = decoder_lstm(decoder_inputs, initial_state=states)
 		decoder_states = [decoder_state_h, decoder_state_c]
+		decoder_outputs = drop_connect(decoder_outputs)
 		decoder_outputs = decoder_dense(decoder_outputs)
 		self.decoder_model = Model([decoder_inputs, state_h, state_c], [decoder_outputs] + decoder_states)
 		self.model.compile(optimizer=self.optimizer, loss='categorical_crossentropy', metrics=['acc'])
@@ -42,7 +45,7 @@ class Predictor(ToSeqModel):
 			data.outputs,
 			callbacks=callbacks_list,
 			validation_split=0.2,
-			epochs=5,
+			epochs=1,
 			shuffle=True,
 			batch_size=64,
 			verbose=2
