@@ -1,4 +1,6 @@
 midi
+weights
+generated
 *.pyc
 *~
 *.swp
