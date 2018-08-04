@@ -1,5 +1,0 @@
-tensorflow>=1.6.0
-keras>=2.1.5
-mido>=1.2.6
-music21>=4.1.0
-h5py>=2.7.1

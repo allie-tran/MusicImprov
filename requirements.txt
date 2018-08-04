@@ -1,0 +1,10 @@
+music21==4.1.0
+matplotlib==2.2.2
+lxml==4.2.1
+numpy==1.14.2
+pyentrp==0.3.1
+requests==2.18.4
+mido==1.2.8
+Keras==2.1.5
+beautifulsoup4==4.6.1
+scikit_learn==0.19.2
