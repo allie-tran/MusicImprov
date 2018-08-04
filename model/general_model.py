@@ -52,7 +52,10 @@ class GeneralModel(object):
 		early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=2, verbose=0, mode='min')
 		tensorboard = TensorBoard(log_dir="logs/{}".format(time()))
 
-		callbacks_list = [checkpoint, early_stopping, tensorboard]
+		if paras.early_stopping:
+			callbacks_list = [checkpoint, early_stopping, tensorboard]
+		else:
+			callbacks_list = [checkpoint, tensorboard]
 
 		# Train
 		history = self.fit(data, callbacks_list)
