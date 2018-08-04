@@ -4,6 +4,7 @@ generated
 clean
 duplicate.txt
 log.txt
+logs
 *.pyc
 *~
 *.swp
