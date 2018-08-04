@@ -4,7 +4,6 @@ import abc
 from keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoard
 from keras.optimizers import Adam
 from keras.models import load_model
-from time import time
 
 
 class GeneralModel(object):
@@ -28,7 +27,7 @@ class GeneralModel(object):
 	def load(self):
 		try:
 			self.model = load_model(self._file_path,
-			                        custom_objects={"DropConnect": DropConnect})
+			                        custom_objects={"DropConnect":DropConnect})
 		except IOError:
 			pass
 
@@ -50,7 +49,7 @@ class GeneralModel(object):
 			mode='min'
 		)
 		early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=2, verbose=0, mode='min')
-		tensorboard = TensorBoard(log_dir="logs/{}".format(time()))
+		tensorboard = TensorBoard(log_dir="logs/" + paras.exp_name)
 
 		if paras.early_stopping:
 			callbacks_list = [checkpoint, early_stopping, tensorboard]
