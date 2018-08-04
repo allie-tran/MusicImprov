@@ -104,7 +104,7 @@ if __name__ == "__main__":
 	dis_all, _ = intervals(training_piece)
 	for i, melody in enumerate(testing_data):
 		mid = Midi()
-		mid.from_file('generated/single/' + str(i) + '.mid', file=True)
+		mid.from_file('generated/test/single/' + str(i) + '.mid', file=True)
 		generated_melody = transformer.transform(mid)
 		#
 		# primer = melody[:8*4]
