@@ -1,6 +1,9 @@
 midi
 weights
 generated
+clean
+duplicate.txt
+log.txt
 *.pyc
 *~
 *.swp
@@ -15,3 +18,4 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+.idea/

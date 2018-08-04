@@ -1,4 +1,0 @@
-#!/bin/bash
-sudo rm -r weights score_list.json generated phrases.json
-mkdir weights
-mkdir generated
