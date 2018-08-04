@@ -5,7 +5,7 @@ import numpy as np
 from keras.layers import Dense, Wrapper
 import keras.backend as K
 
-from scripts import args
+from scripts import args, paras
 from sklearn.metrics import f1_score, precision_score, recall_score, confusion_matrix, accuracy_score
 
 

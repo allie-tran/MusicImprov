@@ -2,7 +2,7 @@ from keras.layers import Input, LSTM
 from keras.models import Model
 from keras.utils import plot_model
 from model import *
-from scripts import args
+from scripts import args, paras
 from model import ToSeqModel
 
 
@@ -15,13 +15,13 @@ class AutoEncoder(ToSeqModel):
 	def define_models(self):
 		# define training encoder
 		encoder_inputs = Input(shape=(None, self._input_shape[1]), name="input")
-		encoder = LSTM(args.num_units, return_state=True, name="encoder_lstm")
+		encoder = LSTM(paras.num_units, return_state=True, name="encoder_lstm")
 		encoder_outputs, state_h, state_c = encoder(encoder_inputs)
 		encoder_states = [state_h, state_c]
 
 		# define training decoder
 		decoder_inputs = Input(shape=(None, self._input_shape[1]), name="shifted_input")
-		decoder_lstm = LSTM(args.num_units, return_sequences=True, return_state=True, name="decoder_lstm")
+		decoder_lstm = LSTM(paras.num_units, return_sequences=True, return_state=True, name="decoder_lstm")
 		decoder_outputs, _, _ = decoder_lstm(decoder_inputs, initial_state=encoder_states)
 		drop_connect = DropConnect(Dense(64, activation='relu'), prob=0.3)
 		decoder_outputs = drop_connect(decoder_outputs)
@@ -32,8 +32,8 @@ class AutoEncoder(ToSeqModel):
 		# define inference encoder
 		self.encoder_model = Model(encoder_inputs, encoder_states)
 		# define inference decoder
-		decoder_state_input_h = Input(shape=(args.num_units,))
-		decoder_state_input_c = Input(shape=(args.num_units,))
+		decoder_state_input_h = Input(shape=(paras.num_units,))
+		decoder_state_input_c = Input(shape=(paras.num_units,))
 		decoder_states_inputs = [decoder_state_input_h, decoder_state_input_c]
 		decoder_outputs, state_h, state_c = decoder_lstm(decoder_inputs, initial_state=decoder_states_inputs)
 		decoder_states = [state_h, state_c]
@@ -51,7 +51,7 @@ class AutoEncoder(ToSeqModel):
 			data.outputs,
 			callbacks=callbacks_list,
 			validation_split=0.2,
-			epochs=args.epochs,
+			epochs=paras.epochs,
 			shuffle=True,
 			batch_size=64,
 			verbose=2

@@ -2,7 +2,7 @@ import json
 import os
 import music21
 from numpy import array, zeros, argmax
-from scripts import args, to_onehot, MusicXML, XMLtoNoteSequence, Midi
+from scripts import args, paras, to_onehot, MusicXML, XMLtoNoteSequence, Midi
 from xml.etree import cElementTree
 
 from collections import namedtuple
@@ -34,7 +34,7 @@ def encode_melody(melody, position):
 		i += 1
 
 	for k, n in enumerate(melody):
-		feature = zeros(30 + args.steps_per_bar)
+		feature = zeros(30 + paras.steps_per_bar)
 
 		pitchclass = zeros(13)
 		if n >= 2:
@@ -120,18 +120,18 @@ def create_dataset(folder):
 				except:
 					continue
 
-		with open(args.training_file, 'w') as f:
+		with open(paras.training_file, 'w') as f:
 			json.dump(data[:-50], f)
-		with open(args.testing_file, 'w') as f:
+		with open(paras.testing_file, 'w') as f:
 			json.dump(data[-50:], f)
 
 
 def get_input_shapes():
-	input_shape = (int(args.num_input_bars * args.steps_per_bar), 128 + 3)
+	input_shape = (int(paras.num_input_bars * paras.steps_per_bar), 128 + 3)
 	return input_shape
 
 def get_output_shapes():
-	output_shape = (int(args.num_output_bars * args.steps_per_bar), 128 + 3)
+	output_shape = (int(paras.num_output_bars * paras.steps_per_bar), 128 + 3)
 	return output_shape
 
 def get_inputs(file, filtered=True, clip=0, test=False):

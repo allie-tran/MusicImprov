@@ -6,7 +6,7 @@ from keras.utils import to_categorical
 from music21 import *
 from numpy import argmax
 from numpy import array
-from scripts import args
+from scripts import args, paras
 
 class MelodySequence(list):
 	"""
@@ -21,8 +21,8 @@ class MelodySequence(list):
 		Constructs a MelodySequence out of an array
 		"""
 		super(MelodySequence, self).__init__(note_sequence)
-		self._steps_per_bar = args.steps_per_bar
-		self._num_bars = len(note_sequence) / args.steps_per_bar
+		self._steps_per_bar = paras.steps_per_bar
+		self._num_bars = len(note_sequence) / paras.steps_per_bar
 		self._rhythm = [[0] if n == -1 else [1] for n in note_sequence]
 
 	@property

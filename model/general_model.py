@@ -1,5 +1,5 @@
 from model import *
-from scripts import args
+from scripts import args, paras
 import abc
 from keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoard
 from keras.optimizers import Adam
@@ -14,10 +14,10 @@ class GeneralModel(object):
 
 	def __init__(self, input_shape, output_shape, model_name):
 		self._model_name = model_name
-		self._file_path = "weights/{}.hdf5".format(self._model_name)
+		self._file_path = self._model_name + ".hdf5"
 		self._input_shape = input_shape
 		self._output_shape = output_shape
-		self.optimizer = Adam(clipnorm=1., clipvalue=0.5)
+		self.optimizer = Adam(lr=0.001, clipnorm=1., clipvalue=0.5)
 		self.model = None
 		self.define_models()
 
@@ -27,7 +27,7 @@ class GeneralModel(object):
 
 	def load(self):
 		try:
-			self.model = load_model(self._file_path.format(self._model_name),
+			self.model = load_model(self._file_path,
 			                        custom_objects={"DropConnect": DropConnect})
 		except IOError:
 			pass

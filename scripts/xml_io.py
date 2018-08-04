@@ -3,7 +3,7 @@ import logging
 from numpy import ones, floor
 
 from note_sequence_utils import *
-from scripts import args, GeneralMusic
+from scripts import args, paras, GeneralMusic
 from transformer import *
 from music21 import chord, key, harmony
 
@@ -57,8 +57,8 @@ class MusicXML(GeneralMusic):
 			full_melody = stream.Stream()
 			full_chord = stream.Stream()
 			for i, measure in enumerate(measures):
-				full_melody.insert(i * args.steps_per_bar / 4, stream.Measure(measure.getElementsByClass(note.Note)))
-				full_chord.insert(i * args.steps_per_bar / 4, stream.Measure(measure.getElementsByClass(chord.Chord)))
+				full_melody.insert(i * paras.steps_per_bar / 4, stream.Measure(measure.getElementsByClass(note.Note)))
+				full_chord.insert(i * paras.steps_per_bar / 4, stream.Measure(measure.getElementsByClass(chord.Chord)))
 		else:
 			try:
 				full_melody = voices[0].flat.measures(1, None, collect=['TimeSignature'], gatherSpanners=False).expandRepeats().sorted
@@ -97,19 +97,19 @@ class XMLtoNoteSequence(Transformer):
 		"""
 
 		# For melody: taking only the highest note (monophonic)
-		note_sequence = ones(args.steps_per_bar * input.num_bars) * -1
+		note_sequence = ones(paras.steps_per_bar * input.num_bars) * -1
 		for part in input.melody:
 			for n in part.flat.getElementsByClass(note.Note):
-				note_sequence[int(n.offset * args.steps_per_bar / 4)] = \
-					max(n.midi, note_sequence[int(n.offset * args.steps_per_bar / 4)])
+				note_sequence[int(n.offset * paras.steps_per_bar / 4)] = \
+					max(n.midi, note_sequence[int(n.offset * paras.steps_per_bar / 4)])
 			for c in part.flat.getElementsByClass(chord.Chord):
 				n = max([p.midi for p in c.pitches])
-				note_sequence[int(c.offset * args.steps_per_bar / 4)] = \
-					max(n, note_sequence[int(c.offset * args.steps_per_bar / 4)])
+				note_sequence[int(c.offset * paras.steps_per_bar / 4)] = \
+					max(n, note_sequence[int(c.offset * paras.steps_per_bar / 4)])
 
 			for n in part.flat.getElementsByClass(note.Rest):
-				if note_sequence[int(n.offset * args.steps_per_bar / 4)] == -1:
-					note_sequence[int(n.offset * args.steps_per_bar / 4)] = -2
+				if note_sequence[int(n.offset * paras.steps_per_bar / 4)] == -1:
+					note_sequence[int(n.offset * paras.steps_per_bar / 4)] = -2
 
 		# print(note_sequence)
 

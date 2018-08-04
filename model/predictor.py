@@ -2,7 +2,7 @@ from keras.layers import Dense, Input, LSTM
 from keras.models import Model
 from keras.utils import plot_model
 from model import *
-from scripts import args, MelodySequence
+from scripts import args, paras, MelodySequence
 
 from model import ToSeqModel
 
@@ -14,13 +14,13 @@ class Predictor(ToSeqModel):
 
 	def define_models(self):
 		# define training encoder
-		state_h = Input(shape=(args.num_units,), name="state_h")
-		state_c = Input(shape=(args.num_units,), name="state_c")
+		state_h = Input(shape=(paras.num_units,), name="state_h")
+		state_c = Input(shape=(paras.num_units,), name="state_c")
 		states = [state_h, state_c]
 
 		# define training decoder
 		decoder_inputs = Input(shape=(None, self._output_shape[1]), name="shifted_output")
-		decoder_lstm = LSTM(args.num_units, return_sequences=True, return_state=True, recurrent_regularizer=None, name="decoder_lstm")
+		decoder_lstm = LSTM(paras.num_units, return_sequences=True, return_state=True, recurrent_regularizer=None, name="decoder_lstm")
 		decoder_outputs, _, _ = decoder_lstm(decoder_inputs, initial_state=states)
 		drop_connect = DropConnect(Dense(64, activation='relu'), prob=0.3)
 		decoder_outputs = drop_connect(decoder_outputs)
@@ -46,7 +46,7 @@ class Predictor(ToSeqModel):
 			data.outputs,
 			callbacks=callbacks_list,
 			validation_split=0.2,
-			epochs=args.epochs,
+			epochs=paras.epochs,
 			shuffle=True,
 			batch_size=64,
 			verbose=2
@@ -61,8 +61,8 @@ class Predictor(ToSeqModel):
 		output = list()
 		for t in range(self._output_shape[0]):
 			# predict next char
-			yhat, h, c = self.decoder_model.predict([output_feed, state[0].reshape((1, args.num_units)),
-			                                         state[1].reshape((1, args.num_units))])
+			yhat, h, c = self.decoder_model.predict([output_feed, state[0].reshape((1, paras.num_units)),
+			                                         state[1].reshape((1, paras.num_units))])
 			# store prediction
 			output.append(yhat[0, 0, :])
 			# update state
@@ -71,7 +71,7 @@ class Predictor(ToSeqModel):
 			output_feed = yhat
 		return array(output)
 
-	def generate_from_primer(self, testscore, latent_input_model, length=12 / args.num_output_bars, save_name='untilted'):
+	def generate_from_primer(self, testscore, latent_input_model, length=12 / paras.num_output_bars, save_name='untilted'):
 		# Generation
 		count = 0
 		input_shape = get_input_shapes()
