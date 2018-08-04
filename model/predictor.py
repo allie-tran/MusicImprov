@@ -24,7 +24,8 @@ class Predictor(ToSeqModel):
 		decoder_outputs, _, _ = decoder_lstm(decoder_inputs, initial_state=states)
 		drop_connect = DropConnect(Dense(64, activation='relu'), prob=0.3)
 		decoder_outputs = drop_connect(decoder_outputs)
-		decoder_dense = Dense(self._input_shape[1], activation='softmax', name="linear_layer")
+		decoder_dense = Dense(self._output_shape[1], activation='softmax', name="linear_layer")
+
 		decoder_outputs = decoder_dense(decoder_outputs)
 		self.model = Model([decoder_inputs] + states, decoder_outputs)
 
