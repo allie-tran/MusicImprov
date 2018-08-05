@@ -71,7 +71,8 @@ class Predictor(ToSeqModel):
 			output_feed = yhat
 		return array(output)
 
-	def generate_from_primer(self, testscore, latent_input_model, length=12 / paras.num_output_bars, save_name='untilted'):
+	def generate_from_primer(self, testscore, latent_input_model, length=12 / paras.num_output_bars,
+	                         save_path='.', save_name='untitled'):
 		# Generation
 		count = 0
 		input_shape = get_input_shapes()
@@ -83,8 +84,8 @@ class Predictor(ToSeqModel):
 			whole += one_hot_decode(output)
 			count += 1
 			if count >= length:
-				MelodySequence([int(n - 3) for n in whole]).to_midi('generated/full/' + save_name, save=True)
-				MelodySequence([int(n - 3) for n in whole[input_shape[0]:]]).to_midi('generated/single/' + save_name, save=True)
+				MelodySequence([int(n - 3) for n in whole]).to_midi(save_path + '/full/' + save_name, save=True)
+				MelodySequence([int(n - 3) for n in whole[input_shape[0]:]]).to_midi(save_path + '/single/' + save_name, save=True)
 				print 'Generated: ', [int(n - 3) for n in whole]
 				break
 

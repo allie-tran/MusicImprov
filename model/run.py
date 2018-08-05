@@ -53,18 +53,24 @@ def run():
 		testscore.from_file('test/'+score, file=True)
 		transformer = XMLtoNoteSequence()
 		testscore = transformer.transform(testscore)
-		predictor_model.generate_from_primer(testscore, latent_input_model, save_name=paras.exp_name + '/examples/' + score[:-4])
+		predictor_model.generate_from_primer(testscore, latent_input_model, save_path=paras.generate_path,
+		                                     save_name='/examples/' + score[:-4])
 
 	with open('test.json') as f:
 		testing_data = json.load(f)
 
 	for i, melody in enumerate(testing_data):
-		predictor_model.generate_from_primer(melody, latent_input_model, save_name=paras.exp_name + '/test/' + str(i))
+		predictor_model.generate_from_primer(melody, latent_input_model, save_path=paras.generate_path,
+		                                     save_name='/test/' + str(i))
 
 
 if __name__ == '__main__':
 	# Tuning
 	if args.tuning:
+		past_exp = len(os.listdir('logs'))
+		if os.path.isdir('logs/Exp0'):
+			past_exp -= 1
+
 		args.train = True
 		args.train_latent = True
 		epochs = [100]
@@ -78,7 +84,7 @@ if __name__ == '__main__':
 			print '*' * 80
 			print 'EXPERIMENT ' + str(i+1)
 			print 'Epochs, batch_size, num_units, learning_rate, dropout = ', props
-			paras.set(i+1, props[0], props[1], props[2], props[3], props[4], early_stopping=False)
+			paras.set(past_exp + i + 1, props[0], props[1], props[2], props[3], props[4], early_stopping=False)
 			run()
 
 	else:
