@@ -1,0 +1,2 @@
+#!/bin/bash
+rm -r weights/$1 generated/$1 logs/$1
