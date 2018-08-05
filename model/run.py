@@ -73,7 +73,7 @@ if __name__ == '__main__':
 
 		args.train = True
 		args.train_latent = True
-		epochs = [100]
+		epochs = [500]
 		batch_size = [8, 64, 128]
 		num_units = [128, 512, 1024]
 		learning_rate = [0.0005]
