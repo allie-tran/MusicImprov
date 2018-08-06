@@ -49,7 +49,7 @@ class Arguments(object):
         self.steps_per_bar = 8
 
     def set(self, exp_num=0, epochs=100, batch_size=64, num_units=1024, learning_rate=0.0005, dropout=0.5,
-            early_stopping=True):
+            early_stopping=5):
         self.exp_name = 'Exp' + str(exp_num)
         self.weight_path = 'weights/' + self.exp_name
         self.generate_path = 'generated/' + self.exp_name

@@ -91,7 +91,7 @@ if __name__ == '__main__':
 			print '*' * 80
 			print 'EXPERIMENT ' + str(exp)
 			print 'Epochs, batch_size, num_units, learning_rate, dropout = ', props
-			paras.set(exp, props[0], props[1], props[2], props[3], props[4], early_stopping=False)
+			paras.set(exp, props[0], props[1], props[2], props[3], props[4], early_stopping=20)
 			run()
 
 	else:
