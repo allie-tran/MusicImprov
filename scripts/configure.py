@@ -54,6 +54,10 @@ class Arguments(object):
         self.weight_path = 'weights/' + self.exp_name
         self.generate_path = 'generated/' + self.exp_name
 
+        args.train = False
+        args.train_latent = False
+        args.generate = False
+
         if not os.path.isfile(self.weight_path + '/' + 'LatentInputModel.hdf5'):
             args.train = True
         if not os.path.isfile(self.weight_path + '/' + 'PredictModel.hdf5'):
