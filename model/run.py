@@ -14,6 +14,7 @@ from scripts import *
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
+
 def run():
 	if args.savedata:
 		create_dataset(args.dataset)
@@ -23,7 +24,6 @@ def run():
 
 	latent_input_model = AutoEncoder(input_shape, input_shape, paras.weight_path, 'LatentInputModel')
 	predictor_model = Predictor(output_shape, paras.weight_path, '/PredictModel')
-
 
 	if args.train or args.train_latent:
 		inputs, inputs_feed = get_inputs(paras.training_file, clip=paras.train_clip)
@@ -73,6 +73,7 @@ if __name__ == '__main__':
 
 		args.train = True
 		args.train_latent = True
+		args.generate = False
 		epochs = [200]
 		batch_size = [8, 64, 128]
 		num_units = [128, 512, 1024]

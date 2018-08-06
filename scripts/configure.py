@@ -13,7 +13,9 @@ parser.add_argument("--train_latent",
 parser.add_argument("--tuning",
                     help="Hyperparameters tuning",
                     action="store_true")
-
+parser.add_argument("--generate",
+                    help="To generate results",
+                    action="store_true")
 # For create new data
 parser.add_argument("-s", "--savedata",
                     help="To grab new data?",
