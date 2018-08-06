@@ -7,10 +7,10 @@ from model import ToSeqModel
 
 
 class AutoEncoder(ToSeqModel):
-	def __init__(self, input_shape, output_shape, model_name):
+	def __init__(self, input_shape, output_shape, model_folder, model_name):
 		self.encoder_model = None
 		self.decoder_model = None
-		super(AutoEncoder, self).__init__(input_shape, output_shape, model_name)
+		super(AutoEncoder, self).__init__(input_shape, output_shape, model_folder, model_name)
 
 	def define_models(self):
 		# define training encoder

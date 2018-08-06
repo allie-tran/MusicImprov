@@ -69,8 +69,8 @@ class GeneralModel(object):
 
 
 class ToSeqModel(GeneralModel):
-	def __init__(self, input_shape, output_shape, model_name):
-		super(ToSeqModel, self).__init__(input_shape, output_shape, model_name)
+	def __init__(self, input_shape, output_shape, model_folder, model_name):
+		super(ToSeqModel, self).__init__(input_shape, output_shape, model_folder, model_name)
 
 	@abc.abstractmethod
 	def generate(self, inputs):
