@@ -69,7 +69,7 @@ if __name__ == '__main__':
 	if args.tuning:
 		with open('done_exp.txt') as f:
 			done_exp = json.load(f)
-		past_exp = len(done_exp)
+		exp = len(done_exp)
 
 		args.train = True
 		args.train_latent = True
@@ -80,17 +80,18 @@ if __name__ == '__main__':
 		learning_rate = [0.0005]
 		dropout = [0]
 		all = [epochs, batch_size, num_units, learning_rate, dropout]
-		for i, props in enumerate(list(itertools.product(*all))):
+		for props in list(itertools.product(*all)):
 			if str(props) in done_exp:
 				continue
 			done_exp.append(str(props))
+			exp += 1
 			with open('done_exp.txt', 'w') as f:
 				json.dump(done_exp, f)
 			print '*' * 80
 			print '*' * 80
-			print 'EXPERIMENT ' + str(past_exp + i + 1)
+			print 'EXPERIMENT ' + str(exp)
 			print 'Epochs, batch_size, num_units, learning_rate, dropout = ', props
-			paras.set(past_exp + i + 1, props[0], props[1], props[2], props[3], props[4], early_stopping=False)
+			paras.set(exp, props[0], props[1], props[2], props[3], props[4], early_stopping=False)
 			run()
 
 	else:
