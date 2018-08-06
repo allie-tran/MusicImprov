@@ -67,12 +67,9 @@ def run():
 if __name__ == '__main__':
 	# Tuning
 	if args.tuning:
-		past_exp = len(os.listdir('logs'))
-		if os.path.isdir('logs/Exp0'):
-			past_exp -= 1
-
 		with open('done_exp.txt') as f:
 			done_exp = json.load(f)
+		past_exp = len(done_exp)
 
 		args.train = True
 		args.train_latent = True
@@ -85,6 +82,9 @@ if __name__ == '__main__':
 		for i, props in enumerate(list(itertools.product(*all))):
 			if str(props) in done_exp:
 				continue
+			done_exp.append(str(props))
+			with open('done_exp.txt', 'w') as f:
+				json.dump(done_exp, f)
 			print '*' * 80
 			print '*' * 80
 			print 'EXPERIMENT ' + str(past_exp + i + 1)
