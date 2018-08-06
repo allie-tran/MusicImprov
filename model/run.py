@@ -34,19 +34,26 @@ def run():
 
 		# plot_model(melody_model, to_file='model.png')
 		if args.train_latent:
+			print '*' * 80
+			print 'TRAINING THE AUTOENCODER'
 			latent_input_model.train(Data(inputs, inputs, inputs_feed), Data(test_inputs, test_inputs, None))
 
 		if args.train:
+			print '*' * 80
+			print 'TRAINING THE PREDICTOR'
 			encoded_inputs = latent_input_model.encoder_model.predict(inputs)
 			test_encoded_inputs = latent_input_model.encoder_model.predict(test_inputs)
 			predictor_model.train(Data(encoded_inputs, outputs, outputs_feed),
 			                      Data(test_encoded_inputs, test_outputs, None))
 
-	latent_input_model.load()
-	predictor_model.load()
+
 
 	# Generation
 	if args.generate:
+		print '*' * 80
+		print 'GENERATING'
+		latent_input_model.load()
+		predictor_model.load()
 		scores = os.listdir('test')
 		for score in scores:
 			testscore = Midi()
