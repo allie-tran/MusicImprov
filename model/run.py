@@ -46,8 +46,6 @@ def run():
 			predictor_model.train(Data(encoded_inputs, outputs, outputs_feed),
 			                      Data(test_encoded_inputs, test_outputs, None))
 
-
-
 	# Generation
 	if args.generate:
 		print '*' * 80
