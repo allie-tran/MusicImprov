@@ -71,9 +71,6 @@ if __name__ == '__main__':
 			done_exp = json.load(f)
 		exp = len(done_exp)
 
-		args.train = True
-		args.train_latent = True
-		args.generate = False
 		epochs = [200]
 		batch_size = [8, 64, 128]
 		num_units = [128, 512, 1024]
@@ -85,14 +82,14 @@ if __name__ == '__main__':
 				continue
 			done_exp.append(str(props))
 			exp += 1
-			with open('done_exp.txt', 'w') as f:
-				json.dump(done_exp, f)
 			print '*' * 80
 			print '*' * 80
 			print 'EXPERIMENT ' + str(exp)
 			print 'Epochs, batch_size, num_units, learning_rate, dropout = ', props
 			paras.set(exp, props[0], props[1], props[2], props[3], props[4], early_stopping=20)
 			run()
+			with open('done_exp.txt', 'w') as f:
+				json.dump(done_exp, f)
 
 	else:
 		paras.set()

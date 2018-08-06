@@ -19,9 +19,11 @@ Trained model weights: https://www.dropbox.com/sh/fgnaolg5svz9b7y/AAArEflkS5zQTH
 | Experiment 	| Batch size 	| Num units 	| Best epoch 	| Train loss 	| Train acc 	| Val loss 	| Val acc 	| Time per epoch 	|
 |------------	|------------	|-----------	|------------	|------------	|-----------	|----------	|---------	|----------------	|
 | 1          	| 8          	| 128       	| 230/500    	| 0.2061     	| 0.9262    	| 0.5356   	| 0.8440  	| 124s           	|
-| 2          	| 8          	| 512       	|            	|            	|           	|          	|         	|                	|
+| 2          	| 8          	| 512       	| 21/200     	| 0.6055     	| 0.7938    	| 0.8572   	| 0.7237  	| 273s           	|
 |            	|            	|           	|            	|            	|           	|          	|         	|                	|
 #### Predictor
 | Experiment 	| Batch size 	| Num units 	| Best epoch 	| Train loss 	| Train acc 	| Val loss 	| Val acc 	| Time per epoch 	|
 |------------	|------------	|-----------	|------------	|------------	|-----------	|----------	|---------	|----------------	|
 | 1          	| 8          	| 128       	| 12/500     	| 1.1314     	| 0.6301    	| 1.2737   	| 0.5993  	| 12s            	|
+| 2          	| 8          	| 512       	| -     	    | -     	    | -    	        | -        	|-        	| -                	|
+|            	|            	|           	|            	|            	|           	|          	|         	|                	|
