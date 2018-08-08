@@ -4,8 +4,6 @@ Generating music from a motif provided by user.
 #### To tune:
 python2 model/run.py --tuning
 
-
-
 #### To train latent model
 python2 model/run.py -t --epochs 50 --dropout 0.5 --temperature 1 --num_units 1024 --train_latent
 
@@ -28,6 +26,7 @@ Trained model weights: https://www.dropbox.com/sh/fgnaolg5svz9b7y/AAArEflkS5zQTH
 | 6          	| 64         	| 1024      	| 18/200     	| 0.6727     	| 0.7736    	| 0.8930   	| 0.7166  	| 854s           	|
 | 7          	| 128        	| 128       	| 187/200  (can be continued) 	| 0.3137     	| 0.8884    	| 0.5667   	| 0.8201  	| 63s            	|
 | 8          	| 128        	| 512       	| 25/200     	| 0.6186     	| 0.7898    	| 0.7884   	| 0.7424  	| 271s           	|
+| 9          	| 128        	| 1024      	| 33/200     	| 0.3327     	| 0.8869    	| 0.6426   	| 0.8076  	| 857s           	|
 
 #### Predictor
 | Experiment 	| Batch size 	| Num units 	| Best epoch 	| Train loss 	| Train acc 	| Val loss 	| Val acc 	| Time per epoch 	|
@@ -40,3 +39,4 @@ Trained model weights: https://www.dropbox.com/sh/fgnaolg5svz9b7y/AAArEflkS5zQTH
 | 6          	| 64         	| 1024      	| 7/200      	| 1.0641     	| 0.6568    	| 1.2798   	| 0.6108  	| 71s            	|
 | 7          	| 128        	| 128       	| 18/200     	| 1.1489     	| 0.6258    	| 1.2730   	| 0.6022  	| 7s             	|
 | 8          	| 128        	| 512       	| 7/200      	| 1.1525     	| 0.6308    	| 1.2697   	| 0.6067  	| 23s            	|
+| 9          	| 128        	| 1024      	| 8/200      	| 1.0358     	| 0.6661    	| 1.2689   	| 0.6108  	| 70s            	|
