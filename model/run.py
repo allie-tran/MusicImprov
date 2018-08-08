@@ -23,7 +23,7 @@ def run():
 	output_shape = get_output_shapes()
 
 	latent_input_model = AutoEncoder(input_shape, input_shape, paras.weight_path, 'LatentInputModel')
-	predictor_model = Predictor(output_shape, paras.weight_path, '/PredictModel')
+	predictor_model = Predictor(output_shape, paras.weight_path, 'PredictModel')
 
 	if args.train or args.train_latent:
 		inputs, inputs_feed = get_inputs(paras.training_file, clip=paras.train_clip)

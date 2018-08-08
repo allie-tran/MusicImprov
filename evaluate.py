@@ -7,6 +7,12 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from scripts import *
+from pandas import Series, factorize
+from matplotlib import pyplot
+from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
+
+
 def calculate_entropy(melody):
 	return ent.shannon_entropy(melody)
 
@@ -61,14 +67,23 @@ def comparision_distribution(x, y):
 if __name__ == "__main__":
 	A = ['C', 'C', 'G', 'G', 'A', 'A', 'G', 'O', 'F', 'F', 'E', 'E', 'D', 'D', 'C']
 	B = ['G', 'G', 'F', 'F', 'E', 'E', 'D', 'O', 'G', 'G', 'F', 'F', 'E', 'E', 'D']
-	print mutual_information(B, B)
-	print edit_distance(A, B)
-	with open('train.json') as f:
-		training_data = json.load(f)
-	training_piece = []
-	entr = 0
-	for melody in training_data:
-		training_piece += melody
-		entr += calculate_entropy(melody)
-	print calculate_entropy(training_piece)
-	print entr/len(training_data)
+	mid = Midi()
+	transformer = XMLtoNoteSequence()
+	mid.from_file('sunshine.mid', file=True)
+	generated_melody = transformer.transform(mid)
+	# print mutual_information(B, B)
+	# print edit_distance(A, B)
+	# with open('train.json') as f:
+	# 	training_data = json.load(f)
+	# training_piece = []
+	# entr = 0
+	# for melody in training_data:
+	# 	training_piece += melody
+	# 	entr += calculate_entropy(melody)
+	# print calculate_entropy(training_piece)
+	# print entr/len(training_data
+	series = Series(generated_melody)
+	plot_acf(series)
+	pyplot.show()
+	plot_pacf(series)
+	pyplot.show()

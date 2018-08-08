@@ -50,13 +50,17 @@ class Arguments(object):
 
     def set(self, exp_num=0, epochs=100, batch_size=64, num_units=1024, learning_rate=0.0005, dropout=0.5,
             early_stopping=5):
-        self.exp_name = 'Exp' + str(exp_num)
+        if exp_num > 0:
+            self.exp_name = 'Exp' + str(exp_num)
+            args.train = False
+            args.train_latent = False
+            args.generate = False
+        else:
+            self.exp_name = 'Final'
+
         self.weight_path = 'weights/' + self.exp_name
         self.generate_path = 'generated/' + self.exp_name
 
-        args.train = False
-        args.train_latent = False
-        args.generate = False
         if not os.path.isfile(self.weight_path + '/' + 'LatentInputModel.hdf5'):
             args.train_latent = True
         if not os.path.isfile(self.weight_path + '/' + 'PredictModel.hdf5'):
