@@ -6,7 +6,7 @@ from scripts import args, paras, to_onehot, MusicXML, XMLtoNoteSequence, Midi
 from xml.etree import cElementTree
 
 from collections import namedtuple
-Data = namedtuple('Data', ['inputs', 'outputs', 'feeds'])
+Data = namedtuple('Data', ['inputs', 'outputs', 'input_feeds', 'output_feeds'])
 
 try:
 	with open('score_list.json', 'r') as f:

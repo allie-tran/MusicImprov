@@ -48,7 +48,7 @@ class Predictor(ToSeqModel):
 			validation_split=0.2,
 			epochs=paras.epochs,
 			shuffle=True,
-			batch_size=64,
+			batch_size=paras.batch_size,
 			verbose=2
 		)
 		return history

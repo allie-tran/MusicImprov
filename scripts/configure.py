@@ -7,9 +7,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--train",
                     help="To train",
                     action="store_true")
-parser.add_argument("--train_latent",
-                    help="To train latent model",
-                    action="store_true")
 parser.add_argument("--tuning",
                     help="Hyperparameters tuning",
                     action="store_true")
@@ -53,7 +50,6 @@ class Arguments(object):
         if exp_num > 0:
             self.exp_name = 'Exp' + str(exp_num)
             args.train = False
-            args.train_latent = False
             args.generate = False
         else:
             self.exp_name = 'Final'
@@ -61,10 +57,8 @@ class Arguments(object):
         self.weight_path = 'weights/' + self.exp_name
         self.generate_path = 'generated/' + self.exp_name
 
-        if not os.path.isfile(self.weight_path + '/' + 'LatentInputModel.hdf5'):
+        if not os.path.isfile(self.weight_path + '/' + 'Model.hdf5'):
             args.train_latent = True
-        if not os.path.isfile(self.weight_path + '/' + 'PredictModel.hdf5'):
-            args.train = True
 
         if not os.path.isdir(self.weight_path):
             os.mkdir(self.weight_path)

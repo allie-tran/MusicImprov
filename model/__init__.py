@@ -3,3 +3,4 @@ from train_utils import *
 from general_model import *
 from autoencoder import AutoEncoder
 from predictor import Predictor
+from merged_model import MergedModel
