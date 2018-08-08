@@ -49,7 +49,7 @@ class Arguments(object):
             early_stopping=5):
         if exp_num > 0:
             self.exp_name = 'Exp' + str(exp_num)
-            args.train = False
+            args.train = True
             args.generate = False
         else:
             self.exp_name = 'Final'
@@ -58,7 +58,7 @@ class Arguments(object):
         self.generate_path = 'generated/' + self.exp_name
 
         if not os.path.isfile(self.weight_path + '/' + 'Model.hdf5'):
-            args.train_latent = True
+            args.train = True
 
         if not os.path.isdir(self.weight_path):
             os.mkdir(self.weight_path)

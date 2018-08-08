@@ -65,7 +65,7 @@ if __name__ == '__main__':
 			with open('done_exp.txt') as f:
 				done_exp = json.load(f)
 			exp = len(done_exp)
-		else: 
+		else:
 			exp = 0
 
 		epochs = [200]
