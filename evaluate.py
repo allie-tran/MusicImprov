@@ -82,8 +82,8 @@ if __name__ == "__main__":
 	# 	entr += calculate_entropy(melody)
 	# print calculate_entropy(training_piece)
 	# print entr/len(training_data
-	series = Series(generated_melody)
-	plot_acf(series)
-	pyplot.show()
-	plot_pacf(series)
-	pyplot.show()
+	# series = Series(generated_melody)
+	# plot_acf(series)
+	# pyplot.show()
+	# plot_pacf(series)
+	# pyplot.show()
