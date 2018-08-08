@@ -44,7 +44,7 @@ class GeneralModel(object):
 
 		checkpoint = ModelCheckpoint(
 			self._file_path,
-			monitor='val_output_linear_layer_loss',
+			monitor='val_loss',
 			verbose=0,
 			save_best_only=True,
 			mode='min'
