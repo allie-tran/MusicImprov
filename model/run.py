@@ -61,9 +61,12 @@ def run():
 if __name__ == '__main__':
 	# Tuning
 	if args.tuning:
-		with open('done_exp.txt') as f:
-			done_exp = json.load(f)
-		exp = len(done_exp)
+		if os.path.isfile('done_exp.txt'):
+			with open('done_exp.txt') as f:
+				done_exp = json.load(f)
+			exp = len(done_exp)
+		else: 
+			exp = 0
 
 		epochs = [200]
 		batch_size = [32, 64, 128]
