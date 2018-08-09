@@ -27,8 +27,7 @@ class GeneralModel(object):
 
 	def load(self):
 		try:
-			self.model = load_model(self._file_path,
-			                        custom_objects={"DropConnect":DropConnect, "AttentionDecoder":AttentionDecoder})
+			self.model.load_weights(self._file_path)
 		except IOError:
 			pass
 
@@ -47,6 +46,7 @@ class GeneralModel(object):
 			monitor='val_loss',
 			verbose=0,
 			save_best_only=True,
+			save_weights_only=True,
 			mode='min'
 		)
 		early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=paras.early_stopping, verbose=0, mode='min')

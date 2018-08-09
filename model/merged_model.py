@@ -15,51 +15,26 @@ class MergedModel(ToSeqModel):
 
 	def define_models(self):
 		# define training encoder
-		encoder_inputs = Input(shape=(None, self._input_shape[1]), name="input")
-		encoder = LSTM(paras.num_units, return_state=True, name="encoder_lstm")
-		encoder_outputs, state_h, state_c = encoder(encoder_inputs)
-		encoder_states = [state_h, state_c]
+		encoder_inputs = Input(shape=self._input_shape, name="input")
+		encoder = LSTM(paras.num_units, name="encoder_lstm", return_sequences=True)
+		encoder_outputs = encoder(encoder_inputs)
 
 		# define training decoder for the original input
-		input_decoder_inputs = Input(shape=(None, self._input_shape[1]), name="shifted_input")
-		input_decoder_lstm = LSTM(paras.num_units, return_sequences=True, return_state=True, recurrent_regularizer=None,
-		                          name="decoder_input_lstm")
-		input_decoder_outputs, _, _ = input_decoder_lstm(input_decoder_inputs, initial_state=encoder_states)
-		input_decoder_attention = AttentionDecoder(paras.num_units, self._input_shape[1], name="reconstructed_input")
-		input_decoder_outputs = input_decoder_attention(input_decoder_outputs)
-
+		input_decoder_attention = AttentionDecoder(paras.num_units, self._input_shape[1], name="decoder_input")
+		input_decoder_outputs = input_decoder_attention(encoder_outputs)
 
 		# define training decoder for the output
-		output_decoder_inputs = Input(shape=(None, self._output_shape[1]), name="shifted_output")
-		output_decoder_lstm = LSTM(paras.num_units * 2, return_sequences=True, return_state=True,
-		                           recurrent_regularizer=None,
-		                           name="output_decoder_lstm")
-		output_decoder_outputs, _, _ = output_decoder_lstm(output_decoder_inputs, initial_state=encoder_states)
+		output_decoder_attention = AttentionDecoder(paras.num_units, self._output_shape[1], name="decoder_output")
+		output_decoder_outputs = output_decoder_attention(encoder_outputs)
 
-		output_decoder_attention = AttentionDecoder(paras.num_units, self._output_shape[1], name="output")
-		output_decoder_outputs = output_decoder_attention(output_decoder_outputs)
-
-		self.model = Model([encoder_inputs, input_decoder_inputs, output_decoder_inputs],
-		                   [input_decoder_outputs, output_decoder_outputs])
-
-		# define inference encoder
-		self.encoder_model = Model(encoder_inputs, encoder_states)
-		# define inference decoder
-		decoder_state_input_h = Input(shape=(paras.num_units,))
-		decoder_state_input_c = Input(shape=(paras.num_units,))
-		decoder_states_inputs = [decoder_state_input_h, decoder_state_input_c]
-		decoder_outputs, state_h, state_c = output_decoder_lstm(output_decoder_inputs, initial_state=decoder_states_inputs)
-		decoder_states = [state_h, state_c]
-		decoder_outputs = output_decoder_attention(decoder_outputs)
-		self.decoder_model = Model([output_decoder_inputs] + decoder_states_inputs, [decoder_outputs] + decoder_states)
-
+		self.model = Model(inputs=encoder_inputs, outputs=[input_decoder_outputs, output_decoder_outputs])
 		self.model.compile(optimizer=self.optimizer, loss='categorical_crossentropy', metrics=['acc'])
-
+		self.model.summary()
 		plot_model(self.model, to_file='model.png')
 
 	def fit(self, data, callbacks_list):
 		history = self.model.fit(
-			[data.inputs, data.input_feeds, data.output_feeds],
+			data.inputs,
 			[data.inputs, data.outputs],
 			callbacks=callbacks_list,
 			validation_split=0.2,
@@ -71,30 +46,16 @@ class MergedModel(ToSeqModel):
 		return history
 
 	def generate(self, inputs):
-		# encode
-		state = self.encoder_model.predict(inputs)
-		# start of sequence input
-		output_feed = array([0.0 for _ in range(self._output_shape[1])]).reshape(1, 1, self._output_shape[1])
-		# collect predictions
-		output = list()
-		for t in range(self._output_shape[0]):
-			# predict next char
-			yhat, h, c = self.decoder_model.predict([output_feed] + state)
-			# store prediction
-			output.append(yhat[0, 0, :])
-			# update state
-			state = [h, c]
-			# update target sequence
-			output_feed = yhat
-		return array(output)
+		reconstructed_input, output = self.model.predict(inputs)
+		return array(output[0])
 
 	def get_score(self, inputs, outputs):
 		y_pred = []
 		y_true = []
 		for i in range(len(inputs)):
 			prediction = self.generate(array([inputs[i]]))
-			pred = one_hot_decode(prediction)
-			true = one_hot_decode(outputs[i])
+			pred = one_hot_decode(prediction)[:self._output_shape[0]]
+			true = one_hot_decode(outputs[i])[:self._output_shape[0]]
 			if i < 10:
 				print 'y=%s, yhat=%s' % ([n - 3 for n in true], [n - 3 for n in pred])
 			y_pred += pred

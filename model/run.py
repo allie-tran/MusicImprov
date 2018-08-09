@@ -24,6 +24,10 @@ def run():
 
 	generating_model = MergedModel(input_shape, output_shape, paras.weight_path, 'Model')
 
+	test_inputs, _ = get_inputs(paras.testing_file, clip=paras.test_clip, filtered=False)
+	test_outputs, _ = get_outputs(paras.testing_file, clip=paras.test_clip, filtered=False)
+	generating_model.get_score(test_inputs, test_outputs)
+
 	if args.train:
 		inputs, inputs_feed = get_inputs(paras.training_file, clip=paras.train_clip)
 		outputs, outputs_feed = get_outputs(paras.training_file, clip=paras.train_clip)
@@ -89,6 +93,6 @@ if __name__ == '__main__':
 				json.dump(done_exp, f)
 
 	else:
-		paras.set()
+		paras.set(2, 6, 32, 512, 0.0005, 0.2)
 		run()
 	warning_log.close()
