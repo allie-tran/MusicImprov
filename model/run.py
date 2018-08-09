@@ -70,9 +70,9 @@ if __name__ == '__main__':
 
 		epochs = [200]
 		batch_size = [32, 64, 128]
-		num_units = [128, 512, 1024]
+		num_units = [512]
 		learning_rate = [0.0005]
-		dropout = [0]
+		dropout = [0.2]
 		all = [epochs, batch_size, num_units, learning_rate, dropout]
 		for props in list(itertools.product(*all)):
 			if str(props) in done_exp:
@@ -83,7 +83,7 @@ if __name__ == '__main__':
 			print '*' * 80
 			print 'EXPERIMENT ' + str(exp)
 			print 'Epochs, batch_size, num_units, learning_rate, dropout = ', props
-			paras.set(exp, props[0], props[1], props[2], props[3], props[4], early_stopping=20)
+			paras.set(exp, props[0], props[1], props[2], props[3], props[4], early_stopping=10)
 			run()
 			with open('done_exp.txt', 'w') as f:
 				json.dump(done_exp, f)
