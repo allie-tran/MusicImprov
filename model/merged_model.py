@@ -25,9 +25,9 @@ class MergedModel(ToSeqModel):
 		input_decoder_lstm = LSTM(paras.num_units, return_sequences=True, return_state=True, recurrent_regularizer=None,
 		                          name="decoder_input_lstm")
 		input_decoder_outputs, _, _ = input_decoder_lstm(input_decoder_inputs, initial_state=encoder_states)
-		input_decoder_dense = Dense(self._output_shape[1], activation='softmax', name="input_linear_layer")
+		input_decoder_attention = AttentionDecoder(paras.num_units, self._input_shape[1], name="reconstructed_input")
+		input_decoder_outputs = input_decoder_attention(input_decoder_outputs)
 
-		input_decoder_outputs = input_decoder_dense(input_decoder_outputs)
 
 		# define training decoder for the output
 		output_decoder_inputs = Input(shape=(None, self._output_shape[1]), name="shifted_output")
@@ -35,8 +35,9 @@ class MergedModel(ToSeqModel):
 		                           recurrent_regularizer=None,
 		                           name="output_decoder_lstm")
 		output_decoder_outputs, _, _ = output_decoder_lstm(output_decoder_inputs, initial_state=encoder_states)
-		output_decoder_dense = Dense(self._output_shape[1], activation='softmax', name="output_linear_layer")
-		output_decoder_outputs = output_decoder_dense(output_decoder_outputs)
+
+		output_decoder_attention = AttentionDecoder(paras.num_units, self._output_shape[1], name="output")
+		output_decoder_outputs = output_decoder_attention(output_decoder_outputs)
 
 		self.model = Model([encoder_inputs, input_decoder_inputs, output_decoder_inputs],
 		                   [input_decoder_outputs, output_decoder_outputs])
@@ -49,7 +50,7 @@ class MergedModel(ToSeqModel):
 		decoder_states_inputs = [decoder_state_input_h, decoder_state_input_c]
 		decoder_outputs, state_h, state_c = output_decoder_lstm(output_decoder_inputs, initial_state=decoder_states_inputs)
 		decoder_states = [state_h, state_c]
-		decoder_outputs = output_decoder_dense(decoder_outputs)
+		decoder_outputs = output_decoder_attention(decoder_outputs)
 		self.decoder_model = Model([output_decoder_inputs] + decoder_states_inputs, [decoder_outputs] + decoder_states)
 
 		self.model.compile(optimizer=self.optimizer, loss='categorical_crossentropy', metrics=['acc'])

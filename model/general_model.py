@@ -28,7 +28,7 @@ class GeneralModel(object):
 	def load(self):
 		try:
 			self.model = load_model(self._file_path,
-			                        custom_objects={"DropConnect":DropConnect})
+			                        custom_objects={"DropConnect":DropConnect, "AttentionDecoder":AttentionDecoder})
 		except IOError:
 			pass
 
