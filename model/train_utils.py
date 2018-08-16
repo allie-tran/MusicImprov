@@ -18,7 +18,6 @@ tfPrint = lambda d, T: tf.Print(input_=T, data=[T, tf.shape(T)], message=d)
 def fro_norm(w):
     return K.sqrt(K.sum(K.square(K.abs(w))))
 
-
 def cust_reg(w):
 	w = K.reshape(w, (w.shape[0], -1))
 	wTw = K.dot(K.transpose(w), w)
@@ -26,13 +25,13 @@ def cust_reg(w):
 	return fro_norm(wTw - eye)
 
 def masked_loss(y_true, y_pred):
-	y_true = y_true[:int(paras.num_output_bars * paras.steps_per_bar)]
-	y_pred = y_pred[:int(paras.num_output_bars * paras.steps_per_bar)]
+	y_true = y_true[:,:int(paras.num_output_bars * paras.steps_per_bar)]
+	y_pred = y_pred[:,:int(paras.num_output_bars * paras.steps_per_bar)]
 	return categorical_crossentropy(y_true, y_pred)
 
 def masked_acc(y_true, y_pred):
-	y_true = y_true[:int(paras.num_output_bars * paras.steps_per_bar)]
-	y_pred = y_pred[:int(paras.num_output_bars * paras.steps_per_bar)]
+	y_true = y_true[:,:int(paras.num_output_bars * paras.steps_per_bar)]
+	y_pred = y_pred[:,:int(paras.num_output_bars * paras.steps_per_bar)]
 	return categorical_accuracy(y_true, y_pred)
 
 def micro_f1_score(y_pred, y_true):

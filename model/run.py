@@ -89,6 +89,6 @@ if __name__ == '__main__':
 				json.dump(done_exp, f)
 
 	else:
-		paras.set(2, 6, 32, 512, 0.0005, 0.2)
+		paras.set(2, 6, 64, 512, 0.0005, 0.2)
 		run()
 	warning_log.close()
