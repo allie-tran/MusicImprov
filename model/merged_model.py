@@ -42,7 +42,7 @@ class MergedModel(ToSeqModel):
 			epochs=paras.epochs,
 			shuffle=True,
 			batch_size=paras.batch_size,
-			verbose=2
+			verbose=args.verbose
 		)
 		return history
 

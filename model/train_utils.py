@@ -20,8 +20,10 @@ def fro_norm(w):
 
 
 def cust_reg(w):
-	m = K.dot(K.transpose(w), w) - K.eye(paras.num_units)
-	return fro_norm(m)
+	w = K.reshape(w, (w.shape[0], -1))
+	wTw = K.dot(K.transpose(w), w)
+	eye = K.eye(K.int_shape(wTw)[0])
+	return fro_norm(wTw - eye)
 
 
 def plot_training_loss(name, history):

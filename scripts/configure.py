@@ -22,6 +22,11 @@ parser.add_argument("-d", "--dataset",
                     nargs='?',
                     default='midi',
                     help='The folder containing the training mxl files.')
+# Others
+parser.add_argument("-v", "--verbose",
+                    type=int,
+                    nargs='?',
+                    default=2)
 
 args = parser.parse_args()
 
