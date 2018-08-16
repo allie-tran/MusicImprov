@@ -30,7 +30,7 @@ class MergedModel(ToSeqModel):
 		output_decoder_outputs = output_decoder_attention(encoder_outputs)
 
 		self.model = Model(inputs=encoder_inputs, outputs=[input_decoder_outputs, output_decoder_outputs])
-		self.model.compile(optimizer=self.optimizer, loss='categorical_crossentropy', metrics=['acc'])
+		self.model.compile(optimizer=self.optimizer, loss=['categorical_crossentropy', masked_loss], metrics=['acc', masked_acc])
 		self.model.summary()
 
 	def fit(self, data, callbacks_list):

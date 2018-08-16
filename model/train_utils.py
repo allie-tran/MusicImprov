@@ -1,10 +1,10 @@
 import matplotlib
 matplotlib.use('agg')
-import matplotlib.pyplot as plt
 import numpy as np
 from keras.layers import Dense, Wrapper
 import keras.backend as K
-
+from keras.losses import categorical_crossentropy
+from keras.metrics import categorical_accuracy
 from scripts import args, paras
 from sklearn.metrics import f1_score, precision_score, recall_score, confusion_matrix, accuracy_score
 
@@ -25,53 +25,15 @@ def cust_reg(w):
 	eye = K.eye(K.int_shape(wTw)[0])
 	return fro_norm(wTw - eye)
 
+def masked_loss(y_true, y_pred):
+	y_true = y_true[:int(paras.num_output_bars * paras.steps_per_bar)]
+	y_pred = y_pred[:int(paras.num_output_bars * paras.steps_per_bar)]
+	return categorical_crossentropy(y_true, y_pred)
 
-def plot_training_loss(name, history):
-	plt.plot(history['loss'])
-	plt.plot(history['val_loss'])
-	plt.title('Model ' + name + ' loss')
-	plt.ylabel('loss')
-	plt.xlabel('epoch')
-	plt.legend(['train', 'validation'], loc='upper left')
-	plt.savefig('loss_history.png')
-	plt.close()
-
-	plt.figure()
-	plt.plot(history['acc'])
-	plt.plot(history['val_acc'])
-	plt.title('Model ' + name + ' accuracy')
-	plt.ylabel('accuracy')
-	plt.xlabel('epoch')
-	plt.legend(['train', 'validation'], loc='upper left')
-	plt.savefig('acc_history.png')
-	plt.close()
-
-
-def get_class_weights(y_train):
-	y_ints = [y.argmax() for y in y_train]
-	classes = list(range(np.shape(y_train)[1]))
-	# add = len(y_ints) // len(classes)
-	counts = [y_ints.count(label) for label in classes]
-
-	# added_counts = [count + add for count in counts]
-	# multiply = reduce(lambda x, y: x*y, added_counts)
-	# weights = [multiply/count for count in added_counts]
-
-	weights = [1.0] * len(classes)
-	weights[1] /= 10
-
-	normalizer = sum(weights)
-	class_weights = [weight*1.0/normalizer for weight in weights]
-
-	# class_weights = class_weight.compute_class_weight('balanced',
-	#                                                   list(range(np.shape(y_train)[1])),
-	#                                                   y_ints)
-	# print 'Class counts'
-	# print counts
-	# print 'Class weights'
-	# print ["{0:0.4f}".format(i) for i in class_weights]
-	return dict(enumerate(class_weights))
-
+def masked_acc(y_true, y_pred):
+	y_true = y_true[:int(paras.num_output_bars * paras.steps_per_bar)]
+	y_pred = y_pred[:int(paras.num_output_bars * paras.steps_per_bar)]
+	return categorical_accuracy(y_true, y_pred)
 
 def micro_f1_score(y_pred, y_true):
 	display_confusion_matrix(confusion_matrix(y_true, y_pred, labels=np.unique(y_true)))
