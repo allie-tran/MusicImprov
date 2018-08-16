@@ -20,11 +20,13 @@ class MergedModel(ToSeqModel):
 		encoder_outputs = encoder(encoder_inputs)
 
 		# define training decoder for the original input
-		input_decoder_attention = AttentionDecoder(paras.num_units, self._input_shape[1], name="decoder_input")
+		input_decoder_attention = AttentionDecoder(paras.num_units, self._input_shape[1], name="decoder_input",
+		                                           recurrent_initializer=cust_reg)
 		input_decoder_outputs = input_decoder_attention(encoder_outputs)
 
 		# define training decoder for the output
-		output_decoder_attention = AttentionDecoder(paras.num_units, self._output_shape[1], name="decoder_output")
+		output_decoder_attention = AttentionDecoder(paras.num_units, self._output_shape[1], name="decoder_output",
+		                                            recurrent_initializer=cust_reg)
 		output_decoder_outputs = output_decoder_attention(encoder_outputs)
 
 		self.model = Model(inputs=encoder_inputs, outputs=[input_decoder_outputs, output_decoder_outputs])
