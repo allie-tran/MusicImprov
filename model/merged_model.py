@@ -30,7 +30,6 @@ class MergedModel(ToSeqModel):
 		self.model = Model(inputs=encoder_inputs, outputs=[input_decoder_outputs, output_decoder_outputs])
 		self.model.compile(optimizer=self.optimizer, loss='categorical_crossentropy', metrics=['acc'])
 		self.model.summary()
-		plot_model(self.model, to_file='model.png')
 
 	def fit(self, data, callbacks_list):
 		history = self.model.fit(
