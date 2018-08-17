@@ -194,7 +194,7 @@ def get_outputs(file, filtered=True, clip=0, test=False):
 		j = 0
 		while j < len(melody) - (input_length + output_length) - 1:
 			next_bar = melody[j+input_length:j+input_length+output_length]
-			next_bar = [n + 3 for n in next_bar] + [0 for _ in range(input_shape[0]-output_shape[0])]
+			next_bar = [n + 3 for n in next_bar]
 			outputs.append(to_onehot(next_bar, output_shape[1]))
 
 			next_bar_feed = [0] + next_bar[:-1]
