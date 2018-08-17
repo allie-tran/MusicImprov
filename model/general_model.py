@@ -27,7 +27,7 @@ class GeneralModel(object):
 
 	def load(self):
 		try:
-			self.model.load_weights(self._file_path)
+			self.model.load_weights(self._model_folder + '/' + self._model_name + "_final.hdf5")
 		except IOError:
 			pass
 

@@ -50,6 +50,24 @@ def micro_f1_score(y_pred, y_true):
 		   accuracy_score(y_pred, y_true)
 
 
+def calculate_bleu_scores(references, hypotheses):
+    """
+    Calculates BLEU 1-4 scores based on NLTK functionality
+
+    Args:
+        references: List of reference sentences
+        hypotheses: List of generated sentences
+
+    Returns:
+        bleu_1, bleu_2, bleu_3, bleu_4: BLEU scores
+
+    """
+    bleu_1 = np.round(100 * corpus_bleu(references, hypotheses, weights=(1.0, 0., 0., 0.)), decimals=2)
+    bleu_2 = np.round(100 * corpus_bleu(references, hypotheses, weights=(0.50, 0.50, 0., 0.)), decimals=2)
+    bleu_3 = np.round(100 * corpus_bleu(references, hypotheses, weights=(0.34, 0.33, 0.33, 0.)), decimals=2)
+    bleu_4 = np.round(100 * corpus_bleu(references, hypotheses, weights=(0.25, 0.25, 0.25, 0.25)), decimals=2)
+    return bleu_1, bleu_2, bleu_3, bleu_4
+
 class Eval(Callback):
     def __init__(self, output_shape, weights_path):
         self.output_shape = output_shape
@@ -66,11 +84,12 @@ class Eval(Callback):
             prediction = self.generate(np.array([self.validation_data[0][i]]))
             pred = one_hot_decode(prediction)[:self.output_shape[0]]
             true = one_hot_decode(self.validation_data[1][i])[:self.output_shape[0]]
-            preds.append(pred)
-            refs.append(true)
-            print 'y=%s, yhat=%s' % ([n - 3 for n in true], [n - 3 for n in pred])
+            preds.append([str(j) for j in pred])
+            refs.append(([str(j) for j in true]))
+            if i < 10:
+                print 'y=%s, yhat=%s' % ([n - 3 for n in true], [n - 3 for n in pred])
         self.model.save_weights(self.weights_path)
-        print 'Bleu score: ', corpus_bleu(refs, preds)
+        print 'Bleu score: ', calculate_bleu_scores(refs, preds)
 
 
 def display_confusion_matrix(matrix):
