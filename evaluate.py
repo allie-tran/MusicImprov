@@ -9,8 +9,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from scripts import *
 from pandas import Series, factorize
-from matplotlib import pyplot
-from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
+# from matplotlib import pyplot
+# from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 
 
 def calculate_entropy(melody):
