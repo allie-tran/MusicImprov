@@ -25,12 +25,17 @@ def run():
 	latent_input_model = AutoEncoder(input_shape, input_shape, paras.weight_path, 'LatentInputModel')
 	predictor_model = Predictor(output_shape, paras.weight_path, 'PredictModel')
 
+	print 'Created models!'
+
 	test_inputs, _ = get_inputs(paras.testing_file, clip=paras.test_clip, filtered=False)
 	test_outputs, _ = get_outputs(paras.testing_file, clip=paras.test_clip, filtered=False)
+
+	print 'Loaded test data!'
 
 	if args.train or args.train_latent:
 		inputs, inputs_feed = get_inputs(paras.training_file, clip=paras.train_clip)
 		outputs, outputs_feed = get_outputs(paras.training_file, clip=paras.train_clip)
+		print 'Loaded training data'
 
 		# plot_model(melody_model, to_file='model.png')
 		if args.train_latent:
