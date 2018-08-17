@@ -49,7 +49,7 @@ class AutoEncoder(ToSeqModel):
 		history = self.model.fit(
 			[data.inputs, data.feeds],
 			data.outputs,
-			callbacks=callbacks_list,
+			callbacks=callbacks_list[:-1],
 			validation_split=0.2,
 			epochs=paras.epochs,
 			shuffle=True,
