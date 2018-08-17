@@ -4,10 +4,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 from keras.layers import Dense, Wrapper
 import keras.backend as K
-
+from nltk.translate.bleu_score import corpus_bleu
+from keras.callbacks import Callback, ProgbarLogger
 from scripts import args, paras
 from sklearn.metrics import f1_score, precision_score, recall_score, confusion_matrix, accuracy_score
-
+from io_utils import one_hot_decode
 
 def fro_norm(w):
     return K.sqrt(K.sum(K.square(K.abs(w))))
@@ -18,6 +19,10 @@ def cust_reg(w):
 	m = K.dot(K.transpose(w), w) - K.eye(K.int_shape(w)[-1])
 	return fro_norm(m)
 
+class ProgbarLoggerVerbose(ProgbarLogger):
+    def on_train_begin(self, logs=None):
+        super(ProgbarLoggerVerbose, self).on_train_begin(logs)
+        self.verbose = True
 
 def plot_training_loss(name, history):
 	plt.plot(history['loss'])
@@ -74,6 +79,46 @@ def micro_f1_score(y_pred, y_true):
 		   accuracy_score(y_pred, y_true)
 
 
+def calculate_bleu_scores(references, hypotheses):
+    """
+    Calculates BLEU 1-4 scores based on NLTK functionality
+
+    Args:
+        references: List of reference sentences
+        hypotheses: List of generated sentences
+
+    Returns:
+        bleu_1, bleu_2, bleu_3, bleu_4: BLEU scores
+
+    """
+    bleu_1 = np.round(100 * corpus_bleu(references, hypotheses, weights=(1.0, 0., 0., 0.)), decimals=2)
+    bleu_2 = np.round(100 * corpus_bleu(references, hypotheses, weights=(0.50, 0.50, 0., 0.)), decimals=2)
+    bleu_3 = np.round(100 * corpus_bleu(references, hypotheses, weights=(0.34, 0.33, 0.33, 0.)), decimals=2)
+    bleu_4 = np.round(100 * corpus_bleu(references, hypotheses, weights=(0.25, 0.25, 0.25, 0.25)), decimals=2)
+    return bleu_1, bleu_2, bleu_3, bleu_4
+
+class Eval(Callback):
+    def __init__(self, output_shape, weights_path):
+        self.output_shape = output_shape
+        self.weights_path = weights_path
+
+    def generate(self, inputs):
+        output = self.model.predict(inputs)
+        return np.array(output[0])
+
+    def on_epoch_end(self, epoch, logs={}):
+        preds = []
+        refs = []
+        for i in range(len(self.validation_data[0])):
+            prediction = self.generate(np.array([self.validation_data[0][i]]))
+            pred = one_hot_decode(prediction)[:self.output_shape[0]]
+            true = one_hot_decode(self.validation_data[1][i])[:self.output_shape[0]]
+            preds.append([str(j) for j in pred])
+            refs.append(([str(j) for j in true]))
+            if i < 10:
+                print 'y=%s, yhat=%s' % ([n - 3 for n in true], [n - 3 for n in pred])
+        self.model.save_weights(self.weights_path)
+        print 'Bleu score: ', calculate_bleu_scores(refs, preds)
 
 def display_confusion_matrix(matrix):
 	print('Confusion matrix')
