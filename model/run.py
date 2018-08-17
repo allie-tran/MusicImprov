@@ -97,6 +97,6 @@ if __name__ == '__main__':
 				json.dump(done_exp, f)
 
 	else:
-		paras.set(exp_num=6)
+		paras.set(exp_num=6, reuse=True)
 		run()
 	warning_log.close()

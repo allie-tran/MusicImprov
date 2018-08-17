@@ -90,14 +90,16 @@ class Predictor(ToSeqModel):
 				break
 
 	def get_score(self, inputs, outputs):
-		y_pred = []
-		y_true = []
-		correct = 0
+		preds = []
+		refs = []
 		for i in range(len(inputs[0])):
 			prediction = self.generate([array(inputs[0][i]), array(inputs[1][i])])
 			pred = one_hot_decode(prediction)
 			true = one_hot_decode(outputs[i])
+			preds.append([str(j) for j in pred])
+			refs.append(([str(j) for j in true]))
 			if i < 10:
 				print 'y=%s, yhat=%s' % ([n - 3 for n in true], [n - 3 for n in pred])
-			y_pred += pred
-			y_true += true
+
+		print 'Bleu score: ', calculate_bleu_scores(refs, preds)
+
