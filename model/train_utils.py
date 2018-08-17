@@ -98,9 +98,8 @@ def calculate_bleu_scores(references, hypotheses):
     return bleu_1, bleu_2, bleu_3, bleu_4
 
 class Eval(Callback):
-    def __init__(self, output_shape, weights_path):
+    def __init__(self, output_shape):
         self.output_shape = output_shape
-        self.weights_path = weights_path
 
     def generate(self, inputs):
         output = self.model.predict(inputs)
@@ -117,7 +116,6 @@ class Eval(Callback):
             refs.append(([str(j) for j in true]))
             if i < 10:
                 print 'y=%s, yhat=%s' % ([n - 3 for n in true], [n - 3 for n in pred])
-        self.model.save_weights(self.weights_path)
         print 'Bleu score: ', calculate_bleu_scores(refs, preds)
 
 def display_confusion_matrix(matrix):

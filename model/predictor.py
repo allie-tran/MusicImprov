@@ -37,8 +37,6 @@ class Predictor(ToSeqModel):
 		self.decoder_model = Model([decoder_inputs, state_h, state_c], [decoder_outputs] + decoder_states)
 		self.model.compile(optimizer=self.optimizer, loss='categorical_crossentropy', metrics=['acc'])
 
-		plot_model(self.model, to_file='predictor.png')
-
 	def fit(self, data, callbacks_list):
 		# Train
 		history = self.model.fit(
