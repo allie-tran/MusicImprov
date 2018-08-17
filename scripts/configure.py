@@ -59,10 +59,6 @@ class Arguments(object):
             with open(self.weight_path + '/info.txt') as f:
                 self.__dict__ = json.load(f)
 
-            args.train = False
-            args.train_latent = False
-            args.generate = True
-
             return
 
         if exp_num > 0:
