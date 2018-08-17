@@ -47,7 +47,7 @@ class Predictor(ToSeqModel):
 			epochs=paras.epochs,
 			shuffle=True,
 			batch_size=64,
-			verbose=2
+			verbose=0
 		)
 		return history
 
