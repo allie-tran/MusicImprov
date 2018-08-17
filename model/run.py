@@ -46,6 +46,8 @@ def run():
 			predictor_model.train(Data(encoded_inputs, outputs, outputs_feed),
 			                      Data(test_encoded_inputs, test_outputs, None))
 
+	latent_input_model.load()
+	predictor_model.load()
 	test_encoded_inputs = latent_input_model.encoder_model.predict(test_inputs)
 	predictor_model.get_score(test_encoded_inputs, test_outputs)
 
@@ -53,8 +55,7 @@ def run():
 	if args.generate:
 		print '*' * 80
 		print 'GENERATING'
-		latent_input_model.load()
-		predictor_model.load()
+
 		scores = os.listdir('test')
 		for score in scores:
 			testscore = Midi()
