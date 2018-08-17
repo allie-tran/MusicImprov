@@ -25,12 +25,12 @@ def run():
 	latent_input_model = AutoEncoder(input_shape, input_shape, paras.weight_path, 'LatentInputModel')
 	predictor_model = Predictor(output_shape, paras.weight_path, 'PredictModel')
 
+	test_inputs, _ = get_inputs(paras.testing_file, clip=paras.test_clip, filtered=False)
+	test_outputs, _ = get_outputs(paras.testing_file, clip=paras.test_clip, filtered=False)
+
 	if args.train or args.train_latent:
 		inputs, inputs_feed = get_inputs(paras.training_file, clip=paras.train_clip)
 		outputs, outputs_feed = get_outputs(paras.training_file, clip=paras.train_clip)
-
-		test_inputs, _ = get_inputs(paras.testing_file, clip=paras.test_clip, filtered=False)
-		test_outputs, _ = get_outputs(paras.testing_file, clip=paras.test_clip, filtered=False)
 
 		# plot_model(melody_model, to_file='model.png')
 		if args.train_latent:
@@ -45,6 +45,8 @@ def run():
 			test_encoded_inputs = latent_input_model.encoder_model.predict(test_inputs)
 			predictor_model.train(Data(encoded_inputs, outputs, outputs_feed),
 			                      Data(test_encoded_inputs, test_outputs, None))
+
+	predictor_model.get_score(test_inputs, test_outputs)
 
 	# Generation
 	if args.generate:
@@ -67,6 +69,8 @@ def run():
 		for i, melody in enumerate(testing_data):
 			predictor_model.generate_from_primer(melody, latent_input_model, save_path=paras.generate_path + '/test',
 			                                     save_name=str(i))
+
+
 
 
 if __name__ == '__main__':
