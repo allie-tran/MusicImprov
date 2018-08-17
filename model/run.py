@@ -46,7 +46,8 @@ def run():
 			predictor_model.train(Data(encoded_inputs, outputs, outputs_feed),
 			                      Data(test_encoded_inputs, test_outputs, None))
 
-	predictor_model.get_score(test_inputs, test_outputs)
+	test_encoded_inputs = latent_input_model.encoder_model.predict(test_inputs)
+	predictor_model.get_score(test_encoded_inputs, test_outputs)
 
 	# Generation
 	if args.generate:
