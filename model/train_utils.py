@@ -7,13 +7,21 @@ from keras.losses import categorical_crossentropy
 from keras.metrics import categorical_accuracy
 from scripts import args, paras
 from sklearn.metrics import f1_score, precision_score, recall_score, confusion_matrix, accuracy_score
-
+from keras.callbacks import Callback, ProgbarLogger
 import tensorflow as tf
 from keras import regularizers, constraints, initializers, activations
 from keras.layers.recurrent import Recurrent
 from keras.engine import InputSpec
+from io_utils import one_hot_decode
+from nltk.translate.bleu_score import corpus_bleu
+
 
 tfPrint = lambda d, T: tf.Print(input_=T, data=[T, tf.shape(T)], message=d)
+
+class ProgbarLoggerVerbose(ProgbarLogger):
+    def on_train_begin(self, logs=None):
+        super(ProgbarLoggerVerbose, self).on_train_begin(logs)
+        self.verbose = True
 
 def fro_norm(w):
     return K.sqrt(K.sum(K.square(K.abs(w))))
@@ -41,6 +49,28 @@ def micro_f1_score(y_pred, y_true):
 	       f1_score(y_pred, y_true, average='macro', labels=np.unique(y_true)), \
 		   accuracy_score(y_pred, y_true)
 
+
+class Eval(Callback):
+    def __init__(self, output_shape, weights_path):
+        self.output_shape = output_shape
+        self.weights_path = weights_path
+
+    def generate(self, inputs):
+        output = self.model.predict(inputs)
+        return np.array(output[0])
+
+    def on_epoch_end(self, epoch, logs={}):
+        preds = []
+        refs = []
+        for i in range(len(self.validation_data[0])):
+            prediction = self.generate(np.array([self.validation_data[0][i]]))
+            pred = one_hot_decode(prediction)[:self.output_shape[0]]
+            true = one_hot_decode(self.validation_data[1][i])[:self.output_shape[0]]
+            preds.append(pred)
+            refs.append(true)
+            print 'y=%s, yhat=%s' % ([n - 3 for n in true], [n - 3 for n in pred])
+        self.model.save_weights(self.weights_path)
+        print 'Bleu score: ', corpus_bleu(refs, preds)
 
 
 def display_confusion_matrix(matrix):

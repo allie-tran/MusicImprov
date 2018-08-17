@@ -1,4 +1,4 @@
-from keras.layers import Input, LSTM
+from keras.layers import Input, GRU
 from keras.models import Model
 from keras.utils import plot_model
 from model import *
@@ -16,29 +16,23 @@ class MergedModel(ToSeqModel):
 	def define_models(self):
 		# define training encoder
 		encoder_inputs = Input(shape=self._input_shape, name="input")
-		encoder = LSTM(paras.num_units, name="encoder_lstm", return_sequences=True)
+		encoder = GRU(paras.latent_dim, name="encoder_lstm", return_sequences=True)
 		encoder_outputs = encoder(encoder_inputs)
 
-		# define training decoder for the original input
-		input_decoder_attention = AttentionDecoder(paras.num_units, self._input_shape[1], name="decoder_input",
-		                                           kernel_regularizer=cust_reg)
-		input_decoder_outputs = input_decoder_attention(encoder_outputs)
-
 		# define training decoder for the output
-		output_decoder_attention = AttentionDecoder(paras.num_units, self._output_shape[1], name="decoder_output",
-		                                            kernel_regularizer=cust_reg)
+		output_decoder_attention = AttentionDecoder(paras.num_units, self._output_shape[1], name="decoder_output")
 		output_decoder_outputs = output_decoder_attention(encoder_outputs)
 
-		self.model = Model(inputs=encoder_inputs, outputs=[input_decoder_outputs, output_decoder_outputs])
+		self.model = Model(inputs=encoder_inputs, outputs=output_decoder_outputs)
 		self.model.compile(optimizer=self.optimizer,
-		                   loss={"decoder_input":'categorical_crossentropy', "decoder_output": masked_loss},
-		                   metrics={"decoder_input":'acc', "decoder_output": masked_acc})
+		                   loss=masked_loss,
+		                   metrics=[masked_acc])
 		self.model.summary()
 
 	def fit(self, data, callbacks_list):
 		history = self.model.fit(
 			data.inputs,
-			[data.inputs, data.outputs],
+			data.outputs,
 			callbacks=callbacks_list,
 			validation_split=0.2,
 			epochs=paras.epochs,
@@ -49,7 +43,7 @@ class MergedModel(ToSeqModel):
 		return history
 
 	def generate(self, inputs):
-		reconstructed_input, output = self.model.predict(inputs)
+		output = self.model.predict(inputs)
 		return array(output[0])
 
 	def get_score(self, inputs, outputs):
