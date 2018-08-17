@@ -20,7 +20,7 @@ class MergedModel(ToSeqModel):
 		encoder_outputs = encoder(encoder_inputs)
 
 		# define training decoder for the output
-		input_decoder_attention = LSTM(paras.num_units, self._output_shape[1], name="decoder_input")
+		input_decoder_attention = AttentionDecoder(paras.num_units, self._output_shape[1], name="decoder_input")
 		input_decoder_outputs = input_decoder_attention(encoder_outputs)
 
 		# define training decoder for the output
