@@ -16,7 +16,7 @@ class MergedModel(ToSeqModel):
 	def define_models(self):
 		# define training encoder
 		encoder_inputs = Input(shape=(None, self._input_shape[1]), name="input")
-		encoder = Bidirectional(GRU(paras.num_units, return_state=True, name="encoder_lstm"))
+		encoder = Bidirectional(LSTM(paras.num_units, return_state=True, name="encoder_lstm"))
 		encoder_outputs, forward_h, forward_c, backward_h, backward_c = encoder(encoder_inputs)
 		state_h = Concatenate()([forward_h, backward_h])
 		state_c = Concatenate()([forward_c, backward_c])
