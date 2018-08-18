@@ -10,6 +10,9 @@ parser.add_argument("-t", "--train",
 parser.add_argument("--tuning",
                     help="Hyperparameters tuning",
                     action="store_true")
+parser.add_argument("--eval",
+                    help="Get score for test set",
+                    action="store_true")
 parser.add_argument("--generate",
                     help="To generate results",
                     action="store_true")

@@ -25,16 +25,24 @@ def run():
 	generating_model = MergedModel(input_shape, output_shape, paras.weight_path, 'Model')
 
 	if args.train:
-		inputs, inputs_feed = get_inputs(paras.training_file, clip=paras.train_clip)
-		outputs, outputs_feed = get_outputs(paras.training_file, clip=paras.train_clip)
+		inputs, inputs_feed = get_inputs(paras.training_file, clip=0)
+		outputs, outputs_feed = get_outputs(paras.training_file, clip=0)
 
-		test_inputs, _ = get_inputs(paras.testing_file, clip=paras.test_clip, filtered=False)
-		test_outputs, _ = get_outputs(paras.testing_file, clip=paras.test_clip, filtered=False)
+		test_inputs, _ = get_inputs(paras.testing_file, clip=0, filtered=False)
+		test_outputs, _ = get_outputs(paras.testing_file, clip=0, filtered=False)
 
 		print '*' * 80
 		print 'TRAINING'
 		generating_model.train(Data(inputs, outputs, inputs_feed, outputs_feed),
 		                      Data(test_inputs, test_outputs, None, None))
+
+	if args.eval:
+
+		test_inputs, _ = get_inputs(paras.testing_file, clip=0, filtered=False)
+		test_outputs, _ = get_outputs(paras.testing_file, clip=0, filtered=False)
+		ver = raw_input("Which version? ")
+		generating_model.load(ver)
+		generating_model.get_score(test_inputs, test_outputs)
 
 	# Generation
 	if args.generate:

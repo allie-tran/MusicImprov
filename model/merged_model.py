@@ -91,7 +91,8 @@ class MergedModel(ToSeqModel):
 				print 'y=%s, yhat=%s' % ([n - 3 for n in true], [n - 3 for n in pred])
 			y_pred += pred
 			y_true += true
-
+		print refs[:5]
+		print hyps[:5]
 		print 'f1 score', micro_f1_score(y_pred, y_true)
 		print 'Bleu score', calculate_bleu_scores(refs, hyps)
 

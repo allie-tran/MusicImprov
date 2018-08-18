@@ -69,27 +69,45 @@ def calculate_bleu_scores(references, hypotheses):
     return bleu_1, bleu_2, bleu_3, bleu_4
 
 class Eval(Callback):
-    def __init__(self, output_shape, weights_path):
+    def __init__(self, output_shape, weights_path, encoder_model, decoder_model):
         self.output_shape = output_shape
         self.weights_path = weights_path
+        self.encoder_model = encoder_model
+        self.decoder_model = decoder_model
 
     def generate(self, inputs):
-        output = self.model.predict(inputs)
-        return np.array(output[0])
+        # encode
+        state = self.encoder_model.predict(inputs)
+        # start of sequence input
+        output_feed = np.array([0.0 for _ in range(self.output_shape[1])]).reshape(1, 1, self.output_shape[1])
+        # collect predictions
+        output = list()
+        for t in range(self.output_shape[0]):
+            # predict next char
+            yhat, h, c = self.decoder_model.predict([output_feed] + state)
+            # store prediction
+            output.append(yhat[0, 0, :])
+            # update state
+            state = [h, c]
+            # update target sequence
+            output_feed = yhat
+        return np.array(output)
 
     def on_epoch_end(self, epoch, logs={}):
-        preds = []
+        hyps = []
         refs = []
+
         for i in range(len(self.validation_data[0])):
             prediction = self.generate(np.array([self.validation_data[0][i]]))
-            pred = one_hot_decode(prediction)[:self.output_shape[0]]
-            true = one_hot_decode(self.validation_data[1][i])[:self.output_shape[0]]
-            preds.append([str(j) for j in pred])
-            refs.append(([str(j) for j in true]))
+            pred = one_hot_decode(prediction)
+            true = one_hot_decode(self.validation_data[2][i])
+            refs.append([str(j) for j in true])
+            hyps.append([str(j) for j in pred])
             if i < 10:
                 print 'y=%s, yhat=%s' % ([n - 3 for n in true], [n - 3 for n in pred])
+
         self.model.save_weights(self.weights_path)
-        print 'Bleu score: ', calculate_bleu_scores(refs, preds)
+        print 'Bleu score: ', calculate_bleu_scores(refs, hyps)
 
 
 def display_confusion_matrix(matrix):

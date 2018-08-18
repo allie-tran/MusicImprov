@@ -25,9 +25,9 @@ class GeneralModel(object):
 	def define_models(self):
 		pass
 
-	def load(self):
+	def load(self, ver='final'):
 		try:
-			self.model.load_weights(self._model_folder + '/' + self._model_name + "_final.hdf5")
+			self.model.load_weights(self._model_folder + '/' + self._model_name + "_{ver}.hdf5".format(ver=ver))
 		except IOError:
 			pass
 
@@ -49,7 +49,8 @@ class GeneralModel(object):
 		)
 		early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=paras.early_stopping, verbose=0, mode='min')
 		tensorboard = TensorBoard(log_dir="logs/" + paras.exp_name + '/' + self._model_name)
-		inspect = Eval(self._output_shape, self._model_folder + '/' + self._model_name + "_final.hdf5")
+		inspect = Eval(self._output_shape, self._model_folder + '/' + self._model_name + "_final.hdf5",
+		               self.encoder_model, self.decoder_model)
 		callbacks_list = [ProgbarLoggerVerbose('samples'), inspect, checkpoint, early_stopping, tensorboard]
 
 		# Train
