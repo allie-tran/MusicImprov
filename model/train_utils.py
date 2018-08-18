@@ -80,7 +80,7 @@ class Eval(Callback):
         for i in range(len(self.validation_data[0])):
             prediction = self.model.predict(np.array([self.validation_data[0][i]]))[0]
             pred = one_hot_decode(prediction)
-            true = one_hot_decode(self.validation_data[2][i])
+            true = one_hot_decode(self.validation_data[1][i])
             refs.append([str(j) for j in true])
             hyps.append([str(j) for j in pred])
             if i < 10:
