@@ -37,7 +37,7 @@ class MergedModel(ToSeqModel):
 
 	def fit(self, data, callbacks_list):
 		history = self.model.fit(
-			[data.inputs, data.output_feeds],
+			data.inputs,
 			data.outputs,
 			callbacks=callbacks_list,
 			validation_split=0.2,
