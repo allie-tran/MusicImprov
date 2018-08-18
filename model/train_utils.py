@@ -69,15 +69,24 @@ def calculate_bleu_scores(references, hypotheses):
     return bleu_1, bleu_2, bleu_3, bleu_4
 
 class Eval(Callback):
-    def __init__(self, output_shape, weights_path):
+    def __init__(self, output_shape, weights_path, train_data):
         self.output_shape = output_shape
         self.weights_path = weights_path
+        self.train_data = train_data
 
     def on_epoch_end(self, epoch, logs={}):
 
         hyps = []
         refs = []
 
+        print('Training data: ')
+        for i in range(10):
+            prediction = self.model.predict(np.array([self.train_data.inputs[0][i]]))[0]
+            pred = one_hot_decode(prediction)
+            true = one_hot_decode(self.train_data.outputs[0][i])
+            print 'y=%s, yhat=%s' % ([n - 3 for n in true], [n - 3 for n in pred])
+
+        print('Testing data: ')
         for i in range(len(self.validation_data[0])):
             prediction = self.model.predict(np.array([self.validation_data[0][i]]))[0]
             pred = one_hot_decode(prediction)
