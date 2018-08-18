@@ -20,7 +20,7 @@ class MergedModel(ToSeqModel):
 		                                         name="encoder_lstm", return_sequences=True)(encoder_inputs)
 		encoder_states = [state_h, state_c]
 		encoder_outputs, state_h, state_c = LSTM(paras.num_units, return_state=True, name="encoder_lstm_backwards",
-		                                         initial_state=encoder_states, go_backwards=True)(encoder_outputs)
+		                                         go_backwards=True)(encoder_outputs, initial_state=encoder_states)
 
 		encoder_states = [state_h, state_c]
 
