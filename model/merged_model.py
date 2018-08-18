@@ -16,15 +16,17 @@ class MergedModel(ToSeqModel):
 	def define_models(self):
 		# define training encoder
 		encoder_inputs = Input(shape=(None, self._input_shape[1]), name="input")
-		encoder = Bidirectional(LSTM(paras.num_units, return_state=True, name="encoder_lstm"))
-		encoder_outputs, forward_h, forward_c, backward_h, backward_c = encoder(encoder_inputs)
-		state_h = Concatenate()([forward_h, backward_h])
-		state_c = Concatenate()([forward_c, backward_c])
+		encoder_outputs, state_h, state_c = LSTM(paras.num_units, return_state=True,
+		                                         name="encoder_lstm", return_sequences=True)(encoder_inputs)
+		encoder_states = [state_h, state_c]
+		encoder_outputs, state_h, state_c = LSTM(paras.num_units, return_state=True, name="encoder_lstm_backwards",
+		                                         initial_state=encoder_states, go_backwards=True)(encoder_outputs)
+
 		encoder_states = [state_h, state_c]
 
 		# define training decoder
 		decoder_inputs = RepeatVector(self._output_shape[0])(encoder_outputs)
-		decoder_lstm = LSTM(paras.num_units * 2, return_sequences=True, return_state=True, name="decoder_lstm")
+		decoder_lstm = LSTM(paras.num_units, return_sequences=True, return_state=True, name="decoder_lstm")
 		decoder_outputs, _, _ = decoder_lstm(decoder_inputs, initial_state=encoder_states)
 		drop_connect = DropConnect(Dense(64, activation='relu'), prob=paras.dropout)
 		decoder_outputs = drop_connect(decoder_outputs)
