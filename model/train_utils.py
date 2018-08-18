@@ -74,6 +74,7 @@ class Eval(Callback):
         self.weights_path = weights_path
 
     def on_epoch_end(self, epoch, logs={}):
+
         hyps = []
         refs = []
 
@@ -85,6 +86,9 @@ class Eval(Callback):
             hyps.append([str(j) for j in pred])
             if i < 10:
                 print 'y=%s, yhat=%s' % ([n - 3 for n in true], [n - 3 for n in pred])
+            else:
+                if epoch % 5 != 0:
+                    return
 
         self.model.save_weights(self.weights_path)
         print 'Bleu score: ', calculate_bleu_scores(refs, hyps)
