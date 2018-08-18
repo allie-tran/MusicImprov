@@ -62,43 +62,23 @@ def calculate_bleu_scores(references, hypotheses):
         bleu_1, bleu_2, bleu_3, bleu_4: BLEU scores
 
     """
-    bleu_1 = np.round(100 * corpus_bleu(references, hypotheses, weights=(1.0, 0., 0., 0.)), decimals=2)
-    bleu_2 = np.round(100 * corpus_bleu(references, hypotheses, weights=(0.50, 0.50, 0., 0.)), decimals=2)
-    bleu_3 = np.round(100 * corpus_bleu(references, hypotheses, weights=(0.34, 0.33, 0.33, 0.)), decimals=2)
-    bleu_4 = np.round(100 * corpus_bleu(references, hypotheses, weights=(0.25, 0.25, 0.25, 0.25)), decimals=2)
+    bleu_1 = 100 * corpus_bleu(references, hypotheses, weights=(1.0, 0., 0., 0.))
+    bleu_2 = 100 * corpus_bleu(references, hypotheses, weights=(0.50, 0.50, 0., 0.))
+    bleu_3 = 100 * corpus_bleu(references, hypotheses, weights=(0.34, 0.33, 0.33, 0.))
+    bleu_4 = 100 * corpus_bleu(references, hypotheses, weights=(0.25, 0.25, 0.25, 0.25))
     return bleu_1, bleu_2, bleu_3, bleu_4
 
 class Eval(Callback):
-    def __init__(self, output_shape, weights_path, encoder_model, decoder_model):
+    def __init__(self, output_shape, weights_path):
         self.output_shape = output_shape
         self.weights_path = weights_path
-        self.encoder_model = encoder_model
-        self.decoder_model = decoder_model
-
-    def generate(self, inputs):
-        # encode
-        state = self.encoder_model.predict(inputs)
-        # start of sequence input
-        output_feed = np.array([0.0 for _ in range(self.output_shape[1])]).reshape(1, 1, self.output_shape[1])
-        # collect predictions
-        output = list()
-        for t in range(self.output_shape[0]):
-            # predict next char
-            yhat, h, c = self.decoder_model.predict([output_feed] + state)
-            # store prediction
-            output.append(yhat[0, 0, :])
-            # update state
-            state = [h, c]
-            # update target sequence
-            output_feed = yhat
-        return np.array(output)
 
     def on_epoch_end(self, epoch, logs={}):
         hyps = []
         refs = []
 
         for i in range(len(self.validation_data[0])):
-            prediction = self.generate(np.array([self.validation_data[0][i]]))
+            prediction = self.model.predict(np.array([self.validation_data[0][i]]))[0]
             pred = one_hot_decode(prediction)
             true = one_hot_decode(self.validation_data[2][i])
             refs.append([str(j) for j in true])

@@ -49,8 +49,7 @@ class GeneralModel(object):
 		)
 		early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=paras.early_stopping, verbose=0, mode='min')
 		tensorboard = TensorBoard(log_dir="logs/" + paras.exp_name + '/' + self._model_name)
-		inspect = Eval(self._output_shape, self._model_folder + '/' + self._model_name + "_final.hdf5",
-		               self.encoder_model, self.decoder_model)
+		inspect = Eval(self._output_shape, self._model_folder + '/' + self._model_name + "_final.hdf5")
 		callbacks_list = [ProgbarLoggerVerbose('samples'), inspect, checkpoint, early_stopping, tensorboard]
 
 		# Train
