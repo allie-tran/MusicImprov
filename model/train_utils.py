@@ -62,10 +62,10 @@ def calculate_bleu_scores(references, hypotheses):
         bleu_1, bleu_2, bleu_3, bleu_4: BLEU scores
 
     """
-    bleu_1 = 100 * corpus_bleu(references, hypotheses, weights=(1.0, 0., 0., 0.))
-    bleu_2 = 100 * corpus_bleu(references, hypotheses, weights=(0.50, 0.50, 0., 0.))
-    bleu_3 = 100 * corpus_bleu(references, hypotheses, weights=(0.34, 0.33, 0.33, 0.))
-    bleu_4 = 100 * corpus_bleu(references, hypotheses, weights=(0.25, 0.25, 0.25, 0.25))
+    bleu_1 = np.round(100 * corpus_bleu(references, hypotheses, weights=(1.0, 0., 0., 0.)), decimals=2)
+    bleu_2 = np.round(100 * corpus_bleu(references, hypotheses, weights=(0.50, 0.50, 0., 0.)), decimals=2)
+    bleu_3 = np.round(100 * corpus_bleu(references, hypotheses, weights=(0.34, 0.33, 0.33, 0.)), decimals=2)
+    bleu_4 = np.round(100 * corpus_bleu(references, hypotheses, weights=(0.25, 0.25, 0.25, 0.25)), decimals=2)
     return bleu_1, bleu_2, bleu_3, bleu_4
 
 class Eval(Callback):

@@ -23,7 +23,6 @@ def run():
 	output_shape = get_output_shapes()
 
 	generating_model = MergedModel(input_shape, output_shape, paras.weight_path, 'Model')
-
 	if args.train:
 		inputs, inputs_feed = get_inputs(paras.training_file, clip=0)
 		outputs, outputs_feed = get_outputs(paras.training_file, clip=0)
@@ -97,6 +96,6 @@ if __name__ == '__main__':
 				json.dump(done_exp, f)
 
 	else:
-		paras.set(2, 100, 64, 256, 0.0005, 0.2, early_stopping=50)
+		paras.set(3, 100, 64, 512, 0.0005, 0.2, early_stopping=10)
 		run()
 	warning_log.close()
