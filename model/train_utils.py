@@ -81,9 +81,9 @@ class Eval(Callback):
 
         print('Training data: ')
         for i in range(10):
-            prediction = self.model.predict(np.array([self.train_data.inputs[0][i]]))[0]
+            prediction = self.model.predict(np.array([self.train_data.inputs[i]]))[0]
             pred = one_hot_decode(prediction)
-            true = one_hot_decode(self.train_data.outputs[0][i])
+            true = one_hot_decode(self.train_data.outputs[i])
             print 'y=%s, yhat=%s' % ([n - 3 for n in true], [n - 3 for n in pred])
 
         print('Testing data: ')
