@@ -64,7 +64,7 @@ class MergedModel(ToSeqModel):
 			prediction = self.generate(array([inputs[i]]))
 			pred = one_hot_decode(prediction)
 			true = one_hot_decode(outputs[i])
-			refs.append([str(j) for j in true])
+			refs.append([[str(j) for j in true]])
 			hyps.append([str(j) for j in pred])
 			if i < 10:
 				print 'y=%s, yhat=%s' % ([n - 3 for n in true], [n - 3 for n in pred])
