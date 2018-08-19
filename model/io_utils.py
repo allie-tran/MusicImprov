@@ -6,7 +6,7 @@ from scripts import args, paras, to_onehot, MusicXML, XMLtoNoteSequence, Midi
 from xml.etree import cElementTree
 
 from collections import namedtuple
-Data = namedtuple('Data', ['inputs', 'outputs', 'input_feeds', 'output_feeds'])
+Data = namedtuple('Data', ['inputs', 'outputs'])
 
 try:
 	with open('score_list.json', 'r') as f:
@@ -144,7 +144,6 @@ def get_inputs(file, filtered=True, clip=0, test=False):
 			filter = json.load(f)
 
 	inputs = []
-	inputs_feed = []
 	input_shape = get_input_shapes()
 	output_shape = get_output_shapes()
 	input_length = input_shape[0]
@@ -155,24 +154,17 @@ def get_inputs(file, filtered=True, clip=0, test=False):
 		while j < len(melody) - (input_length + output_length) - 1:
 			input_phrase = melody[j: j+input_length]
 			input_phrase = [n + 3 for n in input_phrase]
-			inputs.append(to_onehot(input_phrase, input_shape[1]))
-
-			input_feed = [0] + input_phrase[:-1]
-			inputs_feed.append(to_onehot(input_feed, input_shape[1]))
-
+			inputs.append(input_phrase)
 			j += output_length
 
 	for i in sorted(filter, reverse=True):
 		del inputs[i]
-		del inputs_feed[i]
 
 	if clip == 0:
 		clip = len(inputs)
 
 	inputs = array(inputs[:clip])
-	inputs_feed = array(inputs_feed[:clip])
-	return inputs, inputs_feed
-
+	return inputs
 
 def get_outputs(file, filtered=True, clip=0, test=False):
 	with open(file) as f:
@@ -184,7 +176,6 @@ def get_outputs(file, filtered=True, clip=0, test=False):
 			filter = json.load(f)
 
 	outputs = []
-	outputs_feed = []
 	input_shape = get_input_shapes()
 	output_shape = get_output_shapes()
 	input_length = input_shape[0]
@@ -195,25 +186,20 @@ def get_outputs(file, filtered=True, clip=0, test=False):
 		while j < len(melody) - (input_length + output_length) - 1:
 			next_bar = melody[j+input_length:j+input_length+output_length]
 			next_bar = [n + 3 for n in next_bar]
-			outputs.append(to_onehot(next_bar, output_shape[1]))
-
-			next_bar_feed = [0] + next_bar[:-1]
-			outputs_feed.append(to_onehot(next_bar_feed, output_shape[1]))
+			outputs.append(next_bar)
 			j += output_length
 
 	for i in sorted(filter, reverse=True):
 		del outputs[i]
-		del outputs_feed[i]
 
 	if clip == 0:
 		clip = len(outputs)
 
 	outputs = array(outputs[:clip])
-	outputs_feed = array(outputs_feed[:clip])
 	# if not test:
 	# 	print('Output shapes:')
 	# 	print(shape(outputs))
-	return outputs, outputs_feed
+	return outputs
 
 def midi_to_name(midi):
 	if midi < 0:

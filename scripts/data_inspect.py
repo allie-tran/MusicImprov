@@ -26,7 +26,7 @@ def inspect():
 
 	for dupe, ids in dupes:
 		possible_outputs = set([outputs[id] for id in ids])
-		if len(possible_outputs) > 1:
+		if len(possible_outputs) > 1:  wq,
 			print '-' * 80
 			print ids
 			for output in possible_outputs:

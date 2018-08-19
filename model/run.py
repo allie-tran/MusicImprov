@@ -22,23 +22,24 @@ def run():
 	input_shape = get_input_shapes()
 	output_shape = get_output_shapes()
 
-	generating_model = MergedModel(input_shape, output_shape, paras.weight_path, 'Model')
+	generating_model = BarToVecModel(input_shape, output_shape, paras.weight_path, 'Model')
 	if args.train:
-		inputs, inputs_feed = get_inputs(paras.training_file, clip=0)
-		outputs, outputs_feed = get_outputs(paras.training_file, clip=0)
+		inputs = get_inputs(paras.training_file, clip=0)
+		outputs = get_outputs(paras.training_file, clip=0)
 
-		test_inputs, _ = get_inputs(paras.testing_file, clip=0, filtered=False)
-		test_outputs, _ = get_outputs(paras.testing_file, clip=0, filtered=False)
+		test_inputs= get_inputs(paras.testing_file, clip=0, filtered=False)
+		test_outputs = get_outputs(paras.testing_file, clip=0, filtered=False)
+
+		train_vecs = generating_model.process_data(Data(inputs, outputs))
+		test_vecs = generating_model.process_data(Data(test_inputs, test_outputs))
 
 		print '*' * 80
 		print 'TRAINING'
-		generating_model.train(Data(inputs, outputs, inputs_feed, outputs_feed),
-		                      Data(test_inputs, test_outputs, None, None))
+		generating_model.train(train_vecs, test_vecs)
 
 	if args.eval:
-
-		test_inputs, _ = get_inputs(paras.testing_file, clip=0, filtered=False)
-		test_outputs, _ = get_outputs(paras.testing_file, clip=0, filtered=False)
+		test_inputs = get_inputs(paras.testing_file, clip=0, filtered=False)
+		test_outputs = get_outputs(paras.testing_file, clip=0, filtered=False)
 		ver = raw_input("Which version? ")
 		generating_model.load(ver)
 		generating_model.get_score(test_inputs, test_outputs)
@@ -96,6 +97,6 @@ if __name__ == '__main__':
 				json.dump(done_exp, f)
 
 	else:
-		paras.set(3, 100, 64, 512, 0.0005, 0.2, early_stopping=10)
+		paras.set(4, 100, 64, 128, 0.0005, 0.2, early_stopping=10)
 		run()
 	warning_log.close()
