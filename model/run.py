@@ -49,7 +49,7 @@ def run():
 			print '*' * 80
 			print 'TRAINING THE PREDICTOR'
 			paras.epochs = 50
-			paras.num_units *= 2
+			paras.num_units *= 4
 			encoded_inputs = latent_input_model.encoder_model.predict(inputs)
 			encoded_inputs = predictor_model.double_inputs(encoded_inputs)
 			test_encoded_inputs = latent_input_model.encoder_model.predict(test_inputs)

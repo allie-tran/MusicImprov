@@ -41,8 +41,8 @@ class Predictor(ToSeqModel):
 	def double_inputs(inputs):
 		new_inputs = [[], []]
 		for i in range(len(inputs[0])):
-			new_inputs[0].append(inputs[0][i] + inputs[0][i])
-			new_inputs[1].append(inputs[1][i] + inputs[1][i])
+			new_inputs[0].append(inputs[0][i] + inputs[0][i] + inputs[0][i] + inputs[0][i])
+			new_inputs[1].append(inputs[1][i] + inputs[1][i] + inputs[1][i] + inputs[1][i])
 		return [array(new_inputs[0]), new_inputs[1]]
 
 	def fit(self, data, callbacks_list):
