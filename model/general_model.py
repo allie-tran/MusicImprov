@@ -25,10 +25,9 @@ class ToSeqModel(object):
 	def define_models(self):
 		pass
 
-	def load(self):
+	def load(self, num='best'):
 		try:
-			num = int(raw_input('Which version?'))
-			self.model.load_weights(self._model_folder + '/' + self._model_name + str(num) +'.hdf5')
+			self.model.load_weights(self._model_folder + '/' + self._model_name + '_' + str(num) +'.hdf5')
 		except IOError:
 			pass
 
