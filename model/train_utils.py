@@ -98,29 +98,21 @@ def calculate_bleu_scores(references, hypotheses):
     return bleu_1, bleu_2, bleu_3, bleu_4
 
 class Eval(Callback):
-    def __init__(self, output_shape):
-        self.output_shape = output_shape
-
-    def generate(self, inputs):
-        output = self.model.predict(inputs)
-        return np.array(output[0])
+    def __init__(self, weights_path, get_score, train_data, test_data):
+        self.weights_path = weights_path
+        self.train_data = train_data
+        self.test_data = test_data
+        self.get_score = get_score
 
     def on_epoch_end(self, epoch, logs={}):
-        preds = []
-        refs = []
-        for i in range(len(self.validation_data[0])):
-            prediction = self.generate(np.array([self.validation_data[0][i]]))
-            pred = one_hot_decode(prediction)[:self.output_shape[0]]
-            true = one_hot_decode(self.validation_data[1][i])[:self.output_shape[0]]
-            preds.append([str(j) for j in pred])
-            refs.append(([str(j) for j in true]))
-            if i < 10:
-                print 'y=%s, yhat=%s' % ([n - 3 for n in true], [n - 3 for n in pred])
-        bleus = calculate_bleu_scores(refs, preds)
+        self.model.save_weights(self.weights_path + '_' + str(epoch) + '.hdf5')
+        print('Testing data: ')
+        bleus = self.get_score(self.test_data.inputs, self.test_data.outputs)
         logs['bleu1'].append(bleus[0])
         logs['bleu2'].append(bleus[1])
         logs['bleu3'].append(bleus[2])
         logs['bleu4'].append(bleus[3])
+
 
 def display_confusion_matrix(matrix):
 	print('Confusion matrix')

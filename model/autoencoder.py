@@ -77,15 +77,14 @@ class AutoEncoder(ToSeqModel):
 		return array(output)
 
 	def get_score(self, inputs, outputs):
-		y_pred = []
-		y_true = []
+		refs = []
+		hyps = []
 		for i in range(len(inputs)):
-			prediction = self.generate(array([inputs[i]]))
+			prediction = self.generate(np.array([inputs[i]]))
 			pred = one_hot_decode(prediction)
 			true = one_hot_decode(outputs[i])
+			refs.append([[str(j) for j in true]])
+			hyps.append([str(j) for j in pred])
 			if i < 10:
 				print 'y=%s, yhat=%s' % ([n - 3 for n in true], [n - 3 for n in pred])
-			y_pred += pred
-			y_true += true
-
-		print 'f1 score', micro_f1_score(y_pred, y_true)
+		return calculate_bleu_scores(refs, hyps)
