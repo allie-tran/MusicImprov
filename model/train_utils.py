@@ -113,7 +113,7 @@ class Eval(Callback):
 			bleu_scores = self.get_score(self.test_data.inputs, self.test_data.outputs)
 
 		logs.update(zip(['bleu1', 'bleu2', 'bleu3', 'bleu4'], bleu_scores))
-		print_log = ' - {} : {} ' * len(logs)
+		print_log = ' - {.4f} : {.4f} ' * len(logs)
 		print(print_log.format(*[i for j in logs.items() for i in j]))
 
 		for y_true, y_pred in examples:
