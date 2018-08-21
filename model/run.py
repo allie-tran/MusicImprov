@@ -41,11 +41,13 @@ def run():
 		if args.train_latent:
 			print '*' * 80
 			print 'TRAINING THE AUTOENCODER'
+			paras.epochs = 20
 			latent_input_model.train(Data(inputs, inputs, inputs_feed), Data(test_inputs, test_inputs, None))
 
 		if args.train:
 			print '*' * 80
 			print 'TRAINING THE PREDICTOR'
+			paras.epochs = 50
 			encoded_inputs = latent_input_model.encoder_model.predict(inputs)
 			test_encoded_inputs = latent_input_model.encoder_model.predict(test_inputs)
 			predictor_model.train(Data(encoded_inputs, outputs, outputs_feed),
@@ -79,7 +81,6 @@ def run():
 
 
 
-
 if __name__ == '__main__':
 	# Tuning
 	if args.tuning:
@@ -108,6 +109,6 @@ if __name__ == '__main__':
 				json.dump(done_exp, f)
 
 	else:
-		paras.set('final', 50, 64, 1024, 0.0005, 0.2, early_stopping=20)
+		paras.set('final', 50, 64, 1024, 0.0005, 0.2)
 		run()
 	warning_log.close()
