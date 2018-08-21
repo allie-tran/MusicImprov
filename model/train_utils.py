@@ -111,10 +111,9 @@ class Eval(Callback):
 			bleu_scores, examples = self.get_score(self.test_data.inputs, self.test_data.outputs, get_examples=True)
 		else:
 			bleu_scores = self.get_score(self.test_data.inputs, self.test_data.outputs)
-
-		logs.update(zip(['bleu1', 'bleu2', 'bleu3', 'bleu4'], bleu_scores))
-		print_log = ' - %s : %.4f} ' * len(logs)
-		print(print_log % tuple([i for j in logs.items() for i in j]))
+		scores = zip(['bleu1', 'bleu2', 'bleu3', 'bleu4'], bleu_scores)
+		logs.update(scores)
+		print('BLEU scores: ' + '%s : %.2f -' * 3 + '%s : %.2f' % tuple([i for j in scores for i in j]))
 
 		for y_true, y_pred in examples:
 			if len(y_true) > 8:
