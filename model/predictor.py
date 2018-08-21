@@ -87,9 +87,10 @@ class Predictor(ToSeqModel):
 				print 'Generated: ', [int(n - 3) for n in whole]
 				break
 
-	def get_score(self, inputs, outputs):
+	def get_score(self, inputs, outputs, get_examples=False):
 		refs = []
 		hyps = []
+		examples = []
 		for i in range(len(inputs)):
 			prediction = self.generate([array(inputs[0][i]), array(inputs[1][i])])
 			pred = one_hot_decode(prediction)
@@ -97,5 +98,7 @@ class Predictor(ToSeqModel):
 			refs.append([[str(j) for j in true]])
 			hyps.append([str(j) for j in pred])
 			if i < 10:
-				print 'y=%s, yhat=%s' % ([n - 3 for n in true], [n - 3 for n in pred])
+				examples.append([[n -3 for n in true], [n - 3 for n in pred]])
+		if get_examples:
+			return calculate_bleu_scores(refs, hyps), examples
 		return calculate_bleu_scores(refs, hyps)

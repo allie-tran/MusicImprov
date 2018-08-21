@@ -1,8 +1,8 @@
 from model import *
 from scripts import args, paras
 import abc
-import json
-from keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoard
+import csv
+from keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoard, CSVLogger
 from keras.optimizers import Adam
 from keras.models import load_model
 
@@ -48,20 +48,24 @@ class ToSeqModel(object):
 			save_weights_only=True,
 			save_best_only=True
 		)
+		csv_logger = CSVLogger(self._model_folder + '/' + self._model_name + '_' + 'training.log')
 		early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=paras.early_stopping, verbose=0, mode='min')
 		tensorboard = TensorBoard(log_dir="logs/" + paras.exp_name + '/' + self._model_name)
-		inspect = Eval(self._model_folder + '/' + self._model_name,
-		                   self.get_score, data, test_data)
-		callbacks_list = [ProgbarLoggerVerbose('samples'), checkpoint, early_stopping, tensorboard, inspect]
+		inspect = Eval(self._model_folder + '/' + self._model_name, self.get_score, data, test_data)
+		callbacks_list = [ProgbarLoggerVerbose('samples'), inspect, csv_logger, tensorboard, checkpoint, early_stopping]
 
 		# Train
 		history = self.fit(data, callbacks_list)
 
-		with open(self._model_folder + '/' + 'history.json', 'w') as f:
-			json.dump(history, f)
-
-		# Evaluation
-		print '###Test Score: ', self.get_score(test_data.inputs, test_data.outputs)
+		# Write logs
+		if os.path.isfile(self._model_folder + '/' + self._model_name + '_' + 'training.log'):
+			print('Dunno why but CSV_LOGGER did not work so now I am creating one.')
+			with open(self._model_folder + '/' + self._model_name + '_' + 'training.log'):
+				zd = zip(*history.values())
+				with open('file.csv', 'w') as file:
+					writer = csv.writer(file, delimiter=',')
+					writer.writerow(history.keys())
+					writer.writerows(zd)
 
 	@abc.abstractmethod
 	def get_score(self, inputs, outputs):

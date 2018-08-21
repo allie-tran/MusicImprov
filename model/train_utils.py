@@ -106,13 +106,11 @@ class Eval(Callback):
 
     def on_epoch_end(self, epoch, logs={}):
         self.model.save_weights(self.weights_path + '_' + str(epoch) + '.hdf5')
-        print('Testing data: ')
-        bleus = self.get_score(self.test_data.inputs, self.test_data.outputs)
-        logs['bleu1'].append(bleus[0])
-        logs['bleu2'].append(bleus[1])
-        logs['bleu3'].append(bleus[2])
-        logs['bleu4'].append(bleus[3])
-
+        logs.update(zip(['bleu1', 'bleu2', 'bleu3', 'bleu4'],
+                        self.get_score(self.test_data.inputs, self.test_data.outputs,
+                                       get_examples=(epoch + 1) % 10 == 0)))
+        print_log = ' - {} : {} ' * len(logs)
+        print(print_log.format(*[i for j in logs.items() for i in j]))
 
 def display_confusion_matrix(matrix):
 	print('Confusion matrix')
