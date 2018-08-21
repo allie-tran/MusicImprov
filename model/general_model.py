@@ -56,10 +56,10 @@ class ToSeqModel(object):
 		history = self.fit(data, callbacks_list)
 
 		# Write logs
-		if os.path.isfile(self._model_folder + '/' + self._model_name + '_' + 'training.log'):
+		if not os.path.isfile(self._model_folder + '/' + self._model_name + '_' + 'training.log'):
 			print('Dunno why but CSV_LOGGER did not work so now I am creating one.')
 			with open(self._model_folder + '/' + self._model_name + '_' + 'training.log'):
-				zd = zip(*history.values())
+				zd = zip(*history.history.values())
 				with open('file.csv', 'w') as file:
 					writer = csv.writer(file, delimiter=',')
 					writer.writerow(history.keys())

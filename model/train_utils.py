@@ -118,11 +118,11 @@ class Eval(Callback):
 
 		for y_true, y_pred in examples:
 			if len(y_true) > 8:
-				formatter ='{:2}' * 8  + ' ... ' + '{:2}' * 4
+				formatter ='{:3}' * 8  + ' ... ' + '{:3}' * 4
 				print(formatter.format(*(y_true[:8] + y_true[-4:])))
 				print(formatter.format(*(y_pred[:8] + y_pred[-4:])))
 			else:
-				formatter = '{:2}' * 8
+				formatter = '{:3}' * 8
 				print(formatter.format(*y_true))
 				print(formatter.format(*y_pred))
 
