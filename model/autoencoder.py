@@ -7,10 +7,10 @@ from model import ToSeqModel
 
 
 class AutoEncoder(ToSeqModel):
-	def __init__(self, input_shape, output_shape, model_folder, model_name):
+	def __init__(self, input_shape, model_folder, model_name):
 		self.encoder_model = None
 		self.decoder_model = None
-		super(AutoEncoder, self).__init__(input_shape, output_shape, model_folder, model_name)
+		super(AutoEncoder, self).__init__(input_shape, input_shape, model_folder, model_name)
 
 	def define_models(self):
 		# define training encoder
@@ -43,13 +43,11 @@ class AutoEncoder(ToSeqModel):
 
 		self.model.compile(optimizer=self.optimizer, loss='categorical_crossentropy', metrics=['acc'])
 
-		plot_model(self.model, to_file='model.png')
-
 	def fit(self, data, callbacks_list):
 		history = self.model.fit(
 			[data.inputs, data.feeds],
 			data.outputs,
-			callbacks=callbacks_list[:-1],
+			callbacks=callbacks_list,
 			validation_split=0.2,
 			epochs=paras.epochs,
 			shuffle=True,
@@ -76,9 +74,10 @@ class AutoEncoder(ToSeqModel):
 			output_feed = yhat
 		return array(output)
 
-	def get_score(self, inputs, outputs):
+	def get_score(self, inputs, outputs, get_examples=False):
 		refs = []
 		hyps = []
+		examples = []
 		for i in range(len(inputs)):
 			prediction = self.generate(np.array([inputs[i]]))
 			pred = one_hot_decode(prediction)
@@ -86,5 +85,7 @@ class AutoEncoder(ToSeqModel):
 			refs.append([[str(j) for j in true]])
 			hyps.append([str(j) for j in pred])
 			if i < 10:
-				print 'y=%s, yhat=%s' % ([n - 3 for n in true], [n - 3 for n in pred])
+				examples.append([[n - 3 for n in true], [n - 3 for n in pred]])
+		if get_examples:
+			return calculate_bleu_scores(refs, hyps), examples
 		return calculate_bleu_scores(refs, hyps)

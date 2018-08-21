@@ -22,7 +22,7 @@ def run():
 	input_shape = get_input_shapes()
 	output_shape = get_output_shapes()
 
-	latent_input_model = AutoEncoder(input_shape, input_shape, paras.weight_path, 'LatentInputModel')
+	latent_input_model = AutoEncoder(input_shape, paras.weight_path, 'LatentInputModel')
 	predictor_model = Predictor(output_shape, paras.weight_path, 'PredictModel')
 
 	print 'Created models!'

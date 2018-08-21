@@ -91,7 +91,7 @@ class Predictor(ToSeqModel):
 		refs = []
 		hyps = []
 		examples = []
-		for i in range(len(inputs)):
+		for i in range(len(inputs[0])):
 			prediction = self.generate([array(inputs[0][i]), array(inputs[1][i])])
 			pred = one_hot_decode(prediction)
 			true = one_hot_decode(outputs[i])

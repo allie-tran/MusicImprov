@@ -4,8 +4,6 @@ import abc
 import csv
 from keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoard, CSVLogger
 from keras.optimizers import Adam
-from keras.models import load_model
-
 
 class ToSeqModel(object):
 	"""
