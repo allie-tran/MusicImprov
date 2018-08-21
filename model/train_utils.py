@@ -77,28 +77,30 @@ class Eval(Callback):
         self.generate = generate
 
     def on_epoch_end(self, epoch, logs={}):
+        self.model.save_weights(self.weights_path)
+        if (epoch + 1) % 100 != 0 or epoch < 499:
+            return
         hyps = []
         refs = []
 
         print('Training data: ')
-        for i in range(10):
-            pred = self.generate(np.array([self.train_data.inputs[i]]))[0]
-            true = self.train_data.outputs[i]
+        for i in range(2):
+            pred = self.generate(np.array([self.train_data.inputs[i]]))
+            true = [int(j) for j in self.train_data.outputs[i]]
             print 'y=%s, yhat=%s' % ([n - 3 for n in true], [n - 3 for n in pred])
 
         print('Testing data: ')
         for i in range(len(self.validation_data[0])):
-            pred = self.generate(np.array([self.test_data.inputs[i]]))[0]
-            true = self.train_data.outputs[i]
+            pred = self.generate(np.array([self.test_data.inputs[i]]))
+            true = [int(j) for j in self.test_data.outputs[i]]
             refs.append([[str(j) for j in true]])
             hyps.append([str(j) for j in pred])
-            if i < 10:
+            if i < 2:
                 print 'y=%s, yhat=%s' % ([n - 3 for n in true], [n - 3 for n in pred])
-            else:
-                if epoch % 5 != 0:
-                    return
+            if epoch < 500:
+                print 'Bleu score: ', calculate_bleu_scores(refs, hyps)
+                return
 
-        self.model.save_weights(self.weights_path)
         print 'Bleu score: ', calculate_bleu_scores(refs, hyps)
 
 

@@ -30,12 +30,9 @@ def run():
 		test_inputs= get_inputs(paras.testing_file, clip=0, filtered=False)
 		test_outputs = get_outputs(paras.testing_file, clip=0, filtered=False)
 
-		train_vecs = generating_model.process_data(Data(inputs, outputs))
-		test_vecs = generating_model.process_data(Data(test_inputs, test_outputs))
-
 		print '*' * 80
 		print 'TRAINING'
-		generating_model.train(train_vecs, test_vecs)
+		generating_model.train(Data(inputs, outputs), Data(test_inputs, test_outputs))
 
 	if args.eval:
 		test_inputs = get_inputs(paras.testing_file, clip=0, filtered=False)
@@ -97,6 +94,6 @@ if __name__ == '__main__':
 				json.dump(done_exp, f)
 
 	else:
-		paras.set(4, 100, 64, 128, 0.0005, 0.2, early_stopping=10)
+		paras.set(4, 1000, 64, 64, 0.001, 0.2)
 		run()
 	warning_log.close()

@@ -12,6 +12,11 @@ from itertools import product
 from scipy.spatial.distance import cosine
 from collections import defaultdict
 
+def cos_distance(y_true, y_pred):
+    y_true = K.l2_normalize(y_true, axis=-1)
+    y_pred = K.l2_normalize(y_pred, axis=-1)
+    return K.mean(1 - K.sum((y_true * y_pred), axis=-1))
+
 def get_most_similar(model, vector):
 	sims = [(bar, score) for (bar, score) in model.similar_by_vector(vector, topn=5)]
 
@@ -71,8 +76,9 @@ class BarToVecModel(ToSeqModel):
 	def melody_to_list_of_vecs(self, melody):
 		vecs = []
 		i = 0
+
 		while i < len(melody):
-			bar = '_'.join([str(int(j)) for j in melody[i:i + 8]])
+			bar = '_'.join([str(int(j-3)) for j in melody[i:i + 8]])
 			vecs.append(self.bar_to_vec(bar))
 			i += 8
 		return vecs
@@ -81,29 +87,32 @@ class BarToVecModel(ToSeqModel):
 		new_corpus = []
 		for melody in corpus:
 			new_corpus.append(self.melody_to_list_of_vecs(melody))
-		return new_corpus
+		return np.array(new_corpus)
 
 	def process_data(self, data):
 
-		vec_inputs = np.array(self.melodies_to_list_of_vecs(data.inputs))
-		vec_outputs = np.array(self.melodies_to_list_of_vecs(data.outputs))
+		vec_inputs = self.melodies_to_list_of_vecs(data.inputs)
+		vec_outputs = np.reshape(self.melodies_to_list_of_vecs(data.outputs), (-1, 4))
 		print(vec_inputs.shape)
 		print(vec_outputs.shape)
 
 		return Data(vec_inputs, vec_outputs)
 
 	def vec_to_bar(self, vector):
-		return [int(i) for i in get_most_similar(self.bar2vec, vector)]
+		bar = [int(i) + 3 for i in get_most_similar(self.bar2vec, vector)]
+		# print(bar)
+		return bar
 
 	def define_models(self):
 		self.model = Sequential()
-		for i in range(3):
-			self.model.add(LSTM(paras.num_units, return_sequences=True))
-			self.model.add(LSTM(paras.num_units, return_sequences=True, go_backwards=True))
-		self.model.add(LSTM(paras.num_units))
+		for i in range(2):
+			self.model.add(LSTM(input_shape=(None, 4), units=paras.num_units, return_sequences=True))
+			# self.model.add(LSTM(paras.num_units, return_sequences=True, go_backwards=True))
+		self.model.add(LSTM(input_shape=(None, 4), units=paras.num_units))
+		self.model.add(Dense(paras.num_units))
 		self.model.add(Dense(4))
-
-		self.model.compile(loss='logcosh', optimizer=self.optimizer)
+		self.model.compile(loss=cos_distance, optimizer=self.optimizer)
+		self.model.summary()
 
 	def generate(self, raw_inputs):
 		inputs = self.melodies_to_list_of_vecs(raw_inputs)
@@ -138,3 +147,25 @@ class BarToVecModel(ToSeqModel):
 				MelodySequence([int(n - 3) for n in whole]).to_midi(save_path + '/full/' + save_name, save=True)
 				MelodySequence([int(n - 3) for n in whole[input_shape[0]:]]).to_midi(save_path + '/single/' + save_name, save=True)
 				print 'Generated: ', [int(n - 3) for n in whole]
+
+	def train(self, data, test_data):
+		train_vecs = self.process_data(data)
+
+		try:
+			self.load()
+		except IOError:
+			pass
+
+		checkpoint = ModelCheckpoint(
+			self._model_folder + '/' + self._model_name + "_{epoch}.hdf5",
+			monitor='val_loss',
+			verbose=0,
+			save_weights_only=True,
+		)
+		tensorboard = TensorBoard(log_dir="logs/" + paras.exp_name + '/' + self._model_name)
+		inspect = Eval(self._output_shape, self._model_folder + '/' + self._model_name + "_final.hdf5", self.generate,
+		                              data, test_data)
+		callbacks_list = [inspect, checkpoint, tensorboard]
+
+		# Train
+		history = self.fit(train_vecs, callbacks_list)
