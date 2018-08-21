@@ -37,6 +37,14 @@ class Predictor(ToSeqModel):
 		self.decoder_model = Model([decoder_inputs, state_h, state_c], [decoder_outputs] + decoder_states)
 		self.model.compile(optimizer=self.optimizer, loss='categorical_crossentropy', metrics=['acc'])
 
+	@staticmethod
+	def double_inputs(inputs):
+		new_inputs = [[], []]
+		for i in range(len(inputs[0])):
+			new_inputs[0].append(inputs[0][i] + inputs[0][i])
+			new_inputs[1].append(inputs[1][i] + inputs[1][i])
+		return [array(new_inputs[0]), new_inputs[1]]
+
 	def fit(self, data, callbacks_list):
 		# Train
 		history = self.model.fit(
@@ -78,6 +86,7 @@ class Predictor(ToSeqModel):
 		while True:
 			primer = to_onehot(whole[-input_shape[0]:], input_shape[1])
 			encoded_primer = latent_input_model.encoder_model.predict(array([primer]))
+			encoded_primer = self.double_inputs(encoded_primer)
 			output = self.generate([array(encoded_primer[0][0]), array(encoded_primer[1][0])])
 			whole += one_hot_decode(output)
 			count += 1
