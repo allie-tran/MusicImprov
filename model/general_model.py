@@ -1,6 +1,7 @@
 from model import *
 from scripts import args, paras
 import abc
+import json
 from keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoard
 from keras.optimizers import Adam
 from keras.models import load_model
@@ -55,6 +56,9 @@ class GeneralModel(object):
 
 		# Train
 		history = self.fit(data, callbacks_list)
+
+		with open(self._model_folder + '/' + 'history.json', 'w') as f:
+			json.dump(history, f)
 
 		# Evaluation
 		print '###Test Score: ', self.get_score(test_data.inputs, test_data.outputs)

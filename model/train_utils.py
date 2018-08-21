@@ -116,7 +116,11 @@ class Eval(Callback):
             refs.append(([str(j) for j in true]))
             if i < 10:
                 print 'y=%s, yhat=%s' % ([n - 3 for n in true], [n - 3 for n in pred])
-        print 'Bleu score: ', calculate_bleu_scores(refs, preds)
+        bleus = calculate_bleu_scores(refs, preds)
+        logs['bleu1'].append(bleus[0])
+        logs['bleu2'].append(bleus[1])
+        logs['bleu3'].append(bleus[2])
+        logs['bleu4'].append(bleus[3])
 
 def display_confusion_matrix(matrix):
 	print('Confusion matrix')
