@@ -11,7 +11,7 @@ from sklearn.metrics import f1_score, precision_score, recall_score, confusion_m
 from io_utils import one_hot_decode
 
 def fro_norm(w):
-    return K.sqrt(K.sum(K.square(K.abs(w))))
+	return K.sqrt(K.sum(K.square(K.abs(w))))
 
 
 def cust_reg(w):
@@ -20,9 +20,9 @@ def cust_reg(w):
 	return fro_norm(m)
 
 class ProgbarLoggerVerbose(ProgbarLogger):
-    def on_train_begin(self, logs=None):
-        super(ProgbarLoggerVerbose, self).on_train_begin(logs)
-        self.verbose = True
+	def on_train_begin(self, logs=None):
+		super(ProgbarLoggerVerbose, self).on_train_begin(logs)
+		self.verbose = True
 
 def plot_training_loss(name, history):
 	plt.plot(history['loss'])
@@ -74,43 +74,58 @@ def get_class_weights(y_train):
 def micro_f1_score(y_pred, y_true):
 	display_confusion_matrix(confusion_matrix(y_true, y_pred, labels=np.unique(y_true)))
 	return precision_score(y_pred, y_true, average='macro', labels=np.unique(y_true)),\
-	       recall_score(y_pred, y_true, average='macro', labels=np.unique(y_true)), \
-	       f1_score(y_pred, y_true, average='macro', labels=np.unique(y_true)), \
+		   recall_score(y_pred, y_true, average='macro', labels=np.unique(y_true)), \
+		   f1_score(y_pred, y_true, average='macro', labels=np.unique(y_true)), \
 		   accuracy_score(y_pred, y_true)
 
 
 def calculate_bleu_scores(references, hypotheses):
-    """
-    Calculates BLEU 1-4 scores based on NLTK functionality
+	"""
+	Calculates BLEU 1-4 scores based on NLTK functionality
 
-    Args:
-        references: List of reference sentences
-        hypotheses: List of generated sentences
+	Args:
+		references: List of reference sentences
+		hypotheses: List of generated sentences
 
-    Returns:
-        bleu_1, bleu_2, bleu_3, bleu_4: BLEU scores
+	Returns:
+		bleu_1, bleu_2, bleu_3, bleu_4: BLEU scores
 
-    """
-    bleu_1 = np.round(100 * corpus_bleu(references, hypotheses, weights=(1.0, 0., 0., 0.)), decimals=2)
-    bleu_2 = np.round(100 * corpus_bleu(references, hypotheses, weights=(0.50, 0.50, 0., 0.)), decimals=2)
-    bleu_3 = np.round(100 * corpus_bleu(references, hypotheses, weights=(0.34, 0.33, 0.33, 0.)), decimals=2)
-    bleu_4 = np.round(100 * corpus_bleu(references, hypotheses, weights=(0.25, 0.25, 0.25, 0.25)), decimals=2)
-    return bleu_1, bleu_2, bleu_3, bleu_4
+	"""
+	bleu_1 = np.round(100 * corpus_bleu(references, hypotheses, weights=(1.0, 0., 0., 0.)), decimals=2)
+	bleu_2 = np.round(100 * corpus_bleu(references, hypotheses, weights=(0.50, 0.50, 0., 0.)), decimals=2)
+	bleu_3 = np.round(100 * corpus_bleu(references, hypotheses, weights=(0.34, 0.33, 0.33, 0.)), decimals=2)
+	bleu_4 = np.round(100 * corpus_bleu(references, hypotheses, weights=(0.25, 0.25, 0.25, 0.25)), decimals=2)
+	return bleu_1, bleu_2, bleu_3, bleu_4
 
 class Eval(Callback):
-    def __init__(self, weights_path, get_score, train_data, test_data):
-        self.weights_path = weights_path
-        self.train_data = train_data
-        self.test_data = test_data
-        self.get_score = get_score
+	def __init__(self, weights_path, get_score, train_data, test_data):
+		self.weights_path = weights_path
+		self.train_data = train_data
+		self.test_data = test_data
+		self.get_score = get_score
 
-    def on_epoch_end(self, epoch, logs={}):
-        self.model.save_weights(self.weights_path + '_' + str(epoch) + '.hdf5')
-        logs.update(zip(['bleu1', 'bleu2', 'bleu3', 'bleu4'],
-                        self.get_score(self.test_data.inputs, self.test_data.outputs,
-                                       get_examples=(epoch + 1) % 10 == 0)))
-        print_log = ' - {} : {} ' * len(logs)
-        print(print_log.format(*[i for j in logs.items() for i in j]))
+	def on_epoch_end(self, epoch, logs={}):
+		self.model.save_weights(self.weights_path + '_' + str(epoch) + '.hdf5')
+		examples = []
+		if (epoch + 1) % 10 == 0:
+			bleu_scores, examples = self.get_score(self.test_data.inputs, self.test_data.outputs, get_examples=True)
+		else:
+			bleu_scores = self.get_score(self.test_data.inputs, self.test_data.outputs)
+
+		logs.update(zip(['bleu1', 'bleu2', 'bleu3', 'bleu4'], bleu_scores))
+		print_log = ' - {} : {} ' * len(logs)
+		print(print_log.format(*[i for j in logs.items() for i in j]))
+
+		for y_true, y_pred in examples:
+			if len(y_true) > 8:
+				formatter ='{:2}' * 8  + ' ... ' + '{:2}' * 4
+				print(formatter.format(*(y_true[:8] + y_true[-4:])))
+				print(formatter.format(*(y_pred[:8] + y_pred[-4:])))
+			else:
+				formatter = '{:2}' * 8
+				print(formatter.format(*y_true))
+				print(formatter.format(*y_pred))
+
 
 def display_confusion_matrix(matrix):
 	print('Confusion matrix')
