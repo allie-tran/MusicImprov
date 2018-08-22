@@ -9,6 +9,8 @@ from model import ToSeqModel
 
 class Predictor(ToSeqModel):
 	def __init__(self, output_shape, model_folder, model_name):
+		self.paras_repeat = 4
+		paras.num_units *= self.paras_repeat
 		self.decoder_model = None
 		super(Predictor, self).__init__(None, output_shape, model_folder, model_name)
 
@@ -36,14 +38,14 @@ class Predictor(ToSeqModel):
 		decoder_outputs = decoder_dense(decoder_outputs)
 		self.decoder_model = Model([decoder_inputs, state_h, state_c], [decoder_outputs] + decoder_states)
 		self.model.compile(optimizer=self.optimizer, loss='categorical_crossentropy', metrics=['acc'])
+		self.model.summary()
 
-	@staticmethod
-	def double_inputs(inputs):
+	def double_inputs(self, inputs):
 		new_inputs = [[], []]
 		for i in range(len(inputs[0])):
-			new_inputs[0].append(inputs[0][i] + inputs[0][i] + inputs[0][i] + inputs[0][i])
-			new_inputs[1].append(inputs[1][i] + inputs[1][i] + inputs[1][i] + inputs[1][i])
-		return [array(new_inputs[0]), new_inputs[1]]
+			new_inputs[0].append(np.tile(inputs[0][i], self.paras_repeat))
+			new_inputs[1].append(np.tile(inputs[1][i], self.paras_repeat))
+		return [array(new_inputs[0]), array(new_inputs[1])]
 
 	def fit(self, data, callbacks_list):
 		# Train

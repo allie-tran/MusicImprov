@@ -49,11 +49,12 @@ def run():
 			print '*' * 80
 			print 'TRAINING THE PREDICTOR'
 			paras.epochs = 50
-			paras.num_units *= 4
 			encoded_inputs = latent_input_model.encoder_model.predict(inputs)
 			encoded_inputs = predictor_model.double_inputs(encoded_inputs)
+
 			test_encoded_inputs = latent_input_model.encoder_model.predict(test_inputs)
 			test_encoded_inputs = predictor_model.double_inputs(test_encoded_inputs)
+
 			predictor_model.train(Data(encoded_inputs, outputs, outputs_feed),
 			                      Data(test_encoded_inputs, test_outputs, None))
 
@@ -113,6 +114,6 @@ if __name__ == '__main__':
 				json.dump(done_exp, f)
 
 	else:
-		paras.set(1, 50, 64, 256, 0.0005, 0.2, early_stopping=50)
+		paras.set(2, 50, 64, 128, 0.0005, 0.2, early_stopping=50)
 		run()
 	warning_log.close()
