@@ -46,7 +46,7 @@ class ToSeqModel(object):
 			save_weights_only=True,
 			save_best_only=True
 		)
-		csv_logger = CSVLogger(self._model_folder + '/' + self._model_name + '_' + 'training.log')
+		csv_logger = CSVLogger(self._model_folder + '/' + self._model_name + '_' + 'training.log', sappend=True)
 		early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=paras.early_stopping, verbose=0, mode='min')
 		tensorboard = TensorBoard(log_dir="logs/" + paras.exp_name + '/' + self._model_name)
 		inspect = Eval(self._model_folder + '/' + self._model_name, self.get_score, data, test_data)
@@ -54,16 +54,6 @@ class ToSeqModel(object):
 
 		# Train
 		history = self.fit(data, callbacks_list)
-
-		# Write logs
-		if not os.path.isfile(self._model_folder + '/' + self._model_name + '_' + 'training.log'):
-			print('Dunno why but CSV_LOGGER did not work so now I am creating one.')
-			with open(self._model_folder + '/' + self._model_name + '_' + 'training.log'):
-				zd = zip(*history.history.values())
-				with open('file.csv', 'w') as file:
-					writer = csv.writer(file, delimiter=',')
-					writer.writerow(history.keys())
-					writer.writerows(zd)
 
 	@abc.abstractmethod
 	def get_score(self, inputs, outputs):
