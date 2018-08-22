@@ -63,9 +63,6 @@ class Arguments(object):
 
         if exp_num > 0:
             self.exp_name = 'Exp' + str(exp_num)
-            args.train = False
-            args.train_latent = False
-            args.generate = False
         else:
             self.exp_name = 'Final'
 
