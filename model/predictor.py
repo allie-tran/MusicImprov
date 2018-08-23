@@ -9,7 +9,7 @@ from model import ToSeqModel
 
 class Predictor(ToSeqModel):
 	def __init__(self, output_shape, model_folder, model_name):
-		self.paras_repeat = 2
+		self.paras_repeat = 1
 		paras.num_units *= self.paras_repeat
 		self.decoder_model = None
 		super(Predictor, self).__init__(None, output_shape, model_folder, model_name)
