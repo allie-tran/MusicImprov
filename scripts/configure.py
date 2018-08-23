@@ -7,11 +7,11 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--train",
                     help="To train",
                     action="store_true")
+parser.add_argument("--train_latent",
+                    help="To train latent model",
+                    action="store_true")
 parser.add_argument("--tuning",
                     help="Hyperparameters tuning",
-                    action="store_true")
-parser.add_argument("--eval",
-                    help="Get score for test set",
                     action="store_true")
 parser.add_argument("--generate",
                     help="To generate results",
@@ -25,11 +25,6 @@ parser.add_argument("-d", "--dataset",
                     nargs='?',
                     default='midi',
                     help='The folder containing the training mxl files.')
-# Others
-parser.add_argument("-v", "--verbose",
-                    type=int,
-                    nargs='?',
-                    default=2)
 
 args = parser.parse_args()
 
@@ -54,7 +49,18 @@ class Arguments(object):
         self.steps_per_bar = 8
 
     def set(self, exp_num=0, epochs=100, batch_size=64, num_units=1024, learning_rate=0.0005, dropout=0.5,
-            early_stopping=5):
+            early_stopping=5, reuse=False):
+
+        if reuse:
+            self.exp_name = 'Exp' + str(exp_num)
+            self.weight_path = 'weights/' + self.exp_name
+            self.generate_path = 'generated/' + self.exp_name
+
+            with open(self.weight_path + '/info.txt') as f:
+                self.__dict__ = json.load(f)
+
+            return
+
         if exp_num > 0:
             self.exp_name = 'Exp' + str(exp_num)
         else:
@@ -63,7 +69,9 @@ class Arguments(object):
         self.weight_path = 'weights/' + self.exp_name
         self.generate_path = 'generated/' + self.exp_name
 
-        if not os.path.isfile(self.weight_path + '/' + 'Model_final.hdf5'):
+        if not os.path.isfile(self.weight_path + '/' + 'LatentInputModel_best.hdf5'):
+            args.train_latent = True
+        if not os.path.isfile(self.weight_path + '/' + 'PredictModel_best.hdf5'):
             args.train = True
 
         if not os.path.isdir(self.weight_path):

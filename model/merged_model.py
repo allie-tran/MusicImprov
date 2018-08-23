@@ -46,7 +46,7 @@ class MergedModel(ToSeqModel):
 			epochs=paras.epochs,
 			shuffle=True,
 			batch_size=paras.batch_size,
-			verbose=2
+			verbose=0
 		)
 		return history
 
@@ -55,23 +55,21 @@ class MergedModel(ToSeqModel):
 		output = self.model.predict(inputs)[0]
 		return output
 
-	def get_score(self, inputs, outputs):
-		y_pred = []
-		y_true = []
+	def get_score(self, inputs, outputs, get_examples=False):
 		refs = []
 		hyps = []
-		for i in range(len(inputs)):
+		examples = []
+		for i in range(len(inputs[0])):
 			prediction = self.generate(array([inputs[i]]))
 			pred = one_hot_decode(prediction)
 			true = one_hot_decode(outputs[i])
 			refs.append([[str(j) for j in true]])
 			hyps.append([str(j) for j in pred])
 			if i < 10:
-				print 'y=%s, yhat=%s' % ([n - 3 for n in true], [n - 3 for n in pred])
-			y_pred += pred
-			y_true += true
-		print 'f1 score', micro_f1_score(y_pred, y_true)
-		print 'Bleu score', calculate_bleu_scores(refs, hyps)
+				examples.append([[n - 3 for n in true], [n - 3 for n in pred]])
+		if get_examples:
+			return calculate_bleu_scores(refs, hyps), examples
+		return calculate_bleu_scores(refs, hyps)
 
 
 	def generate_from_primer(self, testscore, length=12 / paras.num_output_bars,
